@@ -6,6 +6,7 @@ import { AdminPlaceholderPage } from "@/pages/admin-placeholder-page"
 import { NotFoundPage } from "@/pages/not-found-page"
 import { ClinicLoginPage } from "@/portals/clinic/auth/login-page"
 import { SuperAdminLoginPage } from "@/portals/super-admin/auth/login-page"
+import { adminNavigation } from "@/config/admin-navigation"
 
 export const router = createBrowserRouter([
   { path: "/", element: <App /> },
@@ -16,10 +17,10 @@ export const router = createBrowserRouter([
     element: <AdminLayout />,
     children: [
       { index: true, element: <DashboardPage /> },
-      { path: "appointments", element: <AdminPlaceholderPage /> },
-      { path: "patients", element: <AdminPlaceholderPage /> },
-      { path: "team", element: <AdminPlaceholderPage /> },
-      { path: "settings", element: <AdminPlaceholderPage /> },
+      ...adminNavigation.filter((item) => item.href !== "/clinic").map((item) => ({
+        path: item.href.replace("/clinic/", ""),
+        element: <AdminPlaceholderPage />,
+      })),
     ],
   },
   // Temporary destination for the Super Admin login preview until its portal shell is implemented.
