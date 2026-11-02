@@ -2,7 +2,6 @@ import { Bell, ChevronLeft, ChevronRight, Moon, Search, Sun } from "lucide-react
 import { useLocation } from "react-router"
 import { adminNavigation } from "@/config/admin-navigation"
 import { LanguageSwitch } from "@/i18n/language-switch"
-import { useI18n } from "@/i18n/i18n-provider"
 
 type AdminHeaderProps = {
   theme: "light" | "dark"
@@ -13,7 +12,6 @@ type AdminHeaderProps = {
 
 export function AdminHeader({ theme, onToggleTheme, sidebarCollapsed, onToggleSidebar }: AdminHeaderProps) {
   const { pathname } = useLocation()
-  const { locale } = useI18n()
   const current = [...adminNavigation].sort((a, b) => b.href.length - a.href.length).find((item) => item.href === pathname)
   const title = current?.label ?? "Clinic workspace"
 
