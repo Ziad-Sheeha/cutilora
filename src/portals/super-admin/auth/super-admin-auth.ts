@@ -75,7 +75,7 @@ export async function logoutSuperAdmin() {
   if (!token) return
 
   try {
-    await fetch(API_BASE_URL + "/auth/logout", {
+    await fetch(API_BASE_URL + "/logout", {
       method: "POST",
       headers: { Accept: "application/json", Authorization: "Bearer " + token },
     })
