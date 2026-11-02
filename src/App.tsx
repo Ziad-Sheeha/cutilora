@@ -17,7 +17,7 @@ export function App() {
     <main className="min-h-svh bg-background text-foreground">
       <div className="mx-auto flex min-h-svh w-full max-w-6xl flex-col px-6 py-8 sm:px-10">
         <header className="flex items-center justify-between border-b pb-6">
-          <Link to="/" aria-label="Cutilora home"><BrandLogo className="h-9" imageClassName="h-9" /></Link>
+          <Link to="/" aria-label="Cutilora home"><BrandLogo className="h-12" imageClassName="h-12" /></Link>
           <div className="flex items-center gap-2 sm:gap-3">
             <span className="hidden rounded-full border px-3 py-1 text-xs font-medium text-muted-foreground sm:inline-flex">Clinic management platform</span>
             <button type="button" onClick={() => setTheme((current) => current === "light" ? "dark" : "light")} className="inline-flex size-10 items-center justify-center rounded-xl border bg-card text-foreground transition-colors hover:bg-muted" aria-label={theme === "light" ? "Switch to dark theme" : "Switch to light theme"} title={theme === "light" ? "Dark theme" : "Light theme"}>
