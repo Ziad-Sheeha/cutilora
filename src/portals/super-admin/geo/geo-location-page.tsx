@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react"
 import { Formik, Form, Field } from "formik"
 import * as Yup from "yup"
-import { Link, NavLink, Outlet, useNavigate, useParams } from "react-router"
+import { NavLink, useNavigate, useParams } from "react-router"
 import { ArrowLeft, ChevronRight, Globe2, LoaderCircle, MapPin, Pencil, Plus, RefreshCw, Search, Trash2 } from "lucide-react"
 import { appEnv } from "@/config/env"
 import { Button } from "@/components/ui/button"
@@ -26,7 +26,7 @@ const hierarchy: { kind: GeoKind; label: string }[] = [
   { kind: "cities", label: "Cities" }, { kind: "districts", label: "Districts" },
 ]
 
-function authHeaders(json = false): HeadersInit {
+function apiId(value: string): string | number { return /^\\d+$/.test(value) ? Number(value) : value }\nfunction authHeaders(json = false): HeadersInit {
   const token = window.sessionStorage.getItem("cutilora.super-admin.access-token")
   return { Accept: "application/json", ...(json ? { "Content-Type": "application/json" } : {}), ...(token ? { Authorization: "Bearer " + token } : {}) }
 }
@@ -134,7 +134,7 @@ export function GeoLocationPage() {
     setSaving(true); setError("")
     const body: Record<string, string> = { name: values.name.trim() }
     if (config.hasCode) body.code = (values.code ?? "").trim()
-    if (config.parentField && values.parentId) body[config.parentField] = values.parentId
+    if (config.parentField && values.parentId) body[config.parentField] = apiId(values.parentId)
     try {
       if (editing) await request(config.endpoint + "/" + encodeURIComponent(String(editing.id)), { method: "PUT", body: JSON.stringify(body) })
       else await request(config.endpoint, { method: "POST", body: JSON.stringify(body) })
