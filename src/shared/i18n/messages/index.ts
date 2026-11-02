@@ -1,3 +1,2 @@
-import en from "./en"
-import ar from "./ar"
-export { en, ar }
+export { messages } from "@/i18n/messages"
+export type { Locale } from "@/i18n/messages"

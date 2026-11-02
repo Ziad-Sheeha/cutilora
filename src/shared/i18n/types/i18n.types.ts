@@ -1,3 +1,4 @@
-export type Locale = "en" | "ar"
+import type { Locale } from "@/i18n/messages"
+export type { Locale }
 export type Direction = "ltr" | "rtl"
-export type TranslationDictionary = typeof import("../messages/en").default
+export type TranslationDictionary = (typeof import("@/i18n/messages").messages)[Locale]
