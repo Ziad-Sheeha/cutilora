@@ -1,7 +1,9 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react"
 import { en, ar } from "./messages"
 import type { Direction, Locale } from "./types/i18n.types"
-type Dictionary = typeof en
+
+type WidenStrings<T> = T extends string ? string : T extends object ? { [K in keyof T]: WidenStrings<T[K]> } : T
+type Dictionary = WidenStrings<typeof en>
 type I18nContextValue = { locale: Locale; direction: Direction; t: Dictionary; setLocale: (locale: Locale) => void; toggleLocale: () => void }
 const I18nContext = createContext<I18nContextValue | null>(null)
 const STORAGE_KEY = "cutilora.locale"
@@ -10,10 +12,10 @@ export function I18nProvider({ children }: { children: ReactNode }) {
  const [locale, setLocaleState] = useState<Locale>(getInitialLocale)
  const setLocale = useCallback((next: Locale) => setLocaleState(next), [])
  const toggleLocale = useCallback(() => setLocaleState((current) => current === "en" ? "ar" : "en"), [])
- const t = locale === "ar" ? ar : en
+ const t: Dictionary = locale === "ar" ? ar : en
  const direction: Direction = locale === "ar" ? "rtl" : "ltr"
  useEffect(() => { document.documentElement.lang = locale; document.documentElement.dir = direction; window.localStorage.setItem(STORAGE_KEY, locale) }, [locale, direction])
- const value = useMemo(() => ({ locale, direction, t, setLocale, toggleLocale }), [locale, direction, t, setLocale, toggleLocale])
+ const value = useMemo<I18nContextValue>(() => ({ locale, direction, t, setLocale, toggleLocale }), [locale, direction, t, setLocale, toggleLocale])
  return <I18nContext.Provider value={value}>{children}</I18nContext.Provider>
 }
-export function useI18n() { const value = useContext(I18nContext); if (!value) throw new Error("useI18n must be used within I18nProvider"); return value }
+export function useI18n(): I18nContextValue { const value = useContext(I18nContext); if (!value) throw new Error("useI18n must be used within I18nProvider"); return value }
