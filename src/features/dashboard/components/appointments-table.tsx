@@ -1,7 +1,54 @@
 import { memo } from "react"
 import { ArrowUpRight, MoreHorizontal } from "lucide-react"
 import { useI18n } from "@/i18n/i18n-provider"
-const appointments=[{patient:"Olivia Rhye",initials:"OR",service:"Laser hair removal",provider:"Dr. Ahmed",time:"09:30 AM",status:"checkedIn" as const,tone:"green"},{patient:"Phoenix Baker",initials:"PB",service:"Skin consultation",provider:"Dr. Mariam",time:"10:15 AM",status:"confirmed" as const,tone:"blue"},{patient:"Lana Steiner",initials:"LS",service:"Chemical peel",provider:"Dr. Ahmed",time:"11:00 AM",status:"pending" as const,tone:"amber"},{patient:"Demi Wilkinson",initials:"DW",service:"Hydrafacial",provider:"Dr. Nour",time:"11:45 AM",status:"confirmed" as const,tone:"blue"}]
+type AppointmentTone = "green" | "blue" | "amber"
+
+const appointments: {
+  patient: string
+  initials: string
+  service: string
+  provider: string
+  time: string
+  status: "checkedIn" | "confirmed" | "pending"
+  tone: AppointmentTone
+}[] = [
+  {
+    patient: "Olivia Rhye",
+    initials: "OR",
+    service: "Laser hair removal",
+    provider: "Dr. Ahmed",
+    time: "09:30 AM",
+    status: "checkedIn",
+    tone: "green",
+  },
+  {
+    patient: "Phoenix Baker",
+    initials: "PB",
+    service: "Skin consultation",
+    provider: "Dr. Mariam",
+    time: "10:15 AM",
+    status: "confirmed",
+    tone: "blue",
+  },
+  {
+    patient: "Lana Steiner",
+    initials: "LS",
+    service: "Chemical peel",
+    provider: "Dr. Ahmed",
+    time: "11:00 AM",
+    status: "pending",
+    tone: "amber",
+  },
+  {
+    patient: "Demi Wilkinson",
+    initials: "DW",
+    service: "Hydrafacial",
+    provider: "Dr. Nour",
+    time: "11:45 AM",
+    status: "confirmed",
+    tone: "blue",
+  },
+]
 const statusClasses: Record<"green" | "blue" | "amber", string>={green:"bg-emerald-50 text-emerald-700",blue:"bg-sky-50 text-sky-700",amber:"bg-amber-50 text-amber-700"}
 export const AppointmentsTable=memo(function AppointmentsTable(){
  const {t}=useI18n();const d=t.dashboard
