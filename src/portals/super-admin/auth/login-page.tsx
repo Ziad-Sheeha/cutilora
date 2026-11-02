@@ -1,7 +1,8 @@
 import { Link } from "react-router"
-import { ArrowLeft, LockKeyhole, ShieldCheck } from "lucide-react"
+import { ArrowLeft, LockKeyhole } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { LoginForm } from "@/portals/shared/auth/login-form"
+import symbolDark from "@/assets/3-symbol/cutilora-symbol-reversed-for-dark-bg.png"
 
 export function SuperAdminLoginPage() {
   return (
@@ -9,7 +10,7 @@ export function SuperAdminLoginPage() {
       <div className="w-full max-w-md">
         <Link to="/" className="mb-8 inline-flex items-center gap-2 text-sm text-slate-400 hover:text-white"><ArrowLeft className="size-4" /> Back to Cutilora</Link>
         <div className="mb-7 text-center">
-          <div className="mx-auto flex size-14 items-center justify-center rounded-2xl border border-violet-400/20 bg-violet-400/10 text-violet-300"><ShieldCheck className="size-7" /></div>
+          <img src={symbolDark} alt="Cutilora" className="mx-auto size-16 object-contain" />
           <p className="mt-5 text-xs font-semibold tracking-[0.2em] text-violet-300">CUTILORA INTERNAL</p>
           <h1 className="mt-2 text-3xl font-semibold text-white">Platform administration</h1>
           <p className="mt-2 text-sm text-slate-400">Restricted access for authorized platform administrators.</p>
