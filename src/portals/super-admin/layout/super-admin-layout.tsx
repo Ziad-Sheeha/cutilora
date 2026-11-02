@@ -5,6 +5,8 @@ import { BrandLogo } from "@/components/brand/brand-logo"
 import { logoutSuperAdmin } from "@/portals/super-admin/auth/super-admin-auth"
 import { LanguageSwitch } from "@/i18n/language-switch"
 import { useI18n } from "@/i18n/i18n-provider"
+import { LanguageSwitch } from "@/i18n/language-switch"
+import { useI18n } from "@/i18n/i18n-provider"
 
 const groups = [
   { label: t.admin.platform, items: [{ label: t.admin.overview, href: "/super-admin", icon: LayoutDashboard }] },
@@ -17,7 +19,8 @@ const groups = [
 export function SuperAdminLayout() {
   const [collapsed, setCollapsed] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
-  const navigate = useNavigate()\n  const { t, locale } = useI18n()
+  const navigate = useNavigate()
+  const { t, locale } = useI18n()\n  const { t, locale } = useI18n()
 
   async function handleLogout() {
     await logoutSuperAdmin()
