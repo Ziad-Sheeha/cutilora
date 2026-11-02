@@ -5,7 +5,7 @@ import { LoginForm } from "@/portals/shared/auth/login-form"
 
 export function SuperAdminLoginPage() {
   return (
-    <main className="flex min-h-svh items-center justify-center bg-[#0B1020] px-5 py-12">
+    <main data-theme="dark" className="flex min-h-svh items-center justify-center bg-[#0B1020] px-5 py-12">
       <div className="w-full max-w-md">
         <Link to="/" className="mb-8 inline-flex items-center gap-2 text-sm text-slate-400 hover:text-white"><ArrowLeft className="size-4" /> Back to Cutilora</Link>
         <div className="mb-7 text-center">
