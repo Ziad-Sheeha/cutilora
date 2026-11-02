@@ -1,2 +1,3 @@
 import type { ReactNode } from "react"
-export function AppProviders({ children }: { children: ReactNode }) { return <>{children}</> }
+import { I18nProvider } from "@/i18n/i18n-provider"
+export function AppProviders({ children }: { children: ReactNode }) { return <I18nProvider>{children}</I18nProvider> }
