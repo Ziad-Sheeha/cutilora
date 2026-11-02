@@ -38,7 +38,7 @@ export function GeoLocationPage() {
  const parentRecords = parents.data ?? []
  const parentNames = useMemo(() => new Map(parentRecords.map((record) => [String(record.id), record.name])), [parentRecords])
  const visibleRecords = useMemo(() => records.filter((record) => [record.name, record.code, config.parentField ? parentNames.get(String(record[config.parentField])) : ""].some((value) => String(value ?? "").toLocaleLowerCase(locale).includes(search.toLocaleLowerCase(locale)))), [records, search, config.parentField, parentNames, locale])
- const schema = geoLocationSchema(kind, { nameRequired: t.geo.name + " مطلوب", codeRequired: t.geo.code + " مطلوب", parentRequired: t.geo.parentRequired })
+ const schema = geoLocationSchema(kind, { nameRequired: t.geo.nameRequired, codeRequired: t.geo.codeRequired, parentRequired: t.geo.parentRequired })
 
  useEffect(() => { if (selected && detail.data) setFormOpen(true) }, [selected, detail.data])
  useEffect(() => { setSearch(""); setNotice(""); setActionError(""); setSelected(null); setFormOpen(false); setDeleteTarget(null) }, [kind])
@@ -51,7 +51,7 @@ export function GeoLocationPage() {
  const busy = mutations.create.isPending || mutations.update.isPending || mutations.remove.isPending
  const apiError = list.error || parents.error || detail.error
  const errorText = actionError || (apiError instanceof Error ? apiError.message : "")
- const translateError = (message: string) => message === "NETWORK_ERROR" ? (isArabic ? "تعذر الاتصال بالخادم. تحقق من الاتصال بالإنترنت." : "Could not connect to the server. Check your connection.") : message.startsWith("HTTP_") ? (isArabic ? "تعذر تنفيذ الطلب. راجع البيانات وحاول مرة أخرى." : "The request failed. Check the details and try again.") : message === "UNEXPECTED_RESPONSE" ? (isArabic ? "استجابة الخادم غير متوقعة." : "The server returned an unexpected response.") : message
+ const translateError = (message: string) => message === "NETWORK_ERROR" ? t.geo.networkError : message.startsWith("HTTP_") ? t.geo.httpError : message === "UNEXPECTED_RESPONSE" ? t.geo.unexpectedResponse : message
 
  async function submit(values: FormValues) {
   setActionError("")

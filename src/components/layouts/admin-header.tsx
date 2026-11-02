@@ -15,7 +15,7 @@ export function AdminHeader({ theme, onToggleTheme, sidebarCollapsed, onToggleSi
   const { pathname } = useLocation()
   const { t, locale } = useI18n()
   const current = [...adminNavigation].sort((a, b) => b.href.length - a.href.length).find((item) => item.href === pathname)
-  const title = current ? t.clinic.labels[current.label as keyof typeof t.clinic.labels] : (locale === "ar" ? "مساحة العيادة" : "Clinic workspace")
+  const title = current ? t.clinic.labels[current.label as keyof typeof t.clinic.labels] : t.common.clinicWorkspace
 
   return (
     <header dir={locale === "ar" ? "rtl" : "ltr"} className="sticky top-0 z-20 flex h-[76px] items-center justify-between border-b bg-card/95 px-5 backdrop-blur sm:px-8">
