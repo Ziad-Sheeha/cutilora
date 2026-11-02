@@ -1,0 +1,48 @@
+import axios, { AxiosError, type AxiosRequestConfig } from "axios"
+import { appEnv } from "@/config/env"
+import { beginLoading, endLoading, pushToast, store } from "@/store"
+
+export type ApiError = { message: string; code?: string; status?: number; errors?: Record<string, string[]>; requestId?: string }
+export function normalizeApiError(error: unknown): ApiError {
+  if (axios.isAxiosError(error)) {
+    const data = error.response?.data as Record<string, unknown> | undefined
+    const validation = data?.errors && typeof data.errors === "object" ? data.errors as Record<string, string[]> : undefined
+    return {
+      message: typeof data?.message === "string" ? data.message : error.response ? "The request could not be completed." : "Network error. Check your connection and try again.",
+      code: typeof data?.code === "string" ? data.code : undefined,
+      status: error.response?.status,
+      errors: validation,
+      requestId: typeof data?.request_id === "string" ? data.request_id : undefined,
+    }
+  }
+  return { message: error instanceof Error ? error.message : "An unexpected error occurred." }
+}
+let activeRequests = 0
+export const api = axios.create({
+  baseURL: appEnv.apiBaseUrl.replace(/\/$/, ""),
+  timeout: 20_000,
+  headers: { Accept: "application/json", "Content-Type": "application/json" },
+})
+api.interceptors.request.use((config) => {
+  activeRequests += 1
+  store.dispatch(beginLoading())
+  return config
+})
+api.interceptors.response.use(
+  (response) => { activeRequests = Math.max(0, activeRequests - 1); store.dispatch(endLoading()); return response },
+  (error: AxiosError) => {
+    activeRequests = Math.max(0, activeRequests - 1)
+    store.dispatch(endLoading())
+    const normalized = normalizeApiError(error)
+    if (normalized.status === 401) {
+      store.dispatch(pushToast({ id: crypto.randomUUID(), kind: "warning", title: "Session expired", description: "Please sign in again." }))
+    } else if (normalized.status !== 422) {
+      store.dispatch(pushToast({ id: crypto.randomUUID(), kind: "error", title: "Request failed", description: normalized.message }))
+    }
+    return Promise.reject(normalized)
+  },
+)
+export async function apiGet<T>(url: string, config?: AxiosRequestConfig) { const response = await api.get<T>(url, config); return response.data }
+export async function apiPost<T, D = unknown>(url: string, data?: D, config?: AxiosRequestConfig) { const response = await api.post<T>(url, data, config); return response.data }
+export async function apiPatch<T, D = unknown>(url: string, data?: D, config?: AxiosRequestConfig) { const response = await api.patch<T>(url, data, config); return response.data }
+export async function apiDelete<T>(url: string, config?: AxiosRequestConfig) { const response = await api.delete<T>(url, config); return response.data }
