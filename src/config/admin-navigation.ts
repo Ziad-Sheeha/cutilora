@@ -7,9 +7,9 @@ export type AdminNavigationItem = {
 }
 
 export const adminNavigation: AdminNavigationItem[] = [
-  { label: "Overview", href: "/admin", icon: LayoutDashboard },
-  { label: "Appointments", href: "/admin/appointments", icon: CalendarDays },
-  { label: "Patients", href: "/admin/patients", icon: Users },
-  { label: "Team & access", href: "/admin/team", icon: Users },
-  { label: "Settings", href: "/admin/settings", icon: Settings },
+  { label: "Overview", href: "/clinic", icon: LayoutDashboard },
+  { label: "Appointments", href: "/clinic/appointments", icon: CalendarDays },
+  { label: "Patients", href: "/clinic/patients", icon: Users },
+  { label: "Team & access", href: "/clinic/team", icon: Users },
+  { label: "Settings", href: "/clinic/settings", icon: Settings },
 ]
