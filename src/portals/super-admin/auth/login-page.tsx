@@ -1,7 +1,7 @@
 import { Link } from "react-router"
 import { ArrowLeft, LockKeyhole } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
-import { LoginForm } from "@/portals/shared/auth/login-form"
+import { SuperAdminLoginForm } from "@/portals/super-admin/auth/super-admin-login-form"
 import symbolDark from "@/assets/3-symbol/cutilora-symbol-reversed-for-dark-bg.png"
 
 export function SuperAdminLoginPage() {
@@ -15,7 +15,7 @@ export function SuperAdminLoginPage() {
           <h1 className="mt-2 text-3xl font-semibold text-white">Platform administration</h1>
           <p className="mt-2 text-sm text-slate-400">Restricted access for authorized platform administrators.</p>
         </div>
-        <Card className="border-slate-700 bg-[#141A33] text-slate-100"><CardContent className="p-6 sm:p-8"><div className="mb-6 flex items-center gap-2 text-sm font-medium text-slate-300"><LockKeyhole className="size-4 text-violet-300" /> Administrator sign in</div><LoginForm portalName="Super Admin" /></CardContent></Card>
+        <Card className="border-slate-700 bg-[#141A33] text-slate-100"><CardContent className="p-6 sm:p-8"><div className="mb-6 flex items-center gap-2 text-sm font-medium text-slate-300"><LockKeyhole className="size-4 text-violet-300" /> Administrator sign in</div><SuperAdminLoginForm /></CardContent></Card>
         <p className="mt-6 text-center text-xs text-slate-500">This portal is separate from clinic workspaces.</p>
       </div>
     </main>
