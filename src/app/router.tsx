@@ -22,6 +22,8 @@ export const router = createBrowserRouter([
       { path: "settings", element: <AdminPlaceholderPage /> },
     ],
   },
+  // Temporary destination for the Super Admin login preview until its portal shell is implemented.
+  { path: "/super-admin", element: <AdminPlaceholderPage /> },
   // Preserve the previous preview URL while moving the portal to its explicit namespace.
   { path: "/admin/*", element: <Navigate to="/clinic" replace /> },
   { path: "*", element: <NotFoundPage /> },
