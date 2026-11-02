@@ -10,6 +10,7 @@ import { SuperAdminLoginPage } from "@/portals/super-admin/auth/login-page"
 import { SuperAdminGuard } from "@/portals/super-admin/auth/super-admin-guard"
 import { SuperAdminLayout } from "@/portals/super-admin/layout/super-admin-layout"
 import { SuperAdminModulePage, SuperAdminOverviewPage } from "@/portals/super-admin/pages/super-admin-pages"
+import { GeoLocationPage } from "@/portals/super-admin/geo/geo-location-page"
 import { adminNavigation } from "@/config/admin-navigation"
 
 export const router = createBrowserRouter([
@@ -41,6 +42,8 @@ export const router = createBrowserRouter([
         { path: "access", element: <SuperAdminModulePage moduleKey="access" /> },
         { path: "audit", element: <SuperAdminModulePage moduleKey="audit" /> },
         { path: "settings", element: <SuperAdminModulePage moduleKey="settings" /> },
+        { path: "geo-location", element: <Navigate to="/super-admin/geo-location/countries" replace /> },
+        { path: "geo-location/:kind", element: <GeoLocationPage /> },
       ],
     }],
   },
