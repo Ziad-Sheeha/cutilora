@@ -32,7 +32,7 @@ export function ClinicModulePage(){
  const ui=t.clinic.ui
  const [rows,setRows]=useState(()=>demoRows[slug]??demoRows.patients)
  const [query,setQuery]=useState("")
- const [filter,setFilter]=useState(moduleText.filters[0])
+ const [filter,setFilter]=useState<string>(moduleText.filters[0])
  const [modal,setModal]=useState<"create"|"edit"|"view"|null>(null)
  const [selected,setSelected]=useState<Row|null>(null)
  const [form,setForm]=useState<Record<string,string>>({})
