@@ -1,0 +1,5 @@
+import { memo } from "react"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
+import type { ConfirmDialogProps } from "./confirm-dialog.types"
+export const ConfirmDialog = memo(function ConfirmDialog({ open, title, description, confirmLabel = "Confirm", cancelLabel = "Cancel", isLoading = false, destructive = false, onOpenChange, onConfirm }: ConfirmDialogProps) { return <Dialog open={open} onOpenChange={(next) => { if (!isLoading) onOpenChange(next) }}><DialogContent><DialogHeader><DialogTitle>{title}</DialogTitle>{description && <DialogDescription>{description}</DialogDescription>}</DialogHeader><DialogFooter><Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isLoading}>{cancelLabel}</Button><Button type="button" variant={destructive ? "destructive" : "default"} onClick={onConfirm} disabled={isLoading}>{confirmLabel}</Button></DialogFooter></DialogContent></Dialog> })

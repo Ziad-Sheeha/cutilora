@@ -1,0 +1,1 @@
+export type ConfirmDialogProps = { open: boolean; title: string; description?: string; confirmLabel?: string; cancelLabel?: string; isLoading?: boolean; destructive?: boolean; onOpenChange: (open: boolean) => void; onConfirm: () => void }
