@@ -12,6 +12,9 @@ type AdminSidebarProps = {
 }
 
 export function AdminSidebar({ collapsed = false, onNavigate }: AdminSidebarProps) {
+  const dispatch = useAppDispatch()
+  const currentBranchId = useAppSelector((state) => state.ui.currentBranchId)
+
   return (
     <aside className={`flex h-full flex-col border-r bg-card transition-[width] duration-200 ${collapsed ? "w-[76px]" : "w-full"}`}>
       <div className={`flex h-[76px] shrink-0 items-center border-b ${collapsed ? "justify-center px-2" : "px-6"}`}>
