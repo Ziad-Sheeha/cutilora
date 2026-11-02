@@ -6,7 +6,7 @@ import { BrandLogo } from "@/components/brand/brand-logo"
 export function AdminSidebar() {
   return (
     <aside className="flex h-full w-full flex-col border-r bg-card">
-      <div className="flex h-[76px] items-center border-b px-6"><BrandLogo imageClassName="h-11" /></div>
+      <div className="flex h-[76px] items-center border-b px-6"><BrandLogo imageClassName="h-14" /></div>
       <div className="border-b p-4">
         <button type="button" className="flex w-full items-center gap-3 rounded-xl border bg-background p-3 text-left transition-colors hover:bg-muted">
           <span className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-sm font-semibold text-primary">NC</span>
