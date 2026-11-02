@@ -7,27 +7,41 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        primary: "bg-primary text-white shadow-sm hover:bg-[#5B2FDB]",
-        secondary: "border bg-card text-foreground hover:bg-muted",
-        ghost: "text-muted-foreground hover:bg-muted hover:text-foreground",
-        danger: "bg-red-600 text-white hover:bg-red-700",
+        default: "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90",
+        primary: "bg-primary text-primary-foreground shadow-sm hover:bg-primary/90",
+        destructive: "bg-error text-white shadow-sm hover:bg-error/90",
+        danger: "bg-error text-white shadow-sm hover:bg-error/90",
+        outline: "border border-input bg-background text-foreground shadow-sm hover:bg-muted",
+        secondary: "border border-border bg-card text-foreground shadow-sm hover:bg-muted",
+        ghost: "text-foreground hover:bg-muted",
+        link: "text-primary underline-offset-4 hover:underline",
       },
       size: {
-        sm: "h-9 px-3",
-        md: "h-10 px-4",
-        lg: "h-11 px-5",
-        icon: "size-10",
+        sm: "h-9 rounded-lg px-3",
+        md: "h-10 px-4 py-2",
+        lg: "h-11 rounded-xl px-5",
+        icon: "size-10 shrink-0",
       },
     },
-    defaultVariants: { variant: "primary", size: "md" },
+    defaultVariants: { variant: "default", size: "md" },
   },
 )
 
-export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement>, VariantProps<typeof buttonVariants> {}
+export interface ButtonProps
+  extends ButtonHTMLAttributes<HTMLButtonElement>,
+    VariantProps<typeof buttonVariants> {}
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, type = "button", ...props }, ref) => (
-    <button ref={ref} type={type} className={cn(buttonVariants({ variant, size }), className)} {...props} />
+    <button
+      ref={ref}
+      type={type}
+      className={cn(buttonVariants({ variant, size }), className)}
+      {...props}
+    />
   ),
 )
+
 Button.displayName = "Button"
+
+export { buttonVariants }
