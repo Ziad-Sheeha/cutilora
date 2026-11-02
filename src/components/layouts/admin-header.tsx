@@ -1,6 +1,8 @@
 import { Bell, ChevronLeft, ChevronRight, Moon, Search, Sun } from "lucide-react"
 import { useLocation } from "react-router"
 import { adminNavigation } from "@/config/admin-navigation"
+import { LanguageSwitch } from "@/i18n/language-switch"
+import { useI18n } from "@/i18n/i18n-provider"
 
 type AdminHeaderProps = {
   theme: "light" | "dark"
@@ -11,6 +13,7 @@ type AdminHeaderProps = {
 
 export function AdminHeader({ theme, onToggleTheme, sidebarCollapsed, onToggleSidebar }: AdminHeaderProps) {
   const { pathname } = useLocation()
+  const { locale } = useI18n()
   const current = [...adminNavigation].sort((a, b) => b.href.length - a.href.length).find((item) => item.href === pathname)
   const title = current?.label ?? "Clinic workspace"
 
@@ -25,7 +28,7 @@ export function AdminHeader({ theme, onToggleTheme, sidebarCollapsed, onToggleSi
           <h1 className="mt-1 truncate text-lg font-semibold">{title}</h1>
         </div>
       </div>
-      <div className="flex items-center gap-2 sm:gap-3">
+      <div className="flex items-center gap-2 sm:gap-3"><LanguageSwitch />
         <button type="button" onClick={onToggleTheme} aria-label={theme === "light" ? "Switch to dark theme" : "Switch to light theme"} title={theme === "light" ? "Dark theme" : "Light theme"} className="flex size-10 items-center justify-center rounded-xl border text-muted-foreground transition-colors hover:bg-muted">
           {theme === "light" ? <Moon className="size-4" /> : <Sun className="size-4" />}
         </button>
