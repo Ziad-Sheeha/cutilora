@@ -14,6 +14,10 @@ npm install
 npm run dev
 ```
 
+## Environment configuration
+
+Copy `.env.example` to `.env` and set `VITE_API_BASE_URL` to your Laravel API URL. The default frontend API prefix is `/api/v1`.
+
 ## Quality checks
 
 ```bash
