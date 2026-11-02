@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react"
 import { messages, type Locale } from "./messages"
-type I18nContextValue = { locale: Locale; direction: "ltr" | "rtl"; setLocale: (locale: Locale) => void; toggleLocale: () => void; t: typeof messages.en }
+type TranslationDictionary = (typeof messages)[Locale]
+type I18nContextValue = { locale: Locale; direction: "ltr" | "rtl"; setLocale: (locale: Locale) => void; toggleLocale: () => void; t: TranslationDictionary }
 const I18nContext = createContext<I18nContextValue | null>(null)
 function getLocale(): Locale { return window.localStorage.getItem("cutilora-locale") === "ar" ? "ar" : "en" }
 export function I18nProvider({ children }: { children: ReactNode }) {
