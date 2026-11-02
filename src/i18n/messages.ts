@@ -1,0 +1,25 @@
+export type Locale = "en" | "ar"
+const clinicEn = {
+ groups: { Workspace: "Workspace", "Clinic operations": "Clinic operations", Management: "Management", Configuration: "Configuration" },
+ labels: { Overview: "Overview", Appointments: "Appointments", Patients: "Patients", "Clinical records": "Clinical records", "Services & catalog": "Services & catalog", "Packages & memberships": "Packages & memberships", "Billing & payments": "Billing & payments", "Team & access": "Team & access", "Reports & analytics": "Reports & analytics", Notifications: "Notifications", Branches: "Branches", "Clinic settings": "Clinic settings" },
+ header: "Clinic portal / Workspace", branch: "Current branch", signOut: "Sign out"
+}
+const clinicAr = {
+ groups: { Workspace: "مساحة العمل", "Clinic operations": "عمليات العيادة", Management: "الإدارة", Configuration: "الإعدادات" },
+ labels: { Overview: "نظرة عامة", Appointments: "المواعيد", Patients: "المرضى", "Clinical records": "السجلات الطبية", "Services & catalog": "الخدمات", "Packages & memberships": "الباقات والعضويات", "Billing & payments": "الفواتير والمدفوعات", "Team & access": "الفريق والصلاحيات", "Reports & analytics": "التقارير والتحليلات", Notifications: "الإشعارات", Branches: "الفروع", "Clinic settings": "إعدادات العيادة" },
+ header: "بوابة العيادة / مساحة العمل", branch: "الفرع الحالي", signOut: "تسجيل الخروج"
+}
+export const messages = {
+ en: {
+  common: { language: "العربية", search: "Search", refresh: "Refresh", actions: "Actions", cancel: "Cancel", save: "Save changes", create: "Create", edit: "Edit", delete: "Delete", loading: "Loading…", noResults: "No matching records", noRecords: "No records yet", dismiss: "Dismiss", confirmDelete: "Delete", saving: "Saving…" },
+  geo: { module: "Geo Location", description: "Manage the geographic hierarchy used across Cutilora.", countries: "Countries", governorates: "Governorates", cities: "Cities", districts: "Districts", country: "Country", governorate: "Governorate", city: "City", district: "District", name: "Name", code: "Code", add: "Add", searchPlaceholder: "Search…", id: "ID", parent: "Parent", selectParent: "Select parent", createTitle: "Create", editTitle: "Edit", nameRequired: "Name is required.", codeRequired: "Code is required.", parentRequired: "Please select a parent.", created: "Created successfully.", updated: "Updated successfully.", deleted: "Deleted successfully.", deleteTitle: "Confirm deletion", deleteDescription: "This action cannot be undone. The API may reject deletion if child records depend on this record.", emptyHint: "Create the first record to get started.", apiError: "Something went wrong. Please try again.", platformData: "Platform data" },
+  clinic: clinicEn,
+  admin: { workspace: "Workspace", superAdmin: "Super administrator", signOut: "Sign out", platform: "Platform", organization: "Organization", identity: "Identity & access", governance: "Governance", overview: "Overview", tenants: "Tenants", clinics: "Clinics", branches: "Branches", users: "Platform users", access: "Roles & permissions", audit: "Audit & security", settings: "Platform settings", geo: "Geo Location", header: "Platform administration", subheader: "Global operations and governance" }
+ },
+ ar: {
+  common: { language: "English", search: "بحث", refresh: "تحديث", actions: "الإجراءات", cancel: "إلغاء", save: "حفظ التعديلات", create: "إضافة", edit: "تعديل", delete: "حذف", loading: "جاري التحميل…", noResults: "لا توجد نتائج مطابقة", noRecords: "لا توجد سجلات حتى الآن", dismiss: "إغلاق", confirmDelete: "تأكيد الحذف", saving: "جاري الحفظ…" },
+  geo: { module: "المواقع الجغرافية", description: "إدارة التسلسل الجغرافي المستخدم في منصة كيوتيلورا.", countries: "الدول", governorates: "المحافظات", cities: "المدن", districts: "الأحياء", country: "الدولة", governorate: "المحافظة", city: "المدينة", district: "الحي", name: "الاسم", code: "الكود", add: "إضافة", searchPlaceholder: "ابحث…", id: "المعرّف", parent: "العنصر الرئيسي", selectParent: "اختر العنصر الرئيسي", createTitle: "إضافة", editTitle: "تعديل", nameRequired: "الاسم مطلوب.", codeRequired: "الكود مطلوب.", parentRequired: "من فضلك اختر العنصر الرئيسي.", created: "تمت الإضافة بنجاح.", updated: "تم التعديل بنجاح.", deleted: "تم الحذف بنجاح.", deleteTitle: "تأكيد الحذف", deleteDescription: "لا يمكن التراجع عن هذا الإجراء. قد يرفض الخادم الحذف إذا كانت هناك عناصر فرعية مرتبطة بهذا السجل.", emptyHint: "ابدأ بإضافة أول سجل.", apiError: "حدث خطأ. حاول مرة أخرى.", platformData: "بيانات المنصة" },
+  clinic: clinicAr,
+  admin: { workspace: "مساحة العمل", superAdmin: "مدير المنصة", signOut: "تسجيل الخروج", platform: "المنصة", organization: "المؤسسات", identity: "الهوية والصلاحيات", governance: "الحوكمة", overview: "نظرة عامة", tenants: "العملاء", clinics: "العيادات", branches: "الفروع", users: "مستخدمو المنصة", access: "الأدوار والصلاحيات", audit: "سجل التدقيق والأمان", settings: "إعدادات المنصة", geo: "المواقع الجغرافية", header: "إدارة المنصة", subheader: "العمليات والحوكمة المركزية" }
+ }
+} as const
