@@ -2,6 +2,7 @@ import { createBrowserRouter, Navigate } from "react-router"
 import { App } from "@/App"
 import { AdminLayout } from "@/components/layouts/admin-layout"
 import { DashboardPage } from "@/features/dashboard/pages/dashboard-page"
+import { ClinicModulePage } from "@/features/clinic/pages/clinic-module-page"
 import { AdminPlaceholderPage } from "@/pages/admin-placeholder-page"
 import { NotFoundPage } from "@/pages/not-found-page"
 import { ClinicLoginPage } from "@/portals/clinic/auth/login-page"
@@ -19,13 +20,11 @@ export const router = createBrowserRouter([
       { index: true, element: <DashboardPage /> },
       ...adminNavigation.filter((item) => item.href !== "/clinic").map((item) => ({
         path: item.href.replace("/clinic/", ""),
-        element: <AdminPlaceholderPage />,
+        element: <ClinicModulePage />,
       })),
     ],
   },
-  // Temporary destination for the Super Admin login preview until its portal shell is implemented.
   { path: "/super-admin", element: <AdminPlaceholderPage /> },
-  // Preserve the previous preview URL while moving the portal to its explicit namespace.
   { path: "/admin/*", element: <Navigate to="/clinic" replace /> },
   { path: "*", element: <NotFoundPage /> },
 ])
