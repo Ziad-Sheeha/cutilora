@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react"
 import { Formik, Form, Field } from "formik"
-import { NavLink, useNavigate, useParams } from "react-router"
+import { NavLink, useParams } from "react-router"
 import { Globe2, LoaderCircle, MapPin, Pencil, Plus, RefreshCw, Search, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -21,7 +21,6 @@ export function GeoLocationPage() {
  const kind = kinds.includes(rawKind as GeoKind) ? rawKind as GeoKind : "countries"
  const config = geoConfigs[kind]
  const { t, locale } = useI18n()
- const navigate = useNavigate()
  const list = useGeoList(config.endpoint)
  const parents = useGeoList(config.parent ? geoConfigs[config.parent].endpoint : "")
  const mutations = useGeoMutations(config.endpoint)
