@@ -1,7 +1,7 @@
 import { appEnv } from "@/config/env"
 
 const TOKEN_KEY = "cutilora.super-admin.access-token"
-const API_BASE_URL = appEnv.apiBaseUrl.replace(/\\/$/, "")
+const API_BASE_URL = appEnv.apiBaseUrl.replace(/\/$/, "")
 
 type LoginResponse = {
   access_token?: string
@@ -42,7 +42,7 @@ function getErrorMessage(payload: unknown, fallback: string) {
 export async function loginSuperAdmin(email: string, password: string) {
   let response: Response
   try {
-    response = await fetch(`${API_BASE_URL}/auth/platform/login`, {
+    response = await fetch(\`\${API_BASE_URL}/auth/platform/login\`, {
       method: "POST",
       headers: { "Content-Type": "application/json", Accept: "application/json" },
       body: JSON.stringify({ email, password }),
@@ -75,9 +75,9 @@ export async function logoutSuperAdmin() {
   if (!token) return
 
   try {
-    await fetch(`${API_BASE_URL}/auth/logout`, {
+    await fetch(\`\${API_BASE_URL}/auth/logout\`, {
       method: "POST",
-      headers: { Accept: "application/json", Authorization: `Bearer ${token}` },
+      headers: { Accept: "application/json", Authorization: \`Bearer \${token}\` },
     })
   } catch {
     // Local session is cleared even if the network logout request fails.
