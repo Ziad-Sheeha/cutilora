@@ -1,4 +1,4 @@
-import { forwardRef, useState, type ButtonHTMLAttributes } from "react"
+import { forwardRef, useState, type ButtonHTMLAttributes, type MouseEvent } from "react"
 import { cn } from "@/lib/utils"
 
 export interface SwitchProps extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, "onChange"> {
@@ -12,7 +12,7 @@ export const Switch = forwardRef<HTMLButtonElement, SwitchProps>(
     const [internalChecked, setInternalChecked] = useState(defaultChecked)
     const isChecked = checked ?? internalChecked
 
-    function handleClick(event: React.MouseEvent<HTMLButtonElement>) {
+    function handleClick(event: MouseEvent<HTMLButtonElement>) {
       onClick?.(event)
       if (event.defaultPrevented || disabled) return
 
