@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { NavLink, Outlet, useNavigate } from "react-router"
-import { Activity, Building2, ChevronLeft, ChevronRight, LayoutDashboard, LogOut, Menu, Settings, ShieldCheck, Users, X } from "lucide-react"
+import { Activity, Building2, ChevronLeft, ChevronRight, LayoutDashboard, LogOut, MapPinned, Menu, Settings, ShieldCheck, Users, X } from "lucide-react"
 import { BrandLogo } from "@/components/brand/brand-logo"
 import { logoutSuperAdmin } from "@/portals/super-admin/auth/super-admin-auth"
 
@@ -8,6 +8,7 @@ const groups = [
   { label: "Platform", items: [{ label: "Overview", href: "/super-admin", icon: LayoutDashboard }] },
   { label: "Organization", items: [{ label: "Tenants", href: "/super-admin/tenants", icon: Building2 }, { label: "Clinics", href: "/super-admin/clinics", icon: Building2 }, { label: "Branches", href: "/super-admin/branches", icon: Building2 }] },
   { label: "Identity & access", items: [{ label: "Platform users", href: "/super-admin/users", icon: Users }, { label: "Roles & permissions", href: "/super-admin/access", icon: ShieldCheck }] },
+  { label: "Platform data", items: [{ label: "Geo Location", href: "/super-admin/geo-location", icon: MapPinned }] },
   { label: "Governance", items: [{ label: "Audit & security", href: "/super-admin/audit", icon: Activity }, { label: "Platform settings", href: "/super-admin/settings", icon: Settings }] },
 ]
 
