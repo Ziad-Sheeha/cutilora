@@ -1,4 +1,4 @@
-import { Activity, BarChart3, Bell, CalendarDays, ClipboardList, CreditCard, LayoutDashboard, Package, Settings, ShieldCheck, Stethoscope, Users, Workflow, Building2, type LucideIcon } from "lucide-react"
+import {  BarChart3, Bell, CalendarDays, ClipboardList, CreditCard, LayoutDashboard, Package, Settings, ShieldCheck, Stethoscope, Users,  Building2, type LucideIcon } from "lucide-react"
 
 export type AdminNavigationItem = {
   label: string
