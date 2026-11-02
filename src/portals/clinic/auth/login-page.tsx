@@ -2,13 +2,15 @@ import { Link } from "react-router"
 import { ArrowLeft, CalendarDays, ShieldCheck, Users } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { LoginForm } from "@/portals/shared/auth/login-form"
+import { BrandLogo } from "@/components/brand/brand-logo"
+import darkLogo from "@/assets/1-logo-horizontal/cutilora-logo-horizontal-reversed-for-dark-bg.png"
 
 export function ClinicLoginPage() {
   return (
     <main className="grid min-h-svh bg-background lg:grid-cols-2">
       <section className="relative hidden overflow-hidden bg-[#17112D] p-12 text-white lg:flex lg:flex-col lg:justify-between">
         <div className="absolute -right-32 -top-32 size-96 rounded-full bg-[#6C3EF2]/30 blur-3xl" />
-        <Link to="/" className="relative text-2xl font-bold tracking-tight">Cutilora<span className="text-[#9B7BFF]">.</span></Link>
+        <Link to="/" className="relative" aria-label="Cutilora home"><img src={darkLogo} alt="Cutilora" className="h-10 w-auto" /></Link>
         <div className="relative max-w-lg">
           <p className="text-sm font-semibold text-[#C5B5FF]">CLINIC PORTAL</p>
           <h1 className="mt-5 text-4xl font-semibold leading-tight">Your clinic, thoughtfully connected.</h1>
@@ -24,7 +26,7 @@ export function ClinicLoginPage() {
       <section className="flex items-center justify-center px-5 py-12 sm:px-10">
         <div className="w-full max-w-md">
           <Link to="/" className="mb-10 inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground lg:hidden"><ArrowLeft className="size-4" /> Back to home</Link>
-          <div className="mb-8"><p className="text-sm font-semibold text-primary">CLINIC PORTAL</p><h2 className="mt-3 text-3xl font-semibold tracking-tight">Welcome back</h2><p className="mt-2 text-sm text-muted-foreground">Sign in with the account provided by your clinic.</p></div>
+          <div className="mb-8"><BrandLogo className="mb-7" imageClassName="h-9" /><p className="text-sm font-semibold text-primary">CLINIC PORTAL</p><h2 className="mt-3 text-3xl font-semibold tracking-tight">Welcome back</h2><p className="mt-2 text-sm text-muted-foreground">Sign in with the account provided by your clinic.</p></div>
           <Card><CardContent className="p-6 sm:p-8"><LoginForm portalName="Clinic Portal" /></CardContent></Card>
           <p className="mt-6 text-center text-xs text-muted-foreground">Need access? Contact your clinic administrator.</p>
         </div>
