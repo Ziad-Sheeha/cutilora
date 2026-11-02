@@ -10,7 +10,7 @@ export function LoginForm({ portalName }: LoginFormProps) {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isSubmitting] = useState(false)
   const [message, setMessage] = useState("")
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
