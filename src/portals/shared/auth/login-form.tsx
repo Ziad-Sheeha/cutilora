@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from "react"
-import { Eye, EyeOff, LoaderCircle, LockKeyhole, Mail } from "lucide-react"
+import { useNavigate } from "react-router"
+import { Eye, EyeOff, LockKeyhole, Mail } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -10,12 +11,13 @@ export function LoginForm({ portalName }: LoginFormProps) {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
-  const [isSubmitting] = useState(false)
-  const [message, setMessage] = useState("")
+  const navigate = useNavigate()
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    setMessage("Authentication is not connected yet. This is a UI preview.")
+
+    // Development-only preview access. This does not authenticate the user.
+    navigate(portalName === "Super Admin" ? "/super-admin" : "/clinic")
   }
 
   return (
@@ -35,9 +37,8 @@ export function LoginForm({ portalName }: LoginFormProps) {
           <button type="button" onClick={() => setShowPassword((visible) => !visible)} aria-label={showPassword ? "Hide password" : "Show password"} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">{showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}</button>
         </div>
       </div>
-      {message && <p role="status" className="rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-900">{message}</p>}
-      <Button type="submit" size="lg" className="w-full" disabled={isSubmitting}>{isSubmitting && <LoaderCircle className="size-4 animate-spin" />}Sign in to {portalName}</Button>
-      <p className="text-center text-xs leading-5 text-muted-foreground">Secure access for authorized {portalName} users only.</p>
+      <Button type="submit" size="lg" className="w-full">Sign in to {portalName}</Button>
+      <p className="text-center text-xs leading-5 text-muted-foreground">Development preview access only. Authentication is not connected.</p>
     </form>
   )
 }
