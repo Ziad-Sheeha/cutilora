@@ -16,7 +16,7 @@ npm run dev
 
 ## Environment configuration
 
-Copy `.env.example` to `.env` and set `VITE_API_BASE_URL` to your Laravel API URL. The default frontend API prefix is `/api/v1`.
+Copy `.env.example` to `.env` and set `VITE_API_BASE_URL` to the hosted Laravel API origin and version prefix (for example, `https://api.example.com/v1`). The API path does not assume an `/api` segment. Never commit the real `.env` file or credentials.
 
 ## Quality checks
 
@@ -31,31 +31,30 @@ npm run build
 src/
   app/                  # Router and application-level setup
   components/
-    layouts/            # Shared page shells (admin portal)
+    layouts/            # Portal layout shells
     shared/             # Reusable business-agnostic components
-    ui/                 # Low-level design-system primitives
+    ui/                 # Reusable design-system primitives
+  portals/
+    clinic/             # Clinic portal pages and authentication UI
+    super-admin/        # Platform administration pages and authentication UI
+    shared/             # Shared portal-level UI such as the login form
   config/               # Navigation and application configuration
-  features/
-    dashboard/          # Dashboard-specific pages and components
-  hooks/                # Shared React hooks
+  features/             # Feature modules (currently clinic dashboard preview)
   lib/                  # Utilities and API infrastructure
   pages/                # Route-level fallback and placeholder pages
-  types/                # Shared TypeScript types
 ```
-
-Feature code should live inside its feature folder. Reusable components belong in `components/shared` or `components/ui`; avoid importing one feature's internals directly into another feature.
 
 ## Routes
 
 - `/` — Public landing page
-- `/admin` — Clinic admin dashboard preview
-- `/admin/appointments`
-- `/admin/patients`
-- `/admin/team`
-- `/admin/settings`
+- `/clinic/login` — Clinic Portal login UI
+- `/clinic` — Clinic dashboard preview
+- `/clinic/appointments`, `/clinic/patients`, `/clinic/team`, `/clinic/settings` — Clinic module placeholders
+- `/super-admin/login` — Separate Cutilora Super Admin login UI
+- `/admin/*` — Legacy preview route redirected to `/clinic`
 
-The Admin Login navigation currently opens a **frontend-only preview**. It is not authentication. Do not use sample screens to access real patient data. Authentication, tenant resolution, role/permission enforcement, and live data must be integrated with the Laravel API before production use.
+The login screens are **frontend-only UI previews**. They do not authenticate users, issue sessions/tokens, or enforce authorization. The clinic dashboard still uses sample data. Before production, integrate each portal with the agreed Laravel authentication contract and enforce portal access, tenant/clinic scope, roles, and permissions on the server. Do not use sample screens to access real patient data.
 
-## Brand and localization
+## UI system, brand and localization
 
-Brand tokens are defined in `src/index.css`. Inter is used for Latin text and Cairo for Arabic. The UI foundation is intended to support RTL/LTR; verify every component in both directions before production. Theme tokens support light and dark modes.
+The project uses Tailwind CSS v4 and shadcn-compatible component conventions, with reusable primitives under `src/components/ui`. Brand tokens are defined in `src/index.css`. Inter is used for Latin text and Cairo for Arabic. Verify RTL/LTR and accessibility behavior on real portal workflows before production. Theme tokens support light and dark modes.
