@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react"
 import { Formik, Form, Field } from "formik"
 import * as Yup from "yup"
 import { NavLink, useNavigate, useParams } from "react-router"
-import { ArrowLeft, ChevronRight, Globe2, LoaderCircle, MapPin, Pencil, Plus, RefreshCw, Search, Trash2 } from "lucide-react"
+import { Globe2, LoaderCircle, MapPin, Pencil, Plus, RefreshCw, Search, Trash2 } from "lucide-react"
 import { appEnv } from "@/config/env"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -132,7 +132,7 @@ export function GeoLocationPage() {
   }
   async function save(values: { name: string; code?: string; parentId?: string }) {
     setSaving(true); setError("")
-    const body: Record<string, string> = { name: values.name.trim() }
+    const body: Record<string, string | number> = { name: values.name.trim() }
     if (config.hasCode) body.code = (values.code ?? "").trim()
     if (config.parentField && values.parentId) body[config.parentField] = apiId(values.parentId)
     try {
