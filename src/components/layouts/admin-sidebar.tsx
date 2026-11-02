@@ -2,6 +2,9 @@ import { Activity, ChevronDown, LogOut, Moon, Sun } from "lucide-react"
 import { NavLink } from "react-router"
 import { adminNavigation, adminNavigationGroups } from "@/config/admin-navigation"
 import { BrandLogo } from "@/components/brand/brand-logo"
+import { Select } from "@/components/ui/select"
+import { setCurrentBranch } from "@/store"
+import { useAppDispatch, useAppSelector } from "@/store/hooks"
 
 type AdminSidebarProps = {
   collapsed?: boolean
@@ -15,10 +18,9 @@ export function AdminSidebar({ collapsed = false, onNavigate }: AdminSidebarProp
         {collapsed ? <span className="flex size-10 items-center justify-center rounded-xl bg-primary text-lg font-bold text-white" aria-label="Cutilora">C</span> : <BrandLogo imageClassName="h-11" />}
       </div>
       <div className={`border-b p-3 ${collapsed ? "flex justify-center" : "p-4"}`}>
-        <button type="button" title="Nova Clinic · Main branch" aria-label="Current clinic and branch" className={`flex items-center gap-3 rounded-xl border bg-background p-3 text-left transition-colors hover:bg-muted ${collapsed ? "size-11 justify-center p-0" : "w-full"}`}>
-          <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-sm font-semibold text-primary">NC</span>
-          {!collapsed && <><span className="min-w-0 flex-1"><span className="block truncate text-sm font-semibold">Nova Clinic</span><span className="block text-xs text-muted-foreground">Main branch</span></span><ChevronDown className="size-4 text-muted-foreground" /></>}
-        </button>
+        {collapsed
+          ? <span className="flex size-11 items-center justify-center rounded-xl bg-primary/10 text-sm font-bold text-primary" title="Branch context">BR</span>
+          : <div className="space-y-2"><label htmlFor="current-branch" className="px-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">Current branch</label><Select id="current-branch" aria-label="Current branch" value={currentBranchId ?? "branch-main"} onChange={(event) => { dispatch(setCurrentBranch(event.target.value)); onNavigate?.() }} className="h-12 w-full"><option value="branch-main">Nova Clinic · Main branch</option><option value="branch-new-cairo">Nova Clinic · New Cairo</option><option value="branch-alexandria">Nova Clinic · Alexandria</option></Select></div>}
       </div>
       <nav aria-label="Clinic navigation" className={`min-h-0 flex-1 space-y-5 overflow-y-auto py-4 ${collapsed ? "px-2" : "px-4"}`}>
         {adminNavigationGroups.map((group) => (
