@@ -26,7 +26,8 @@ const hierarchy: { kind: GeoKind; label: string }[] = [
   { kind: "cities", label: "Cities" }, { kind: "districts", label: "Districts" },
 ]
 
-function apiId(value: string): string | number { return /^\\d+$/.test(value) ? Number(value) : value }\nfunction authHeaders(json = false): HeadersInit {
+function apiId(value: string): string | number { return /^\d+$/.test(value) ? Number(value) : value }
+function authHeaders(json = false): HeadersInit {
   const token = window.sessionStorage.getItem("cutilora.super-admin.access-token")
   return { Accept: "application/json", ...(json ? { "Content-Type": "application/json" } : {}), ...(token ? { Authorization: "Bearer " + token } : {}) }
 }
