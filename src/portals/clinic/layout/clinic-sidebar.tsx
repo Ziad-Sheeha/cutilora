@@ -7,7 +7,7 @@ import { setCurrentBranch } from "@/store"
 import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { useI18n } from "@/i18n/i18n-provider"
 type AdminSidebarProps={collapsed?:boolean;onNavigate?:()=>void}
-export function AdminSidebar({collapsed=false,onNavigate}:AdminSidebarProps){
+export function ClinicSidebar({collapsed=false,onNavigate}:AdminSidebarProps){
  const dispatch=useAppDispatch();const currentBranchId=useAppSelector(state=>state.ui.currentBranchId);const {t,locale}=useI18n()
  return <aside dir={locale==="ar"?"rtl":"ltr"} className={`flex h-full flex-col border-r bg-card transition-[width] duration-200 ${collapsed?"w-[76px]":"w-full"}`}>
   <div className={`flex h-[76px] shrink-0 items-center border-b ${collapsed?"justify-center px-2":"px-6"}`}>{collapsed?<span className="flex size-10 items-center justify-center rounded-xl bg-primary text-lg font-bold text-white" aria-label="Cutilora">C</span>:<BrandLogo imageClassName="h-11"/>}</div>
