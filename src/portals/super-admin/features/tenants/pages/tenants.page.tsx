@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react"
-import { Link } from "react-router"
-import { ArrowDownUp, Building2, CheckCircle2, CircleAlert, Clock3, Plus, RefreshCw, Search, Users2 } from "lucide-react"
+import { Link, useNavigate } from "react-router"
+import { Building2, CheckCircle2, CircleAlert, Clock3, Plus, RefreshCw, Search, Users2, type LucideIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { DataTable, type DataTableColumn } from "@/components/ui/data-table"
@@ -25,6 +25,7 @@ function statusClass(status: string) {
 }
 export function TenantsPage() {
   const { locale } = useI18n()
+  const navigate = useNavigate()
   const ar = locale === "ar"
   const [search, setSearch] = useState("")
   const [debouncedSearch, setDebouncedSearch] = useState("")
@@ -73,7 +74,7 @@ export function TenantsPage() {
       setCreateOpen(false)
       setForm({ name: "", displayName: "", legalName: "", businessType: "single_clinic", industry: "aesthetic_medicine", email: "", phone: "", description: "" })
       store.dispatch(pushToast({ id: crypto.randomUUID(), kind: "success", title: ar ? "تم إنشاء المؤسسة بنجاح" : "Tenant created successfully" }))
-      window.location.assign("/super-admin/tenants/" + encodeURIComponent(created.id))
+      navigate("/super-admin/tenants/" + encodeURIComponent(created.id))
     } catch (error) {
       store.dispatch(pushToast({ id: crypto.randomUUID(), kind: "error", title: ar ? "تعذر إنشاء المؤسسة" : "Could not create tenant", description: error instanceof Error ? error.message : undefined }))
     } finally { setSaving(false) }
@@ -124,8 +125,7 @@ export function TenantsPage() {
     </Dialog>
   </div>
 }
-import { Building2 as BuildingIcon, CheckCircle2 as CheckIcon, Clock3 as ClockIcon, CircleAlert as AlertIcon } from "lucide-react"
-function Metric({ icon: Icon, label, value, hint, tone }: { icon: typeof BuildingIcon; label: string; value: string; hint: string; tone: "violet" | "emerald" | "amber" | "rose" }) {
+function Metric({ icon: Icon, label, value, hint, tone }: { icon: LucideIcon; label: string; value: string; hint: string; tone: "violet" | "emerald" | "amber" | "rose" }) {
   const tones = { violet: "bg-violet-500/10 text-violet-600", emerald: "bg-emerald-500/10 text-emerald-600", amber: "bg-amber-500/10 text-amber-600", rose: "bg-rose-500/10 text-rose-600" }
   return <div className="rounded-2xl border bg-card p-4 shadow-sm"><div className="flex items-center justify-between"><span className="text-xs font-medium text-muted-foreground">{label}</span><span className={"flex size-9 items-center justify-center rounded-xl " + tones[tone]}><Icon className="size-[18px]"/></span></div><p className="mt-3 text-2xl font-semibold tracking-tight tabular-nums">{value}</p><p className="mt-1 text-[11px] text-muted-foreground">{hint}</p></div>
 }
