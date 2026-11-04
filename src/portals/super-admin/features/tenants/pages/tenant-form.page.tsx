@@ -90,8 +90,11 @@ export function TenantFormPage() {
     ? ["البيانات الأساسية", "التواصل", "العنوان", "القانوني والعلامة", "التفضيلات"]
     : ["Basics", "Contact", "Location", "Legal & branding", "Preferences"]
 
-  function update<K extends keyof TenantFormValues>(section: K, key: keyof TenantFormValues[K], value: string) {
-    setValues((current) => ({ ...current, [section]: { ...current[section], [key]: value } } as TenantFormValues))
+  function update<K extends "contact" | "address" | "legal" | "branding" | "preferences">(section: K, key: keyof TenantFormValues[K], value: string) {
+    setValues((current) => ({
+      ...current,
+      [section]: { ...(current[section] as Record<string, unknown>), [key]: value },
+    }))
   }
   function updateTop(key: "name" | "displayName" | "legalName" | "businessType" | "description" | "industry", value: string) {
     setValues((current) => ({ ...current, [key]: value }))
