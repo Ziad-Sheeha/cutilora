@@ -59,7 +59,7 @@ function ParentName({
 }) {
   const query = useGeoDetail(geoConfigs[kind].endpoint, id || undefined)
 
-  if (!id) return <span className="text-muted-foreground">—</span>
+  if (relation) return <span className="min-w-0"><span className="block font-medium">{locale === "ar" ? relation.name_ar : relation.nameEn}</span>{relation.country && <span className="mt-0.5 block text-xs text-muted-foreground">{locale === "ar" ? relation.country.name_ar : relation.country.nameEn}</span>}</span>\n  if (!id) return <span className="text-muted-foreground">—</span>
   if (query.isLoading) {
     return <span className="inline-block h-4 w-24 animate-pulse rounded bg-muted" />
   }
@@ -97,7 +97,7 @@ export function GeoLocationPage() {
   const singular = t.geo[config.singularKey]
 
   const schema = geoLocationSchema(kind, {
-    nameRequired: t.geo.nameRequired,
+    nameRequired: t.geo.nameRequired,\n    nameEnInvalid: t.geo.nameEnInvalid,\n    nameArInvalid: t.geo.nameArInvalid,
     codeRequired: t.geo.codeRequired,
     codeInvalid: t.geo.codeInvalid,
     parentRequired: t.geo.parentRequired,
