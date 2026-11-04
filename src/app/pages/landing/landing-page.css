@@ -285,3 +285,30 @@
   .landing-contact-section { margin-bottom: 70px; padding: 35px 22px; }
   .landing-contact-form { padding: 17px; }
 }
+
+
+@keyframes landing-section-reveal {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@supports (animation-timeline: view()) {
+  .landing-feature-card, .landing-journey-card, .landing-structure-section,
+  .landing-faq-item, .landing-contact-form {
+    animation: landing-section-reveal .7s ease both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 28%;
+  }
+}
+.landing-faq-item:hover { border-color: rgba(184,157,255,.28); }
+.structure-level { transition: transform .25s,border-color .25s,background .25s; }
+.structure-level:hover { transform: translateY(-2px); border-color: rgba(190,164,255,.48); background: rgba(58,44,82,.95); }
+.landing-contact-form input:hover, .landing-contact-form textarea:hover { border-color: rgba(194,177,238,.3); }
+@media (prefers-reduced-motion: reduce) {
+  .landing-shell *, .landing-shell *::before, .landing-shell *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    animation-timeline: auto !important;
+  }
+}
