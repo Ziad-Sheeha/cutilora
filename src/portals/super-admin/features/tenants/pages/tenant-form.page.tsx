@@ -45,7 +45,7 @@ export function TenantFormPage() {
     legal: "البيانات القانونية والهوية البصرية", legalHint: "بيانات التسجيل والضرائب وعناصر العلامة التجارية.",
     preferences: "إعدادات المؤسسة", preferencesHint: "المنطقة الزمنية واللغة والعملة وتفضيلات العرض.",
     name: "اسم المؤسسة", displayName: "الاسم الظاهر", legalName: "الاسم القانوني", businessType: "نوع النشاط",
-    singleClinic: "عيادة واحدة", clinicGroup: "مجموعة عيادات", industry: "المجال", description: "وصف المؤسسة",
+    industry: "المجال", description: "وصف المؤسسة",
     email: "البريد الإلكتروني", phone: "رقم الهاتف", alternatePhone: "رقم بديل", whatsapp: "واتساب", website: "الموقع الإلكتروني",
     country: "الدولة", governorate: "المحافظة", city: "المدينة", district: "الحي / المنطقة",
     addressLine1: "العنوان", addressLine2: "تفاصيل إضافية", building: "المبنى", floor: "الدور", unit: "الوحدة",
@@ -57,7 +57,7 @@ export function TenantFormPage() {
     next: "التالي", previous: "السابق", create: "إنشاء المؤسسة", save: "حفظ التغييرات", saving: "جارٍ الحفظ...",
     required: "مطلوب", optional: "اختياري", loading: "جارٍ تحميل بيانات المؤسسة...", loadError: "تعذر تحميل بيانات المؤسسة.",
     successCreate: "تم إنشاء المؤسسة بنجاح", successUpdate: "تم تحديث بيانات المؤسسة", error: "تعذر حفظ بيانات المؤسسة",
-    stepOf: "الخطوة", review: "راجع البيانات ثم احفظ", choose: "اختر", noOwner: "بيانات المالك غير موجودة ضمن مخطط الطلب المرسل؛ لم تتم إضافة حقول غير مؤكدة.",
+    stepOf: "الخطوة", review: "راجع البيانات ثم احفظ", choose: "اختر",
     invalidCoordinates: "الإحداثيات يجب أن تكون أرقامًا ضمن النطاق الصحيح.", invalidEmail: "أدخل بريدًا إلكترونيًا صحيحًا.", invalidUrl: "أدخل رابطًا صحيحًا يبدأ بـ https:// أو http://."
   } : {
     back: "Back to tenants", createTitle: "Create a tenant", editTitle: "Edit tenant profile",
@@ -69,7 +69,7 @@ export function TenantFormPage() {
     legal: "Legal & brand identity", legalHint: "Registration and tax details alongside brand assets.",
     preferences: "Organization preferences", preferencesHint: "Timezone, locale, currency and display preferences.",
     name: "Organization name", displayName: "Display name", legalName: "Legal name", businessType: "Business type",
-    singleClinic: "Single clinic", clinicGroup: "Clinic group", industry: "Industry", description: "Organization description",
+    industry: "Industry", description: "Organization description",
     email: "Email address", phone: "Phone number", alternatePhone: "Alternate phone", whatsapp: "WhatsApp", website: "Website",
     country: "Country", governorate: "Governorate", city: "City", district: "District",
     addressLine1: "Address line 1", addressLine2: "Address line 2", building: "Building", floor: "Floor", unit: "Unit",
