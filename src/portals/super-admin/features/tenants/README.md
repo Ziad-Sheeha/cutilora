@@ -10,14 +10,21 @@ The Platform Tenants feature is owned by the Super Admin portal. It manages tena
 - `pages/tenants.page.tsx`: searchable tenant directory, API-backed summary, and create flow.
 - `pages/tenant-details.page.tsx`: dedicated tenant workspace with Overview, Subscription, and Payments tabs.
 
-## Endpoints currently connected
+## API contract
 
-- `GET /platform/tenants`: tenant directory. The supplied response is a plain `data[]` payload, so search, filters, and pagination are performed client-side until a server pagination/query contract is supplied.
-- `POST /platform/tenants`: create tenant using the supplied request shape.
-- `GET /platform/tenants/{tenantId}`: tenant profile.
-- `PATCH /platform/tenants/{tenantId}/status`: activate a tenant with `{ "status": "active" }`.
-- `GET /platform/tenants/{tenantId}/subscription`: subscription profile.
-- `GET /platform/tenants/{tenantId}/subscription/payments`: payment history.
+All seven routes from the supplied Postman collection are represented in the API layer with their exact HTTP methods:
+
+- `GET /platform/tenants`: list tenants. The supplied list response is a plain `data[]` array; filtering and pagination currently happen client-side.
+- `POST /platform/tenants`: create tenant and owner.
+- `PATCH /platform/tenants/{tenantId}/status`: update status.
+- `GET /platform/tenants/{tenantId}`: tenant details.
+- `PATCH /platform/tenants/{tenantId}`: partial tenant profile update.
+- `PUT /platform/tenants/{tenantId}/subscription`: create or replace subscription.
+- `POST /platform/tenants/{tenantId}/subscription/payments`: record a subscription payment.
+- `GET /platform/tenants/{tenantId}/subscription`: read subscription details.
+- `GET /platform/tenants/{tenantId}/subscription/payments`: read payment history.
+
+The three write endpoints for profile, subscription, and payment are exposed through typed query mutations, but their write forms must use the exact request schemas from the collection. The provided subscription/payment examples are response-shaped examples, not sufficient proof of required request fields. The create example also needs confirmation of how the owner payload is represented.
 
 ## Boundaries and assumptions
 
