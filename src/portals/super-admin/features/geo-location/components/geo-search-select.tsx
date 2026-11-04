@@ -15,9 +15,10 @@ interface GeoSearchSelectProps {
   placeholder: string
   disabled?: boolean
   invalid?: boolean
+  parentId?: string
 }
 
-export function GeoSearchSelect({ kind, value, onChange, placeholder, disabled, invalid }: GeoSearchSelectProps) {
+export function GeoSearchSelect({ kind, value, onChange, placeholder, disabled, invalid, parentId }: GeoSearchSelectProps) {
   const { locale, t } = useI18n()
   const [open, setOpen] = useState(false)
   const [search, setSearch] = useState("")
@@ -25,7 +26,7 @@ export function GeoSearchSelect({ kind, value, onChange, placeholder, disabled, 
   const [page, setPage] = useState(1)
   const [loadedOptions, setLoadedOptions] = useState<GeoRecord[]>([])
   const config = geoConfigs[kind]
-  const query = useGeoList(config.endpoint, debouncedSearch, page, 10)
+  const query = useGeoList(config.endpoint, debouncedSearch, page, 10, config.parentField, parentId)
   const selectedQuery = useGeoDetail(config.endpoint, value || undefined)
   const options = loadedOptions.length ? loadedOptions : query.data?.items ?? []
   const selected = selectedQuery.data
@@ -63,7 +64,7 @@ export function GeoSearchSelect({ kind, value, onChange, placeholder, disabled, 
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button type="button" variant="outline" role="combobox" aria-expanded={open} aria-invalid={invalid} disabled={disabled} className="h-11 w-full justify-between font-normal">
+        <Button type="button" variant="outline" role="combobox" aria-expanded={open} aria-invalid={invalid} disabled={disabled || Boolean(config.parentField && !parentId)} className="h-11 w-full justify-between font-normal">
           <span className={selectedLabel ? "truncate text-foreground" : "truncate text-muted-foreground"}>{selectedLabel || placeholder}</span>
           <ChevronsUpDown className="ms-2 size-4 shrink-0 opacity-50" />
         </Button>
