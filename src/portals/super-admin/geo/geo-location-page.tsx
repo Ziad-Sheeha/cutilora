@@ -10,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useI18n } from "@/i18n/i18n-provider"
 import { geoConfigs, geoRecordName, type GeoId, type GeoKind, type GeoRecord } from "./geo-location.types"
 import { GeoSearchSelect } from "./geo-search-select"
-import { useGeoList, useGeoMutations } from "./use-geo-location"
+import { useGeoDetail, useGeoList, useGeoMutations } from "./use-geo-location"
 
 interface GeoFormValues {
   name_en: string
@@ -37,6 +37,7 @@ export function GeoLocationPage() {
   const [actionError, setActionError] = useState("")
   const [notice, setNotice] = useState("")
   const list = useGeoList(config.endpoint, debouncedSearch, page, PAGE_SIZE)
+  const detail = useGeoDetail(config.endpoint, selected?.id)
   const parentList = useGeoList(parentKind ? geoConfigs[parentKind].endpoint : "", "", 1, 100)
   const parentNames = useMemo(() => new Map((parentList.data?.items ?? []).map((item) => [item.id, geoRecordName(item, locale)])), [parentList.data, locale])
   const mutations = useGeoMutations(config.endpoint)
@@ -75,10 +76,10 @@ export function GeoLocationPage() {
   }), [kind, isArabic, parentKind])
 
   const initialValues: GeoFormValues = {
-    name_en: selected?.nameEn ?? "",
-    name_ar: selected?.name_ar ?? "",
-    code: selected?.code ?? "",
-    parentId: parentField && selected?.[parentField] ? String(selected[parentField]) : "",
+    name_en: detail.data?.nameEn ?? selected?.nameEn ?? "",
+    name_ar: detail.data?.name_ar ?? selected?.name_ar ?? "",
+    code: detail.data?.code ?? selected?.code ?? "",
+    parentId: parentField && (detail.data?.[parentField] ?? selected?.[parentField]) ? String(detail.data?.[parentField] ?? selected?.[parentField]) : "",
   }
 
   function openCreate() {
@@ -210,7 +211,7 @@ export function GeoLocationPage() {
       <Dialog open={formOpen} onOpenChange={(open) => { if (!busy) { setFormOpen(open); if (!open) setSelected(null) } }}>
         <DialogContent className="sm:max-w-xl">
           <DialogHeader><DialogTitle>{selected ? (isArabic ? "تعديل" : "Edit") : (isArabic ? "إضافة" : "Add")} {singular}</DialogTitle><DialogDescription>{isArabic ? "أدخل الاسم بالعربية والإنجليزية واربط السجل بمستواه الجغرافي الصحيح." : "Enter both localized names and select the correct parent geographic record."}</DialogDescription></DialogHeader>
-          {(
+          {selected && detail.isLoading ? <div className="flex justify-center p-10"><LoaderCircle className="size-5 animate-spin" /></div> : (
             <Formik key={`${kind}-${selected?.id ?? "new"}-${formOpen}`} initialValues={initialValues} enableReinitialize validationSchema={validationSchema} onSubmit={submit}>
               {({ errors, touched, isSubmitting, values, setFieldValue }) => (
                 <Form className="space-y-4">
