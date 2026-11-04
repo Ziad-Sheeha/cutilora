@@ -110,3 +110,11 @@ body {
   outline: 2px solid var(--ring);
   outline-offset: 2px;
 }
+
+
+@keyframes cutilora-toast-in {
+  from { opacity: 0; transform: translate3d(16px, -6px, 0) scale(.98); }
+  to { opacity: 1; transform: translate3d(0, 0, 0) scale(1); }
+}
+
+.toast-enter { animation: cutilora-toast-in 180ms ease-out both; }
