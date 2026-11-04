@@ -9,6 +9,10 @@ export function TenantPdfDocument({ values, tenantId, slug, locale }: {
   locale: string
 }) {
   const ar = locale === "ar"
+  const country = useGeoDetail(geoConfigs.countries.endpoint, values.address.countryId || undefined)
+  const governorate = useGeoDetail(geoConfigs.governorates.endpoint, values.address.governorateId || undefined)
+  const city = useGeoDetail(geoConfigs.cities.endpoint, values.address.cityId || undefined)
+  const district = useGeoDetail(geoConfigs.districts.endpoint, values.address.districtId || undefined)
   const groups = [
     { title: ar ? "الهوية الأساسية" : "Organization identity", rows: [
       [ar ? "اسم المؤسسة" : "Organization name", values.name],
