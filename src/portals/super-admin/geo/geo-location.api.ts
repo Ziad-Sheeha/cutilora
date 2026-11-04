@@ -41,45 +41,52 @@ function normalizeRelation(value: unknown): GeoRelation | null {
   }
 }
 
+function normalizeRelation(value: unknown): import("./geo-location.types").GeoRelation | null {
+  const relation = asObject(value)
+  if (!relation) return null
+  const nameEn = relation.name_en ?? relation.nameEn
+  const nameAr = relation.name_ar ?? relation.nameAr
+  if (typeof nameEn !== "string" || typeof nameAr !== "string") return null
+  const country = normalizeRelation(relation.country)
+  return {
+    ...(typeof relation.id === "string" || typeof relation.id === "number" ? { id: String(relation.id) } : {}),
+    nameEn,
+    name_ar: nameAr,
+    ...(typeof relation.code === "string" ? { code: relation.code } : {}),
+    ...(country ? { country } : {}),
+  }
+}
+
 function normalizeRecord(value: unknown): GeoRecord {
   const root = asObject(value)
   const nested = asObject(root?.data)
   const item = nested ?? root
-
   if (!item) throw new Error("UNEXPECTED_RESPONSE")
 
   const id = item.id
   const nameEn = item.nameEn ?? item.name_en
   const nameAr = item.name_ar ?? item.nameAr
-
-  if (
-    (typeof id !== "string" && typeof id !== "number") ||
-    typeof nameEn !== "string" ||
-    typeof nameAr !== "string"
-  ) {
+  if ((typeof id !== "string" && typeof id !== "number") || typeof nameEn !== "string" || typeof nameAr !== "string") {
     throw new Error("UNEXPECTED_RESPONSE")
   }
+
+  const governorate = normalizeRelation(item.governorate)
+  const city = normalizeRelation(item.city)
+  const country = normalizeRelation(item.country)
 
   return {
     id: String(id),
     nameEn,
     name_ar: nameAr,
     ...(typeof item.code === "string" ? { code: item.code } : {}),
-    ...(typeof item.country_id === "string" || typeof item.country_id === "number"
-      ? { country_id: String(item.country_id) }
-      : {}),
-    ...(typeof item.governorate_id === "string" || typeof item.governorate_id === "number"
-      ? { governorate_id: String(item.governorate_id) }
-      : {}),
-    ...(typeof item.city_id === "string" || typeof item.city_id === "number"
-      ? { city_id: String(item.city_id) }
-      : {}),
-    ...(typeof item.created_at === "string"
-      ? { created_at: item.created_at }
-      : {}),
-    ...(typeof item.updated_at === "string"
-      ? { updated_at: item.updated_at }
-      : {}),
+    ...(typeof item.country_id === "string" || typeof item.country_id === "number" ? { country_id: String(item.country_id) } : {}),
+    ...(typeof item.governorate_id === "string" || typeof item.governorate_id === "number" ? { governorate_id: String(item.governorate_id) } : {}),
+    ...(typeof item.city_id === "string" || typeof item.city_id === "number" ? { city_id: String(item.city_id) } : {}),
+    ...(governorate ? { governorate } : {}),
+    ...(city ? { city } : {}),
+    ...(country ? { country } : {}),
+    ...(typeof item.created_at === "string" ? { created_at: item.created_at } : {}),
+    ...(typeof item.updated_at === "string" ? { updated_at: item.updated_at } : {}),
   }
 }
 
