@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react"
 import { Link, useNavigate, useParams } from "react-router"
-import { ArrowLeft, ArrowRight, Building2, Check, ChevronRight, Globe2, Landmark, MapPin, Palette, Settings2, ShieldCheck, Sparkles, UserRound, WalletCards } from "lucide-react"
+import { ArrowLeft, ArrowRight, Building2, Check, ChevronRight, Landmark, MapPin, Settings2, ShieldCheck, Sparkles, UserRound } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
