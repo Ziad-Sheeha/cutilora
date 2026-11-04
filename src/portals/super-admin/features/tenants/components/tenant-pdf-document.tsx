@@ -2,9 +2,8 @@ import type { TenantFormValues } from "../types/tenant-form.types"
 import { useGeoDetail } from "@/portals/super-admin/features/geo-location/hooks/use-geo-location"
 import { geoConfigs, geoRecordName } from "@/portals/super-admin/features/geo-location/types/geo-location.types"
 
-export function TenantPdfDocument({ values, tenantId, slug, locale }: {
+export function TenantPdfDocument({ values, slug, locale }: {
   values: TenantFormValues
-  tenantId: string
   slug: string
   locale: string
 }) {
