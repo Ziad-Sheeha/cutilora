@@ -124,7 +124,12 @@ export function TenantFormPage() {
 
   function validateStep(index: number): string[] {
     if (index === 0) return [values.name.trim(), values.businessType.trim(), values.industry.trim()].every(Boolean) ? [] : [copy.requiredFields]
-    if (index === 1) return values.contact.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.contact.email.trim()) ? [copy.invalidEmail] : []
+    if (index === 1) {
+      if (values.contact.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.contact.email.trim())) return [copy.invalidEmail]
+      const website = values.contact.website.trim()
+      if (website) { try { const url = new URL(website); if (url.protocol !== "http:" && url.protocol !== "https:") return [copy.invalidUrl] } catch { return [copy.invalidUrl] } }
+      return []
+    }
     if (index === 2) {
       const latitude = values.address.latitude.trim()
       const longitude = values.address.longitude.trim()
