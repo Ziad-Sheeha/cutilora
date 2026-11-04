@@ -22,8 +22,8 @@ export function TenantPdfDocument({ values, slug, locale }: {
       [ar ? "الوصف" : "Description", values.description],
     ] },
     { title: ar ? "بيانات التواصل" : "Contact information", rows: [
-      ["Email", values.contact.email], ["Phone", values.contact.phone], ["Alternate phone", values.contact.alternatePhone],
-      ["WhatsApp", values.contact.whatsapp], ["Website", values.contact.website],
+      ["Email", values.contact.email], ["Phone", values.contact.phone ? values.contact.phoneCode + " " + values.contact.phone : ""], ["Alternate phone", values.contact.alternatePhone ? values.contact.phoneCode + " " + values.contact.alternatePhone : ""],
+      ["WhatsApp", values.contact.whatsapp ? values.contact.phoneCode + " " + values.contact.whatsapp : ""], ["Website", values.contact.website],
     ] },
     { title: ar ? "العنوان والموقع" : "Address & location", rows: [
       ["Country", country.data ? geoRecordName(country.data, locale) : ""], ["Governorate", governorate.data ? geoRecordName(governorate.data, locale) : ""], ["City", city.data ? geoRecordName(city.data, locale) : ""], ["District", district.data ? geoRecordName(district.data, locale) : ""], ["Address", values.address.addressLine1], ["Additional address", values.address.addressLine2],
