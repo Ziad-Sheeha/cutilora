@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react"
 import { useQuery } from "@tanstack/react-query"
 import {
-  Activity, AlertCircle, AlertTriangle, ArrowDownRight, ArrowUpRight, Clock3,
+  Activity, AlertCircle, AlertTriangle, Clock3,
   Database, Eye, FilterX, ListFilter, RefreshCw, Search, ShieldCheck, Signal,
 } from "lucide-react"
 
@@ -83,7 +83,7 @@ function StatCard({ title, value, icon: Icon, note, tone = "primary" }: {
         <p className="mt-2 text-3xl font-semibold tracking-tight tabular-nums">{value.toLocaleString()}</p>
         <p className="mt-2 text-xs text-muted-foreground">{note}</p>
       </div>
-      <span className={`flex size-11 shrink-0 items-center justify-center rounded-2xl bg-${tone}/10 text-${tone}`}>
+      <span className={`flex size-11 shrink-0 items-center justify-center rounded-2xl ${toneClass}`}>
         <Icon className="size-5" />
       </span>
     </CardContent>
@@ -128,7 +128,7 @@ export function AuditMonitoringPage() {
   const [statusCode, setStatusCode] = useState("")
   const [from, setFrom] = useState("")
   const [to, setTo] = useState("")
-  const [page, setPage] = useState(1)
+  const [page, setPage] = useState(1)\n  const [limit, setLimit] = useState(DEFAULT_LIMIT)
   const [selected, setSelected] = useState<MonitoringLog | null>(null)
   const fromIso = toIso(from)
   const toIsoValue = toIso(to, true)
@@ -144,9 +144,9 @@ export function AuditMonitoringPage() {
     refetchInterval: 30_000,
   })
   const logsQuery = useQuery({
-    queryKey: ["platform-monitoring", "logs", page, search, level, category, module, statusCode, fromIso, toIsoValue],
+    queryKey: ["platform-monitoring", "logs", page, limit, search, level, category, module, statusCode, fromIso, toIsoValue],
     queryFn: () => monitoringApi.logs({
-      page, limit: DEFAULT_LIMIT, search: search.trim() || undefined, level: level || undefined,
+      page, limit, search: search.trim() || undefined, level: level || undefined,
       category: category || undefined, module: module || undefined, statusCode: statusCode || undefined,
       from: fromIso, to: toIsoValue,
     }),
@@ -244,7 +244,7 @@ export function AuditMonitoringPage() {
         </div>
       </CardHeader>
       <CardContent className="p-3 sm:p-4">
-        {tab === "logs" ? <DataTable columns={columns} data={logs} getRowId={(row) => row.id} isLoading={logsQuery.isLoading} loadingLabel={t.loading} emptyState={<div className="p-12 text-center text-sm text-muted-foreground"><Activity className="mx-auto mb-3 size-8 opacity-40" />{t.noLogs}</div>} pagination={logsQuery.data ? { page: logsQuery.data.page, perPage: logsQuery.data.limit, total: logsQuery.data.total, totalKnown: logsQuery.data.totalKnown, hasNext: logsQuery.data.hasNext } : undefined} onPageChange={setPage} onPerPageChange={() => setPage(1)} /> :
+        {tab === "logs" ? <DataTable columns={columns} data={logs} getRowId={(row) => row.id} isLoading={logsQuery.isLoading} loadingLabel={t.loading} emptyState={<div className="p-12 text-center text-sm text-muted-foreground"><Activity className="mx-auto mb-3 size-8 opacity-40" />{t.noLogs}</div>} pagination={logsQuery.data ? { page: logsQuery.data.page, perPage: logsQuery.data.limit, total: logsQuery.data.total, totalKnown: logsQuery.data.totalKnown, hasNext: logsQuery.data.hasNext } : undefined} onPageChange={setPage} onPerPageChange={(next) => { setLimit(next); setPage(1) }} /> :
           <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_300px]"><div><MonitoringTimeline events={timeline} locale={locale} emptyLabel={timelineQuery.isLoading ? t.loading : t.noTimeline} /></div><aside className="rounded-xl bg-muted/40 p-4"><p className="mb-3 text-sm font-semibold">{t.eventVolume}</p><MiniBars data={stats?.timeline ?? []} locale={locale} /></aside></div>}
       </CardContent>
     </Card>}
