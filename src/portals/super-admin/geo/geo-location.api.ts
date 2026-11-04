@@ -272,7 +272,7 @@ export const geoLocationApi = {
     payload: GeoPayload,
   ) =>
     request<unknown>(`${endpoint}/${encodeURIComponent(String(id))}`, {
-      method: "PUT",
+      method: "PATCH",
       body: JSON.stringify(payload),
     }),
 
