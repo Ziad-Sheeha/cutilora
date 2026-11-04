@@ -6,7 +6,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { useI18n } from "@/i18n/i18n-provider"
 import { geoRecordName, type GeoId, type GeoKind } from "./geo-location.types"
 import { geoConfigs } from "./geo-location.types"
-import { useGeoList } from "./use-geo-location"
+import { useGeoDetail, useGeoList } from "./use-geo-location"
 
 interface GeoSearchSelectProps {
   kind: GeoKind
@@ -25,9 +25,9 @@ export function GeoSearchSelect({ kind, value, onChange, placeholder, disabled, 
   const [page, setPage] = useState(1)
   const config = geoConfigs[kind]
   const query = useGeoList(config.endpoint, debouncedSearch, page, 10)
-  const selectedQuery = useGeoList(config.endpoint, value, 1, 10)
+  const selectedQuery = useGeoDetail(config.endpoint, value || undefined)
   const options = query.data?.items ?? []
-  const selected = selectedQuery.data?.items.find((item) => item.id === value)
+  const selected = selectedQuery.data
   const selectedLabel = selected ? geoRecordName(selected, locale) : ""
 
   useEffect(() => {
