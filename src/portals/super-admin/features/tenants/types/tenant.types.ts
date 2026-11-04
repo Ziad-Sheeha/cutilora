@@ -64,6 +64,10 @@ export interface TenantListResult {
   page: number
   perPage: number
   total: number
+  totalTenants: number
+  availableStatuses: string[]
+  availablePlans: string[]
+  statusCounts: Record<string, number>
   totalKnown: boolean
   hasNext: boolean
 }
