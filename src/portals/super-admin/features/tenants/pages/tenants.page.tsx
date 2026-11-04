@@ -4,11 +4,8 @@ import { Building2, CheckCircle2, CircleAlert, Clock3, Plus, RefreshCw, Search, 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { DataTable, type DataTableColumn } from "@/components/ui/data-table"
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Textarea } from "@/components/ui/textarea"
 import { SelectMenu, SelectMenuContent, SelectMenuItem, SelectMenuTrigger, SelectMenuValue } from "@/components/ui/select-menu"
 import { useI18n } from "@/i18n/i18n-provider"
-import { pushToast, store } from "@/store"
 import { useTenants } from "../hooks/use-tenants"
 import type { Tenant } from "../types/tenant.types"
 import { TenantMetricCard } from "../components/tenant-metric-card"
@@ -31,11 +28,7 @@ export function TenantsPage() {
   const [plan, setPlan] = useState("")
   const [page, setPage] = useState(1)
   const [perPage, setPerPage] = useState(PAGE_SIZE)
-  const [createOpen, setCreateOpen] = useState(false)
-  const [saving, setSaving] = useState(false)
-  const [form, setForm] = useState({ name: "", displayName: "", legalName: "", businessType: "single_clinic", industry: "aesthetic_medicine", email: "", phone: "", description: "" })
   const list = useTenants({ page, perPage, search: debouncedSearch, status, plan })
-  const mutations = useTenantMutations()
   const records = list.data?.items ?? []
   const pagination = list.data ? { page: list.data.page, perPage: list.data.perPage, total: list.data.total, totalKnown: list.data.totalKnown, hasNext: list.data.hasNext } : undefined
 
