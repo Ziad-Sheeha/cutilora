@@ -125,11 +125,16 @@ function tenantPath(id: string): string { return "/platform/tenants/" + encodeUR
 
 export const tenantsApi = {
   list: async (params: { page: number; perPage: number; search?: string; status?: string; plan?: string }): Promise<TenantListResult> => {
-    const query = new URLSearchParams({ page: String(params.page), per_page: String(params.perPage) })
-    if (params.search) query.set("search", params.search)
-    if (params.status) query.set("status", params.status)
-    if (params.plan) query.set("plan", params.plan)
-    return listResult(await request("/platform/tenants?" + query.toString()), params.page, params.perPage)
+    const allItems = rowsFrom(await request("/platform/tenants")).map(normalizeTenant)
+    const search = (params.search ?? "").trim().toLocaleLowerCase()
+    const filtered = allItems.filter((tenant) => {
+      const matchesSearch = !search || [tenant.name, tenant.displayName, tenant.legalName, tenant.slug, tenant.contact.email]
+        .some((value) => (value ?? "").toLocaleLowerCase().includes(search))
+      return matchesSearch && (!params.status || tenant.status === params.status) && (!params.plan || tenant.plan === params.plan)
+    })
+    const start = (params.page - 1) * params.perPage
+    const items = filtered.slice(start, start + params.perPage)
+    return { items, page: params.page, perPage: params.perPage, total: filtered.length, totalKnown: true, hasNext: start + params.perPage < filtered.length }
   },
   get: async (id: string): Promise<Tenant> => {
     const payload = await request<unknown>(tenantPath(id))
