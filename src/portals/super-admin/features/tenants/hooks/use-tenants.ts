@@ -1,0 +1,33 @@
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { tenantsApi } from "../api/tenants.api"
+import type { TenantPayload } from "../types/tenant.types"
+
+export const tenantKeys = {
+  all: ["platform", "tenants"] as const,
+  lists: () => [...tenantKeys.all, "list"] as const,
+  list: (params: { page: number; perPage: number; search: string; status: string; plan: string }) => [...tenantKeys.lists(), params] as const,
+  detail: (id: string) => [...tenantKeys.all, "detail", id] as const,
+  subscription: (id: string) => [...tenantKeys.all, "subscription", id] as const,
+  payments: (id: string) => [...tenantKeys.all, "payments", id] as const,
+}
+export function useTenants(params: { page: number; perPage: number; search: string; status: string; plan: string }) {
+  return useQuery({ queryKey: tenantKeys.list(params), queryFn: () => tenantsApi.list(params), staleTime: 60_000, placeholderData: keepPreviousData })
+}
+export function useTenant(id: string) {
+  return useQuery({ queryKey: tenantKeys.detail(id), queryFn: () => tenantsApi.get(id), enabled: Boolean(id), staleTime: 60_000 })
+}
+export function useTenantSubscription(id: string) {
+  return useQuery({ queryKey: tenantKeys.subscription(id), queryFn: () => tenantsApi.subscription(id), enabled: Boolean(id), staleTime: 60_000 })
+}
+export function useTenantPayments(id: string) {
+  return useQuery({ queryKey: tenantKeys.payments(id), queryFn: () => tenantsApi.payments(id), enabled: Boolean(id), staleTime: 60_000 })
+}
+export function useTenantMutations() {
+  const client = useQueryClient()
+  const create = useMutation({ mutationFn: tenantsApi.create, onSuccess: () => client.invalidateQueries({ queryKey: tenantKeys.all }) })
+  const updateStatus = useMutation({ mutationFn: ({ id, status }: { id: string; status: string }) => tenantsApi.updateStatus(id, status), onSuccess: (_data, variables) => {
+    void client.invalidateQueries({ queryKey: tenantKeys.all })
+    void client.invalidateQueries({ queryKey: tenantKeys.detail(variables.id) })
+  } })
+  return { create, updateStatus }
+}
