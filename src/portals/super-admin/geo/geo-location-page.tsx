@@ -412,6 +412,7 @@ export function GeoLocationPage() {
           updatedAtLabel={t.geo.updatedAt}
           exportPdfLabel={t.geo.exportPdf}
           exportExcelLabel={t.geo.exportExcel}
+          exportPendingLabel={t.geo.exportPending}
           locale={locale}
         />
 
