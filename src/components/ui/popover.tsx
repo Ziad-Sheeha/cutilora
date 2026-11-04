@@ -12,7 +12,7 @@ export function PopoverContent({ className, align = "center", sideOffset = 4, ..
       <PopoverPrimitive.Content
         align={align}
         sideOffset={sideOffset}
-        className={cn("z-50 w-72 rounded-xl border bg-card p-4 text-foreground shadow-lg outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95", className)}
+        className={cn("z-[9999] w-72 rounded-xl border border-border bg-card p-4 text-foreground shadow-[0_16px_48px_rgba(15,23,42,0.22)] ring-1 ring-black/5 dark:shadow-[0_18px_52px_rgba(0,0,0,0.6)] outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95", className)}
         {...props}
       />
     </PopoverPrimitive.Portal>
