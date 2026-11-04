@@ -111,6 +111,13 @@ function tenantPath(id: string): string { return "/platform/tenants/" + encodeUR
 export const tenantsApi = {
   list: async (params: { page: number; perPage: number; search?: string; status?: string; plan?: string }): Promise<TenantListResult> => {
     const allItems = rowsFrom(await request("/platform/tenants")).map(normalizeTenant)
+    const availableStatuses = Array.from(new Set(allItems.map((tenant) => tenant.status))).sort()
+    const availablePlans = Array.from(new Set(allItems.map((tenant) => tenant.plan).filter(Boolean))).sort()
+    const statusCounts = allItems.reduce<Record<string, number>>((counts, tenant) => {
+      counts[tenant.status] = (counts[tenant.status] ?? 0) + 1
+      return counts
+    }, {})
+    const totalTenants = allItems.length
     const search = (params.search ?? "").trim().toLocaleLowerCase()
     const filtered = allItems.filter((tenant) => {
       const matchesSearch = !search || [tenant.name, tenant.displayName, tenant.legalName, tenant.slug, tenant.contact.email]
@@ -119,7 +126,7 @@ export const tenantsApi = {
     })
     const start = (params.page - 1) * params.perPage
     const items = filtered.slice(start, start + params.perPage)
-    return { items, page: params.page, perPage: params.perPage, total: filtered.length, totalKnown: true, hasNext: start + params.perPage < filtered.length }
+    return { items, page: params.page, perPage: params.perPage, total: filtered.length, totalTenants, availableStatuses, availablePlans, statusCounts, totalKnown: true, hasNext: start + params.perPage < filtered.length }
   },
   get: async (id: string): Promise<Tenant> => {
     const payload = await request<unknown>(tenantPath(id))
