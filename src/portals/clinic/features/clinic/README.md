@@ -5,7 +5,7 @@ The Clinic Portal navigation routes are implemented as static, interactive UI pr
 ## API integration boundary
 
 - Use `src/lib/api.ts` as the shared Axios client. It normalizes HTTP and validation errors, tracks in-flight requests, and dispatches global notifications for non-validation failures.
-- Use `src/features/clinic/api/endpoints.ts` as the initial endpoint map based on the current Trello contracts.
+- Use `src/portals/clinic/features/clinic/api/endpoints.ts` as the initial endpoint map based on the current Trello contracts.
 - Use React Query for remote/server state and Redux Toolkit for cross-cutting client state (UI loading, notifications, selected branch). Do not put server collections in Redux.
 - Replace demo records with typed query/mutation hooks only after the backend response envelope, pagination keys, enum values, and permission scopes are confirmed.
 - Mutations must invalidate affected queries and display success feedback. Validation errors (422) should map to fields and not be duplicated as global toasts.
