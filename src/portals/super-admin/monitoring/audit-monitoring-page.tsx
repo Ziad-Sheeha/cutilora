@@ -10,11 +10,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { DataTable, type DataTableColumn } from "@/components/ui/data-table"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
-import { Select } from "@/components/ui/select"
+import { SelectMenu, SelectMenuContent, SelectMenuItem, SelectMenuTrigger, SelectMenuValue } from "@/components/ui/select-menu"
+import { DatePicker } from "@/components/ui/date-picker"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Spinner } from "@/components/ui/spinner"
 import { Skeleton } from "@/components/ui/skeleton"
 import { useI18n } from "@/i18n/i18n-provider"
-import { monitoringApi, type MonitoringLog, type MonitoringStats } from "./monitoring.api"
+import { monitoringApi, type MonitoringLog, type MonitoringStats, type MonitoringTimelinePoint } from "./monitoring.api"
 import { MonitoringTimeline, type TimelineEvent } from "./monitoring-timeline"
 
 const DEFAULT_LIMIT = 10
@@ -33,7 +35,7 @@ const copy = {
     loadError: "Monitoring data could not be loaded.", retry: "Try again", noMessage: "No message provided", raw: "Raw event payload",
     request: "Request", response: "Response", metadata: "Metadata", duration: "Duration", endpoint: "Endpoint",
     all: "All", info: "Info", warning: "Warning", error: "Error", success: "Success", statusHint: "Filter by HTTP response status",
-    period: "Selected period", lastUpdated: "Auto-refreshes every 30 seconds", noData: "No data",
+    period: "Selected period", lastUpdated: "Auto-refreshes every 30 seconds", noData: "No data", dailyEvents: "Events per day", dailyErrors: "Errors",
   },
   ar: {
     eyebrow: "مراقبة المنصة", title: "سجل التدقيق والأمان", description: "راقب نشاط المنصة وأحداث النظام وافحص المشكلات التشغيلية.",
@@ -48,7 +50,7 @@ const copy = {
     loadError: "تعذر تحميل بيانات المراقبة.", retry: "إعادة المحاولة", noMessage: "لا توجد رسالة", raw: "بيانات الحدث الخام",
     request: "الطلب", response: "الاستجابة", metadata: "بيانات إضافية", duration: "المدة", endpoint: "المسار",
     all: "الكل", info: "معلومات", warning: "تحذير", error: "خطأ", success: "نجاح", statusHint: "تصفية حسب كود استجابة HTTP",
-    period: "الفترة المحددة", lastUpdated: "تحديث تلقائي كل 30 ثانية", noData: "لا توجد بيانات",
+    period: "الفترة المحددة", lastUpdated: "تحديث تلقائي كل 30 ثانية", noData: "لا توجد بيانات", dailyEvents: "الأحداث يوميًا", dailyErrors: "الأخطاء",
   },
 } as const
 
@@ -102,6 +104,17 @@ function MiniBars({ data, locale }: { data: MonitoringStats["timeline"]; locale:
         {item.errors > 0 && <div className="absolute bottom-0 w-full bg-error" style={{ height: `${item.errors / max * 100}%` }} />}
       </div>
       <span className="max-w-full truncate text-[10px] text-muted-foreground">{item.date ? new Intl.DateTimeFormat(locale === "ar" ? "ar-EG" : "en-GB", { day: "2-digit", month: "short" }).format(new Date(item.date)) : "—"}</span>
+    </div>)}
+  </div>
+}
+
+function DailyTimeline({ points, locale, emptyLabel, eventsLabel, errorsLabel }: { points: MonitoringTimelinePoint[]; locale: string; emptyLabel: string; eventsLabel: string; errorsLabel: string }) {
+  if (!points.length) return <div className="flex min-h-40 items-center justify-center text-sm text-muted-foreground">{emptyLabel}</div>
+  return <div className="space-y-3">
+    {points.map((point) => <div key={point.date} className="flex flex-wrap items-center gap-3 rounded-xl border border-border/70 p-3">
+      <div className="min-w-28 flex-1"><p className="text-sm font-semibold">{point.date ? new Intl.DateTimeFormat(locale === "ar" ? "ar-EG" : "en-GB", { day: "2-digit", month: "short", year: "numeric" }).format(new Date(point.date)) : "—"}</p></div>
+      <div className="flex items-center gap-1.5 text-sm"><Activity className="size-4 text-primary" /><span className="font-semibold tabular-nums">{point.count.toLocaleString()}</span><span className="text-xs text-muted-foreground">{eventsLabel}</span></div>
+      <div className="flex items-center gap-1.5 text-sm"><AlertCircle className="size-4 text-error" /><span className="font-semibold tabular-nums">{point.errors.toLocaleString()}</span><span className="text-xs text-muted-foreground">{errorsLabel}</span></div>
     </div>)}
   </div>
 }
@@ -168,7 +181,7 @@ export function AuditMonitoringPage() {
 
   const stats = statsQuery.data ?? viewQuery.data
   const logs = logsQuery.data?.items ?? []
-  const timelineEvents = timelineQuery.data ?? []
+  const timelinePoints = timelineQuery.data?.length ? timelineQuery.data : stats?.timeline ?? []
   const hasError = viewQuery.isError && statsQuery.isError && logsQuery.isError
   const errorMessage = [viewQuery.error, statsQuery.error, logsQuery.error].find(Boolean)
   const errorText = errorMessage instanceof Error && errorMessage.message === "UNAUTHENTICATED"
@@ -185,8 +198,8 @@ export function AuditMonitoringPage() {
     { id: "actions", header: t.actions, headerClassName: "text-end", cell: (row) => <div className="flex justify-end"><Button variant="ghost" size="sm" onClick={() => setSelected(row)}><Eye className="size-4" />{t.viewDetails}</Button></div> },
   ], [t])
 
-  const timeline: TimelineEvent[] = timelineEvents.map((event) => ({
-    id: event.id, date: event.date, level: event.level, category: event.category, message: event.message, module: event.module,
+  const recentEvents: TimelineEvent[] = logs.slice(0, 5).map((log) => ({
+    id: log.id, date: log.timestamp, level: log.level, category: log.category, message: log.message, module: log.module,
   }))
 
   function clearFilters() {
@@ -228,7 +241,7 @@ export function AuditMonitoringPage() {
       <Card><CardHeader className="pb-2"><CardTitle className="text-base">{t.eventVolume}</CardTitle><CardDescription>{t.period}</CardDescription></CardHeader><CardContent><MiniBars data={stats?.timeline ?? []} locale={locale} /></CardContent></Card>
       <Distribution title={t.byLevel} rows={stats?.byLevel ?? []} empty={t.noData} />
       <Distribution title={t.byCategory} rows={stats?.byCategory ?? []} empty={t.noData} />
-      <Card><CardHeader className="pb-2"><CardTitle className="text-base">{t.recentActivity}</CardTitle><CardDescription>{t.timeline}</CardDescription></CardHeader><CardContent><MonitoringTimeline events={timeline.slice(0, 5)} locale={locale} emptyLabel={timelineQuery.isLoading ? t.loading : t.noTimeline} /></CardContent></Card>
+      <Card><CardHeader className="pb-2"><CardTitle className="text-base">{t.recentActivity}</CardTitle><CardDescription>{t.logs}</CardDescription></CardHeader><CardContent><MonitoringTimeline events={recentEvents} locale={locale} emptyLabel={logsQuery.isLoading ? t.loading : t.noLogs} /></CardContent></Card>
     </div>}
 
     {(tab === "logs" || tab === "timeline") && <Card>
@@ -248,7 +261,7 @@ export function AuditMonitoringPage() {
       </CardHeader>
       <CardContent className="p-3 sm:p-4">
         {tab === "logs" ? <DataTable columns={columns} data={logs} getRowId={(row) => row.id} isLoading={logsQuery.isLoading} loadingLabel={t.loading} emptyState={<div className="p-12 text-center text-sm text-muted-foreground"><Activity className="mx-auto mb-3 size-8 opacity-40" />{t.noLogs}</div>} pagination={logsQuery.data ? { page: logsQuery.data.page, perPage: logsQuery.data.limit, total: logsQuery.data.total, totalKnown: logsQuery.data.totalKnown, hasNext: logsQuery.data.hasNext } : undefined} onPageChange={setPage} onPerPageChange={(next) => { setLimit(next); setPage(1) }} /> :
-          <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_300px]"><div><MonitoringTimeline events={timeline} locale={locale} emptyLabel={timelineQuery.isLoading ? t.loading : t.noTimeline} /></div><aside className="rounded-xl bg-muted/40 p-4"><p className="mb-3 text-sm font-semibold">{t.eventVolume}</p><MiniBars data={stats?.timeline ?? []} locale={locale} /></aside></div>}
+          <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_300px]"><div><DailyTimeline points={timelinePoints} locale={locale} emptyLabel={timelineQuery.isLoading ? t.loading : t.noTimeline} eventsLabel={t.dailyEvents} errorsLabel={t.dailyErrors} /></div><aside className="rounded-xl bg-muted/40 p-4"><p className="mb-3 text-sm font-semibold">{t.eventVolume}</p><MiniBars data={stats?.timeline ?? []} locale={locale} /></aside></div>}
       </CardContent>
     </Card>}
 
