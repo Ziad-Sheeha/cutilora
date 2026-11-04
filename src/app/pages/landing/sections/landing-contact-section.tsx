@@ -1,8 +1,8 @@
 import { useState, type FormEvent } from "react"
-import { ArrowUpRight, Mail, MessageSquareText, Send } from "lucide-react"
+import { Mail, MessageSquareText, Send } from "lucide-react"
 import type { LandingCopy } from "../landing-content"
 
-export function LandingContactSection({ copy, isArabic }: { copy: LandingCopy; isArabic: boolean }) {
+export function LandingContactSection({ copy }: { copy: LandingCopy }) {
   const [feedback, setFeedback] = useState<"idle" | "missing-config" | "prepared">("idle")
   const contactEmail = import.meta.env.VITE_CONTACT_EMAIL as string | undefined
 
