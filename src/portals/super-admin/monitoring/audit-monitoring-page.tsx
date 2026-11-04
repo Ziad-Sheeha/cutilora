@@ -270,8 +270,8 @@ export function AuditMonitoringPage() {
             <SelectMenuContent><SelectMenuItem value="__all__">{t.allStatuses}</SelectMenuItem>{["200", "201", "204", "301", "304", "400", "401", "403", "404", "405", "409", "422", "429", "500", "502", "503", "504"].map((status) => <SelectMenuItem key={status} value={status}>{status}</SelectMenuItem>)}</SelectMenuContent>
           </SelectMenu>
           </>}
-          <div className="space-y-1 text-xs text-muted-foreground"><span className="block">{t.from}</span><DatePicker value={from} onChange={(value) => { setFrom(value); setPage(1) }} placeholder={t.from} locale={locale} dir={direction} maxDate={to ? new Date(to + "T00:00:00") : undefined} /></div>
-          <div className="space-y-1 text-xs text-muted-foreground"><span className="block">{t.to}</span><DatePicker value={to} onChange={(value) => { setTo(value); setPage(1) }} placeholder={t.to} locale={locale} dir={direction} minDate={from ? new Date(from + "T00:00:00") : undefined} /></div>
+          <div className="flex min-w-0 items-center gap-2 rounded-xl border border-border/70 bg-muted/30 px-3 py-2"><span className="shrink-0 text-xs font-semibold text-muted-foreground">{t.from}</span><DatePicker className="h-10 min-w-0 flex-1 bg-card" value={from} onChange={(value) => { setFrom(value); setPage(1) }} placeholder={t.from} locale={locale} dir={direction} maxDate={to ? new Date(to + "T00:00:00") : undefined} /></div>
+          <div className="flex min-w-0 items-center gap-2 rounded-xl border border-border/70 bg-muted/30 px-3 py-2"><span className="shrink-0 text-xs font-semibold text-muted-foreground">{t.to}</span><DatePicker className="h-10 min-w-0 flex-1 bg-card" value={to} onChange={(value) => { setTo(value); setPage(1) }} placeholder={t.to} locale={locale} dir={direction} minDate={from ? new Date(from + "T00:00:00") : undefined} /></div>
         </div>
       </CardHeader>
       <CardContent className="p-3 sm:p-4">
