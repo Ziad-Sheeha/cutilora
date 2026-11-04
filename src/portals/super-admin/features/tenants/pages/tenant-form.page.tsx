@@ -123,47 +123,39 @@ export function TenantFormPage() {
     }))
   }
 
+  function validateStep(index: number): string[] {
+    if (index === 0) return [values.name.trim(), values.businessType.trim(), values.industry.trim()].every(Boolean) ? [] : [copy.requiredFields]
+    if (index === 1) return values.contact.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.contact.email.trim()) ? [copy.invalidEmail] : []
+    if (index === 2) {
+      const latitude = values.address.latitude.trim()
+      const longitude = values.address.longitude.trim()
+      return (latitude && (!Number.isFinite(Number(latitude)) || Number(latitude) < -90 || Number(latitude) > 90)) || (longitude && (!Number.isFinite(Number(longitude)) || Number(longitude) < -180 || Number(longitude) > 180)) ? [copy.invalidCoordinates] : []
+    }
+    if (index === 3) {
+      const urls = [values.branding.logoUrl, values.branding.coverImageUrl]
+      return urls.some((value) => value && !value.startsWith("data:image/") && !/^https?:\/\//i.test(value)) ? [copy.invalidUrl] : []
+    }
+    if (index === 4) return values.preferences.supportedLanguages.length ? [] : [ar ? "اختر لغة واحدة على الأقل." : "Select at least one supported language."]
+    return []
+  }
+
+  function continueToNextStep() {
+    const errors = validateStep(step)
+    if (errors.length) { store.dispatch(pushToast({ id: crypto.randomUUID(), kind: "error", title: errors[0] })); return }
+    setHighestUnlockedStep((current) => Math.max(current, step + 1))
+    setStep((current) => Math.min(steps.length - 1, current + 1))
+  }
+
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    if (values.preferences.supportedLanguages.length === 0) {
-      store.dispatch(pushToast({ id: crypto.randomUUID(), kind: "error", title: ar ? "اختر لغة واحدة على الأقل" : "Select at least one supported language" }))
-      setStep(4)
-      return
-    }
-    const email = values.contact.email.trim()
-    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      store.dispatch(pushToast({ id: crypto.randomUUID(), kind: "error", title: copy.invalidEmail }))
-      setStep(1)
-      return
-    }
-    const urls = [values.contact.website, values.branding.logoUrl, values.branding.coverImageUrl]
-    const invalidUrl = urls.some((value) => {
-      if (!value.trim()) return false
-      try { const url = new URL(value); return url.protocol !== "http:" && url.protocol !== "https:" } catch { return true }
-    })
-    if (invalidUrl) {
-      store.dispatch(pushToast({ id: crypto.randomUUID(), kind: "error", title: copy.invalidUrl }))
-      setStep(values.contact.website.trim() && !/^https?:\/\//i.test(values.contact.website) ? 1 : 3)
-      return
-    }
-    const latitude = values.address.latitude.trim()
-    const longitude = values.address.longitude.trim()
-    if ((latitude && (!Number.isFinite(Number(latitude)) || Number(latitude) < -90 || Number(latitude) > 90)) || (longitude && (!Number.isFinite(Number(longitude)) || Number(longitude) < -180 || Number(longitude) > 180))) {
-      store.dispatch(pushToast({ id: crypto.randomUUID(), kind: "error", title: copy.invalidCoordinates }))
-      setStep(2)
-      return
-    }
+    const invalidStep = steps.slice(0, 5).findIndex((_, index) => validateStep(index).length > 0)
+    if (invalidStep >= 0) { setStep(invalidStep); store.dispatch(pushToast({ id: crypto.randomUUID(), kind: "error", title: validateStep(invalidStep)[0] })); return }
     const payload = formToPayload(values)
     try {
-      if (isEdit) {
-        await mutations.updateProfile.mutateAsync({ id: tenantId, payload })
-        store.dispatch(pushToast({ id: crypto.randomUUID(), kind: "success", title: copy.successUpdate }))
-        navigate("/super-admin/tenants/" + encodeURIComponent(tenantId))
-      } else {
-        const created = await mutations.create.mutateAsync(payload)
-        store.dispatch(pushToast({ id: crypto.randomUUID(), kind: "success", title: copy.successCreate }))
-        navigate("/super-admin/tenants/" + encodeURIComponent(created.id))
-      }
+      const saved = isEdit ? await mutations.updateProfile.mutateAsync({ id: tenantId, payload }) : await mutations.create.mutateAsync(payload)
+      setSavedTenant(saved)
+      setSuccessOpen(true)
+      store.dispatch(pushToast({ id: crypto.randomUUID(), kind: "success", title: isEdit ? copy.successUpdate : copy.successCreate }))
     } catch (error) {
       store.dispatch(pushToast({ id: crypto.randomUUID(), kind: "error", title: copy.error, description: error instanceof Error ? error.message : undefined }))
     }
