@@ -5,6 +5,7 @@ import {
   ChevronLeft,
   ChevronRight,
   LoaderCircle,
+  X,
 } from "lucide-react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useI18n } from "@/i18n/i18n-provider"
@@ -34,6 +35,11 @@ interface DataTableProps<T> {
   }
   onPageChange?: (page: number) => void
   onPerPageChange?: (perPage: number) => void
+  /** Controlled selection. When omitted, selection controls are not rendered. */
+  selectedRowIds?: string[]
+  onSelectionChange?: (selectedIds: string[]) => void
+  /** Optional page-specific actions displayed in the floating bulk-action bar. */
+  bulkActions?: ReactNode
 }
 
 type TimestampFields = {
@@ -73,9 +79,18 @@ export function DataTable<T>({
   pagination,
   onPageChange,
   onPerPageChange,
+  selectedRowIds,
+  onSelectionChange,
+  bulkActions,
 }: DataTableProps<T>) {
   const { locale } = useI18n()
   const isArabic = locale === "ar"
+  const selectionEnabled = selectedRowIds !== undefined && onSelectionChange !== undefined
+  const selectedSet = new Set(selectedRowIds ?? [])
+  const pageIds = data.map(getRowId)
+  const selectedOnPage = pageIds.filter((id) => selectedSet.has(id)).length
+  const allPageSelected = pageIds.length > 0 && selectedOnPage === pageIds.length
+  const somePageSelected = selectedOnPage > 0 && !allPageSelected
   const hasCreatedAt = data.some((row) => Boolean(timestampOf(row, "created_at", "createdAt")))
   const hasUpdatedAt = data.some((row) => Boolean(timestampOf(row, "updated_at", "updatedAt")))
 
@@ -110,40 +125,96 @@ export function DataTable<T>({
   const pageCount = pagination?.totalKnown
     ? Math.max(1, Math.ceil(pagination.total / pagination.perPage))
     : undefined
-  const buttonClass = "inline-flex size-9 items-center justify-center rounded-lg border border-border bg-card text-foreground transition-colors hover:bg-muted disabled:pointer-events-none disabled:opacity-40"
+  const buttonClass = "inline-flex size-9 items-center justify-center rounded-xl border border-border/70 bg-background text-foreground transition-colors hover:bg-muted disabled:pointer-events-none disabled:opacity-40"
+  const checkboxClass = "size-[17px] cursor-pointer rounded border-border accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/30"
+
+  function togglePage(checked: boolean) {
+    if (!onSelectionChange) return
+    if (checked) {
+      onSelectionChange(Array.from(new Set([...(selectedRowIds ?? []), ...pageIds])))
+    } else {
+      onSelectionChange((selectedRowIds ?? []).filter((id) => !pageIds.includes(id)))
+    }
+  }
 
   return (
     <div className="w-full">
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto px-1">
         <Table className={tableClassName}>
           <TableHeader>
-            <TableRow className="border-b border-border/70 bg-muted/30 hover:bg-muted/30">
-              {displayColumns.map((column) => (
-                <TableHead key={column.id} className={`h-12 whitespace-nowrap px-5 text-[11px] font-semibold tracking-wide text-muted-foreground ${column.headerClassName ?? ""}`}>{column.header}</TableHead>
+            <TableRow className="border-0 bg-muted/55 hover:bg-muted/55">
+              {selectionEnabled && (
+                <TableHead className="h-11 w-12 rounded-s-xl px-4">
+                  <input
+                    type="checkbox"
+                    className={checkboxClass}
+                    checked={allPageSelected}
+                    ref={(element) => {
+                      if (element) element.indeterminate = somePageSelected
+                    }}
+                    onChange={(event) => togglePage(event.target.checked)}
+                    aria-label={isArabic ? "تحديد كل صفوف الصفحة" : "Select all rows on page"}
+                    aria-checked={somePageSelected ? "mixed" : allPageSelected}
+                  />
+                </TableHead>
+              )}
+              {displayColumns.map((column, index) => (
+                <TableHead
+                  key={column.id}
+                  className={`h-11 whitespace-nowrap px-4 text-[11px] font-bold tracking-wide text-muted-foreground ${index === displayColumns.length - 1 ? "last:rounded-e-xl" : ""} ${column.headerClassName ?? ""}`}
+                >
+                  {column.header}
+                </TableHead>
               ))}
             </TableRow>
           </TableHeader>
-          <TableBody>
-            {data.map((row) => (
-              <TableRow key={getRowId(row)} className="border-b border-border/50 transition-colors hover:bg-muted/35">
-                {displayColumns.map((column) => (
-                  <TableCell key={column.id} className={`px-5 py-3.5 align-middle ${column.cellClassName ?? ""}`}>{column.cell(row)}</TableCell>
-                ))}
-              </TableRow>
-            ))}
+          <TableBody className="[&_tr:last-child]:border-b-0">
+            {data.map((row, rowIndex) => {
+              const rowId = getRowId(row)
+              const isSelected = selectedSet.has(rowId)
+              return (
+                <TableRow
+                  key={rowId}
+                  data-state={isSelected ? "selected" : undefined}
+                  className={`group border-0 transition-colors hover:bg-primary/[0.035] ${rowIndex % 2 === 1 ? "bg-muted/[0.28]" : "bg-background"} ${isSelected ? "bg-primary/[0.055] hover:bg-primary/[0.075]" : ""}`}
+                >
+                  {selectionEnabled && (
+                    <TableCell className="w-12 px-4 py-3.5">
+                      <input
+                        type="checkbox"
+                        className={checkboxClass}
+                        checked={isSelected}
+                        onChange={(event) => {
+                          const next = event.target.checked
+                            ? [...(selectedRowIds ?? []), rowId]
+                            : (selectedRowIds ?? []).filter((id) => id !== rowId)
+                          onSelectionChange?.(Array.from(new Set(next)))
+                        }}
+                        aria-label={isArabic ? "تحديد الصف" : "Select row"}
+                      />
+                    </TableCell>
+                  )}
+                  {displayColumns.map((column) => (
+                    <TableCell key={column.id} className={`px-4 py-3.5 align-middle ${column.cellClassName ?? ""}`}>
+                      {column.cell(row)}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              )
+            })}
           </TableBody>
         </Table>
       </div>
 
       {pagination && onPageChange && onPerPageChange && (
-        <footer className="flex flex-col gap-3 border-t border-border/70 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+        <footer className="mt-2 flex flex-col gap-3 border-t border-border/60 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-muted-foreground">
             <label className="flex items-center gap-2">
               <span>{isArabic ? "عدد الصفوف" : "Rows per page"}</span>
               <select
                 value={pagination.perPage}
                 onChange={(event) => onPerPageChange(Number(event.target.value))}
-                className="h-9 rounded-lg border border-border bg-card px-2 text-sm font-medium text-foreground outline-none focus:ring-2 focus:ring-primary/20"
+                className="h-9 rounded-xl border border-border/70 bg-background px-3 text-sm font-semibold text-foreground outline-none transition focus:ring-2 focus:ring-primary/20"
                 aria-label={isArabic ? "عدد الصفوف في الصفحة" : "Rows per page"}
               >
                 {[10, 25, 50, 100].map((size) => <option key={size} value={size}>{size}</option>)}
@@ -160,7 +231,7 @@ export function DataTable<T>({
               {isArabic ? "صفحة" : "Page"} {pagination.page}
               {pageCount ? ` ${isArabic ? "من" : "of"} ${pageCount}` : ""}
             </span>
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1.5">
               {pagination.totalKnown && (
                 <button type="button" className={buttonClass} onClick={() => onPageChange(1)} disabled={pagination.page <= 1} aria-label={isArabic ? "أول صفحة" : "First page"}>
                   {isArabic ? <ChevronLast className="size-4" /> : <ChevronFirst className="size-4" />}
@@ -180,6 +251,28 @@ export function DataTable<T>({
             </div>
           </div>
         </footer>
+      )}
+
+      {selectionEnabled && selectedSet.size > 0 && (
+        <div
+          className="fixed inset-x-4 bottom-5 z-50 mx-auto flex w-fit max-w-[calc(100vw-2rem)] flex-wrap items-center justify-center gap-3 rounded-2xl border border-white/10 bg-[#20202b] px-4 py-3 text-white shadow-2xl shadow-black/20 sm:inset-x-auto sm:bottom-7 sm:gap-4 sm:rounded-full sm:px-5"
+          role="region"
+          aria-label={isArabic ? "إجراءات الصفوف المحددة" : "Selected rows actions"}
+        >
+          <button
+            type="button"
+            onClick={() => onSelectionChange?.([])}
+            className="inline-flex size-8 items-center justify-center rounded-full text-white/60 transition hover:bg-white/10 hover:text-white"
+            aria-label={isArabic ? "إلغاء التحديد" : "Clear selection"}
+          >
+            <X className="size-5" />
+          </button>
+          <span className="whitespace-nowrap text-sm font-semibold">
+            <span className="me-2 rounded-full bg-white/15 px-2.5 py-1 tabular-nums">{selectedSet.size}</span>
+            {isArabic ? "عنصر محدد" : "items selected"}
+          </span>
+          {bulkActions}
+        </div>
       )}
     </div>
   )
