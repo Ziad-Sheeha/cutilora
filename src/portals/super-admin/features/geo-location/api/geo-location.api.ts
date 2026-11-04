@@ -1,6 +1,6 @@
 
 import { appEnv } from "@/config/env"
-import { getSuperAdminToken } from "@/portals/super-admin/auth/super-admin-auth"
+import { expireSuperAdminSession, getSuperAdminToken } from "@/portals/super-admin/auth/super-admin-auth"
 
 import type {
   GeoId,
@@ -200,6 +200,7 @@ async function request<T>(
     throw new Error("NETWORK_ERROR")
   }
 
+  if (response.status === 401) expireSuperAdminSession()
   const body: unknown = await response.json().catch(() => null)
 
   if (!response.ok) {
