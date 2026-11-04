@@ -8,7 +8,8 @@ import { Select } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useI18n } from "@/i18n/i18n-provider"
-import { geoConfigs, geoRecordName, type GeoKind, type GeoRecord } from "./geo-location.types"\nimport { pushToast, store } from "@/store"
+import { geoConfigs, geoRecordName, type GeoKind, type GeoRecord } from "./geo-location.types"
+import { pushToast, store } from "@/store"
 import { geoLocationSchema } from "./geo-location.schema"
 import { useGeoDetail, useGeoList, useGeoMutations } from "./use-geo-location"
 
@@ -44,7 +45,8 @@ export function GeoLocationPage() {
  useEffect(() => { setSearch(""); setNotice(""); setActionError(""); setSelected(null); setFormOpen(false); setDeleteTarget(null) }, [kind])
 
  const initialValues: FormValues = {
-  name_en: detail.data?.name_en ?? "",\n  name_ar: detail.data?.name_ar ?? "",
+  name_en: detail.data?.name_en ?? "",
+  name_ar: detail.data?.name_ar ?? "",
   code: detail.data?.code ?? "",
   parentId: config.parentField && detail.data?.[config.parentField] !== undefined ? String(detail.data[config.parentField]) : "",
  }
@@ -69,7 +71,9 @@ export function GeoLocationPage() {
   try { await mutations.remove.mutateAsync(deleteTarget.id); setDeleteTarget(null); setNotice(t.geo.deleted) }
   catch (error) { setActionError(error instanceof Error ? translateError(error.message) : t.geo.apiError) }
  }
- function startEdit(record: GeoRecord) { setActionError(""); setSelected(record) }\n function showToast(kind: "success" | "error", title: string) { store.dispatch(pushToast({ id: crypto.randomUUID(), kind, title })) }\n function responseMessage(value: unknown, fallback: string) { if (value && typeof value === "object") { const root = value as Record<string, unknown>; const nested = root.data && typeof root.data === "object" ? root.data as Record<string, unknown> : undefined; if (typeof root.message === "string") return root.message; if (typeof nested?.message === "string") return nested.message } return fallback }
+ function startEdit(record: GeoRecord) { setActionError(""); setSelected(record) }
+ function showToast(kind: "success" | "error", title: string) { store.dispatch(pushToast({ id: crypto.randomUUID(), kind, title })) }
+ function responseMessage(value: unknown, fallback: string) { if (value && typeof value === "object") { const root = value as Record<string, unknown>; const nested = root.data && typeof root.data === "object" ? root.data as Record<string, unknown> : undefined; if (typeof root.message === "string") return root.message; if (typeof nested?.message === "string") return nested.message } return fallback }
  function startCreate() { setActionError(""); setSelected(null); setFormOpen(true) }
 
  return <div className="space-y-6" dir={isArabic ? "rtl" : "ltr"}>
@@ -89,7 +93,8 @@ export function GeoLocationPage() {
    <DialogContent><DialogHeader><DialogTitle>{selected ? t.geo.editTitle + " " + singular : t.geo.createTitle + " " + singular}</DialogTitle><DialogDescription>{t.geo.description}</DialogDescription></DialogHeader>
     {selected && detail.isLoading ? <div className="p-8 text-center"><LoaderCircle className="mx-auto size-5 animate-spin" /></div> : <Formik key={`${kind}-${selected?.id ?? "new"}-${formOpen}`} initialValues={initialValues} validationSchema={schema} onSubmit={submit} enableReinitialize>
      {({ errors, touched, isSubmitting, values, setFieldValue }) => <Form className="space-y-4">
-      <div><label htmlFor="geo-name-en" className="mb-1.5 block text-sm font-medium">{t.geo.name} (English)</label><Field as={Input} id="geo-name-en" name="name_en" aria-invalid={Boolean(touched.name_en && errors.name_en)} />{touched.name_en && errors.name_en && <p className="mt-1 text-xs text-error">{errors.name_en}</p>}</div>\n      <div><label htmlFor="geo-name-ar" className="mb-1.5 block text-sm font-medium">{t.geo.name} (العربية)</label><Field as={Input} id="geo-name-ar" name="name_ar" dir="rtl" aria-invalid={Boolean(touched.name_ar && errors.name_ar)} />{touched.name_ar && errors.name_ar && <p className="mt-1 text-xs text-error">{errors.name_ar}</p>}</div>
+      <div><label htmlFor="geo-name-en" className="mb-1.5 block text-sm font-medium">{t.geo.name} (English)</label><Field as={Input} id="geo-name-en" name="name_en" aria-invalid={Boolean(touched.name_en && errors.name_en)} />{touched.name_en && errors.name_en && <p className="mt-1 text-xs text-error">{errors.name_en}</p>}</div>
+      <div><label htmlFor="geo-name-ar" className="mb-1.5 block text-sm font-medium">{t.geo.name} (العربية)</label><Field as={Input} id="geo-name-ar" name="name_ar" dir="rtl" aria-invalid={Boolean(touched.name_ar && errors.name_ar)} />{touched.name_ar && errors.name_ar && <p className="mt-1 text-xs text-error">{errors.name_ar}</p>}</div>
       {kind === "countries" && <div><label htmlFor="geo-code" className="mb-1.5 block text-sm font-medium">{t.geo.code}</label><Field as={Input} id="geo-code" name="code" aria-invalid={Boolean(touched.code && errors.code)} />{touched.code && errors.code && <p className="mt-1 text-xs text-error">{errors.code}</p>}</div>}
       {config.parent && <div><label htmlFor="geo-parent" className="mb-1.5 block text-sm font-medium">{t.geo[geoConfigs[config.parent].titleKey]}</label><Select id="geo-parent" value={values.parentId} onChange={(event) => void setFieldValue("parentId", event.target.value)} aria-invalid={Boolean(touched.parentId && errors.parentId)}><option value="">{t.geo.selectParent}</option>{parentRecords.map((parent) => <option key={String(parent.id)} value={String(parent.id)}>{geoRecordName(parent, locale)}</option>)}</Select>{touched.parentId && errors.parentId && <p className="mt-1 text-xs text-error">{errors.parentId}</p>}</div>}
       <DialogFooter><Button type="button" variant="outline" onClick={() => { setFormOpen(false); setSelected(null) }} disabled={busy}>{t.common.cancel}</Button><Button type="submit" disabled={busy || isSubmitting || Boolean(config.parent && parentRecords.length === 0)}>{busy || isSubmitting ? <><LoaderCircle className="size-4 animate-spin" />{t.common.saving}</> : selected ? t.common.save : t.common.create}</Button></DialogFooter>
