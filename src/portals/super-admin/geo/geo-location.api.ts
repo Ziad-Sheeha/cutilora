@@ -7,6 +7,7 @@ import type {
   GeoListResult,
   GeoPayload,
   GeoRecord,
+  GeoRelation,
 } from "./geo-location.types"
 
 const baseUrl = appEnv.apiBaseUrl.replace(/\/$/, "")
@@ -23,6 +24,22 @@ function asObject(value: unknown): Record<string, unknown> | undefined {
   return value && typeof value === "object" && !Array.isArray(value)
     ? (value as Record<string, unknown>)
     : undefined
+}
+
+function normalizeRelation(value: unknown): GeoRelation | null {
+  const relation = asObject(value)
+  if (!relation) return null
+  const nameEn = relation.name_en ?? relation.nameEn
+  const nameAr = relation.name_ar ?? relation.nameAr
+  if (typeof nameEn !== "string" || typeof nameAr !== "string") return null
+  const country = normalizeRelation(relation.country)
+  return {
+    ...(typeof relation.id === "string" || typeof relation.id === "number" ? { id: String(relation.id) } : {}),
+    nameEn,
+    name_ar: nameAr,
+    ...(typeof relation.code === "string" ? { code: relation.code } : {}),
+    ...(country ? { country } : {}),
+  }
 }
 
 function normalizeRecord(value: unknown): GeoRecord {
@@ -44,6 +61,10 @@ function normalizeRecord(value: unknown): GeoRecord {
     throw new Error("UNEXPECTED_RESPONSE")
   }
 
+  const governorate = normalizeRelation(item.governorate)
+  const city = normalizeRelation(item.city)
+  const country = normalizeRelation(item.country)
+
   return {
     id: String(id),
     nameEn,
@@ -58,6 +79,9 @@ function normalizeRecord(value: unknown): GeoRecord {
     ...(typeof item.city_id === "string" || typeof item.city_id === "number"
       ? { city_id: String(item.city_id) }
       : {}),
+    ...(governorate ? { governorate } : {}),
+    ...(city ? { city } : {}),
+    ...(country ? { country } : {}),
     ...(typeof item.created_at === "string"
       ? { created_at: item.created_at }
       : {}),
