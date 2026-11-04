@@ -45,12 +45,12 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
       validationMessage ?? `Request failed (HTTP ${response.status}).`,
     )
   }
-  return unwrap(payload) as T
+  return payload as T
 }
 function normalizeList(payload: unknown): GeoListResult {
   const root = object(payload)
   const nested = object(root?.data)
-  const candidates = [payload, root?.data, nested?.data, nested?.items, root?.items]
+  const candidates = [normalized, root?.data, nested?.data, nested?.items, root?.items]
   const rows = candidates.find(Array.isArray) as unknown[] | undefined
   const meta = object(root?.meta) ?? object(nested?.meta) ?? object(root?.pagination) ?? {}
   return {
