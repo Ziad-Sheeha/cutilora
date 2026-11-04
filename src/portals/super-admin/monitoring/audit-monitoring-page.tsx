@@ -254,6 +254,7 @@ export function AuditMonitoringPage() {
           <Button size="sm" variant="ghost" onClick={clearFilters}><FilterX className="size-4" />{t.clear}</Button>
         </div>
         <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
+          {tab === "logs" && <>
           <div className="relative sm:col-span-2 xl:col-span-2"><Search className="absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" /><Input className="ps-9" placeholder={t.search} value={search} onChange={(e) => { setSearch(e.target.value); setPage(1) }} /></div>
           <SelectMenu value={level || "__all__"} onValueChange={(value) => { setLevel(value === "__all__" ? "" : value); setPage(1) }}>
             <SelectMenuTrigger aria-label={t.level}><SelectMenuValue placeholder={t.allLevels} /></SelectMenuTrigger>
@@ -268,6 +269,7 @@ export function AuditMonitoringPage() {
             <SelectMenuTrigger aria-label={t.status}><SelectMenuValue placeholder={t.allStatuses} /></SelectMenuTrigger>
             <SelectMenuContent><SelectMenuItem value="__all__">{t.allStatuses}</SelectMenuItem>{["200", "201", "204", "301", "304", "400", "401", "403", "404", "405", "409", "422", "429", "500", "502", "503", "504"].map((status) => <SelectMenuItem key={status} value={status}>{status}</SelectMenuItem>)}</SelectMenuContent>
           </SelectMenu>
+          </>}
           <div className="space-y-1 text-xs text-muted-foreground"><span className="block">{t.from}</span><DatePicker value={from} onChange={(value) => { setFrom(value); setPage(1) }} placeholder={t.from} locale={locale} dir={direction} maxDate={to ? new Date(to + "T00:00:00") : undefined} /></div>
           <div className="space-y-1 text-xs text-muted-foreground"><span className="block">{t.to}</span><DatePicker value={to} onChange={(value) => { setTo(value); setPage(1) }} placeholder={t.to} locale={locale} dir={direction} minDate={from ? new Date(from + "T00:00:00") : undefined} /></div>
         </div>
