@@ -239,6 +239,24 @@ export function TenantFormPage() {
           </div>
         </form>
       </div>
+      <Dialog open={successOpen} onOpenChange={setSuccessOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <div className="mb-2 flex size-12 items-center justify-center rounded-2xl bg-emerald-500/10 text-emerald-600"><Check className="size-6"/></div>
+            <DialogTitle>{copy.successTitle}</DialogTitle>
+            <DialogDescription>{copy.successDescription}</DialogDescription>
+          </DialogHeader>
+          <div className="rounded-xl border bg-muted/30 p-3">
+            <p className="text-sm font-semibold">{savedTenant?.displayName || savedTenant?.name || values.name}</p>
+            <p className="mt-1 text-xs text-muted-foreground">{savedTenant?.slug || ""}</p>
+          </div>
+          <DialogFooter className="sm:flex-row">
+            <Button type="button" variant="outline" onClick={() => window.print()}><Download className="size-4"/>{copy.downloadPdf}</Button>
+            <Button type="button" onClick={() => navigate("/super-admin/tenants/" + encodeURIComponent(savedTenant?.id || tenantId))}>{copy.done}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      {savedTenant && <TenantPdfDocument values={values} tenantId={savedTenant.id} slug={savedTenant.slug} locale={locale}/>}
     </div>
   )
 }
