@@ -63,7 +63,7 @@ export function TenantPdfDocument({ values, slug, locale }: {
         </div>
         {logo && <img src={logo} alt="" style={{width:76,height:76,objectFit:"contain",borderRadius:12,border:"1px solid #e2e8f0",padding:6}}/>}
       </header>
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:22}}>
+      {values.branding.coverImageUrl && <img src={values.branding.coverImageUrl} alt="" style={{width:"100%",height:112,objectFit:"cover",borderRadius:12,marginBottom:20}}/>}\n      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:22}}>
         <div style={{background:"#f5f3ff",padding:12,borderRadius:10}}><p style={{fontSize:9,color:"#64748b"}}>{ar ? "نوع الملف" : "Record type"}</p><p style={{fontSize:11,fontWeight:700,marginTop:4}}>{ar ? "مؤسسة عميلة" : "Tenant organization"}</p></div>
         <div style={{background:"#f5f3ff",padding:12,borderRadius:10}}><p style={{fontSize:9,color:"#64748b"}}>{ar ? "الرابط التعريفي" : "Slug"}</p><p style={{fontSize:11,fontWeight:700,marginTop:4}}>{slug || "—"}</p></div>
       </div>
