@@ -15,6 +15,8 @@
   --cu-success: #22C55E;
   --cu-warning: #F59E0B;
   --cu-error: #EF4444;
+  --cu-danger-action: #B91C1C;
+  --cu-danger-foreground: #FFFFFF;
   --cu-info: #0EA5E9;
   --cu-bg: #F6F3FF;
   --cu-surface: #FFFFFF;
@@ -47,6 +49,8 @@
   --cu-border: #262E52;
   --cu-text: #F1F5F9;
   --cu-muted: #A5B0C8;
+  --cu-danger-action: #FCA5A5;
+  --cu-danger-foreground: #450A0A;
 
   --background: var(--cu-bg);
   --foreground: var(--cu-text);
