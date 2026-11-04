@@ -155,7 +155,7 @@ export const monitoringApi = {
       const row = object(item) ?? {}
       return {
         id: first(row, ["id", "_id", "uuid"], String(index)),
-        date: first(row, ["timestamp", "created_at", "createdAt", "date", "time"]),
+        date: first(row, ["timestamp", "created_at", "createdAt", "date", "time", "_id"]),
         level: first(row, ["level", "severity"], "info").toLowerCase(),
         category: first(row, ["category", "type"], "general"),
         message: first(row, ["message", "description", "event", "summary"], "—"),
