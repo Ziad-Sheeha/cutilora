@@ -73,7 +73,7 @@ export function GeoSearchSelect({ kind, value, onChange, placeholder, disabled, 
         </div>
         {query.data && query.data.pagination.totalPages > page && (
           <Button type="button" variant="ghost" size="sm" className="mt-1 w-full" disabled={query.isFetching} onClick={() => setPage((current) => current + 1)}>
-            {query.isFetching ? <LoaderCircle className="size-4 animate-spin" /> : t.common.showMore}
+            {query.isFetching ? <LoaderCircle className="size-4 animate-spin" /> : (locale === "ar" ? "عرض المزيد" : "Load more")}
           </Button>
         )}
       </PopoverContent>
