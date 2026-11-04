@@ -120,7 +120,7 @@ export function TenantFormPage() {
       return
     }
     const email = values.contact.email.trim()
-    if (email && !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) {
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       store.dispatch(pushToast({ id: crypto.randomUUID(), kind: "error", title: copy.invalidEmail }))
       setStep(1)
       return
@@ -132,7 +132,7 @@ export function TenantFormPage() {
     })
     if (invalidUrl) {
       store.dispatch(pushToast({ id: crypto.randomUUID(), kind: "error", title: copy.invalidUrl }))
-      setStep(values.contact.website.trim() && !/^https?:\\/\\//i.test(values.contact.website) ? 1 : 3)
+      setStep(values.contact.website.trim() && !/^https?:\/\//i.test(values.contact.website) ? 1 : 3)
       return
     }
     const latitude = values.address.latitude.trim()
