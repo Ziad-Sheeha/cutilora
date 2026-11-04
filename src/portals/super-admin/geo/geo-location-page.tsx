@@ -6,7 +6,7 @@ import { ArrowLeft, ArrowRight, Globe2, LoaderCircle, MapPin, Pencil, Plus, Refr
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { DataTable, type DataTableColumn } from "@/components/ui/data-table"
 import { useI18n } from "@/i18n/i18n-provider"
 import { geoConfigs, geoRecordName, type GeoId, type GeoKind, type GeoRecord } from "./geo-location.types"
 import { GeoSearchSelect } from "./geo-search-select"
@@ -133,6 +133,17 @@ export function GeoLocationPage() {
     }
   }
 
+  const columns = useMemo<DataTableColumn<GeoRecord>[]>(() => [
+    { id: "name_ar", header: isArabic ? "الاسم بالعربية" : "Arabic name", cell: (record) => <span className="font-semibold">{record.name_ar}</span> },
+    { id: "name_en", header: isArabic ? "الاسم بالإنجليزية" : "English name", cell: (record) => <span className="font-medium text-foreground/85" dir="ltr">{record.nameEn}</span> },
+    ...(kind === "countries" ? [{ id: "code", header: isArabic ? "كود الدولة" : "Country code", cell: (record: GeoRecord) => <span className="inline-flex rounded-lg border bg-muted/50 px-2.5 py-1 font-mono text-xs font-semibold tracking-wider">{record.code || "—"}</span> }] : []),
+    ...(parentKind ? [{ id: "parent", header: isArabic ? "يتبع" : "Parent", cell: (record: GeoRecord) => <ParentName kind={parentKind} id={parentField ? record[parentField] ?? undefined : undefined} cachedName={parentField && record[parentField] ? parentNames.get(String(record[parentField])) : undefined} locale={locale} /> }] : []),
+    { id: "actions", header: <span className="block text-end">{t.common.actions}</span>, headerClassName: "w-28 text-end", cell: (record) => <div className="flex justify-end gap-1 opacity-80 transition-opacity group-hover:opacity-100">
+      <Button type="button" variant="ghost" size="icon" className="size-9 rounded-lg hover:bg-primary/10 hover:text-primary" onClick={() => openEdit(record)} aria-label={t.common.edit}><Pencil className="size-4" /></Button>
+      <Button type="button" variant="ghost" size="icon" className="size-9 rounded-lg text-error hover:bg-error/10 hover:text-error" onClick={() => setDeleteTarget(record)} aria-label={t.common.delete}><Trash2 className="size-4" /></Button>
+    </div> },
+  ], [isArabic, kind, parentKind, parentField, parentNames, locale, t.common.actions, t.common.edit, t.common.delete])
+
   const rangeStart = pagination && pagination.total > 0 ? (pagination.page - 1) * pagination.perPage + 1 : 0
   const rangeEnd = pagination ? Math.min(pagination.page * pagination.perPage, pagination.total) : records.length
 
@@ -176,35 +187,15 @@ export function GeoLocationPage() {
           </div>
         </div>
 
-        {list.isLoading ? (
-          <div className="flex items-center justify-center gap-2 p-16 text-sm text-muted-foreground"><LoaderCircle className="size-5 animate-spin" />{t.common.loading}</div>
-        ) : records.length === 0 ? (
-          <div className="p-16 text-center"><MapPin className="mx-auto size-9 text-muted-foreground/40" /><p className="mt-3 font-semibold">{search ? t.common.noResults : t.common.noRecords}</p><p className="mt-1 text-sm text-muted-foreground">{t.geo.emptyHint}</p></div>
-        ) : (
-          <Table className="min-w-[760px]">
-            <TableHeader><TableRow className="bg-muted/30 hover:bg-muted/30">
-              <TableHead className="h-12">{isArabic ? "الاسم بالعربية" : "Arabic name"}</TableHead>
-              <TableHead>{isArabic ? "الاسم بالإنجليزية" : "English name"}</TableHead>
-              {kind === "countries" && <TableHead>{isArabic ? "كود الدولة" : "Country code"}</TableHead>}
-              {parentKind && <TableHead>{isArabic ? "يتبع" : "Parent"}</TableHead>}
-              <TableHead className="w-28 text-end">{t.common.actions}</TableHead>
-            </TableRow></TableHeader>
-            <TableBody>
-              {records.map((record) => (
-                <TableRow key={record.id} className="group">
-                  <TableCell><span className="font-semibold">{record.name_ar}</span></TableCell>
-                  <TableCell><span className="font-medium text-foreground/85" dir="ltr">{record.nameEn}</span></TableCell>
-                  {kind === "countries" && <TableCell><span className="inline-flex rounded-lg border bg-muted/50 px-2.5 py-1 font-mono text-xs font-semibold tracking-wider">{record.code || "—"}</span></TableCell>}
-                  {parentKind && <TableCell><ParentName kind={parentKind} id={parentField ? record[parentField] ?? undefined : undefined} cachedName={parentField && record[parentField] ? parentNames.get(String(record[parentField])) : undefined} locale={locale} /></TableCell>}
-                  <TableCell><div className="flex justify-end gap-1 opacity-80 transition-opacity group-hover:opacity-100">
-                    <Button type="button" variant="ghost" size="icon" className="size-9 rounded-lg hover:bg-primary/10 hover:text-primary" onClick={() => openEdit(record)} aria-label={t.common.edit}><Pencil className="size-4" /></Button>
-                    <Button type="button" variant="ghost" size="icon" className="size-9 rounded-lg text-error hover:bg-error/10 hover:text-error" onClick={() => setDeleteTarget(record)} aria-label={t.common.delete}><Trash2 className="size-4" /></Button>
-                  </div></TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        )}
+        <DataTable
+          columns={columns}
+          data={records}
+          getRowId={(record) => record.id}
+          isLoading={list.isLoading}
+          loadingLabel={t.common.loading}
+          tableClassName="min-w-[760px]"
+          emptyState={<div className="p-16 text-center"><MapPin className="mx-auto size-9 text-muted-foreground/40" /><p className="mt-3 font-semibold">{search ? t.common.noResults : t.common.noRecords}</p><p className="mt-1 text-sm text-muted-foreground">{t.geo.emptyHint}</p></div>}
+        />
 
         <footer className="flex flex-col gap-3 border-t bg-muted/20 px-5 py-3 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-xs text-muted-foreground">{isArabic ? `عرض ${rangeStart}–${rangeEnd} من ${pagination?.total ?? records.length}` : `Showing ${rangeStart}–${rangeEnd} of ${pagination?.total ?? records.length}`}</p>
