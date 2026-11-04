@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type FormEvent } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { Link, useNavigate } from "react-router"
 import { Building2, CheckCircle2, CircleAlert, Clock3, Plus, RefreshCw, Search, Users2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -9,8 +9,8 @@ import { Textarea } from "@/components/ui/textarea"
 import { SelectMenu, SelectMenuContent, SelectMenuItem, SelectMenuTrigger, SelectMenuValue } from "@/components/ui/select-menu"
 import { useI18n } from "@/i18n/i18n-provider"
 import { pushToast, store } from "@/store"
-import { useTenantMutations, useTenants } from "../hooks/use-tenants"
-import type { Tenant, TenantPayload } from "../types/tenant.types"
+import { useTenants } from "../hooks/use-tenants"
+import type { Tenant } from "../types/tenant.types"
 import { TenantMetricCard } from "../components/tenant-metric-card"
 import { TenantStatusBadge } from "../components/tenant-status-badge"
 
@@ -60,26 +60,6 @@ export function TenantsPage() {
     { id: "actions", header: ar ? "الإجراءات" : "Actions", headerClassName: "text-end", cell: (tenant) => <div className="flex justify-end"><Link to={"/super-admin/tenants/" + encodeURIComponent(tenant.id)} className="rounded-lg border px-3 py-1.5 text-xs font-semibold transition hover:border-primary/40 hover:bg-primary/5">{ar ? "عرض الملف" : "View profile"}</Link></div> },
   ], [ar, locale])
 
-  async function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    setSaving(true)
-    const payload: TenantPayload = {
-      name: form.name.trim(), displayName: form.displayName.trim() || undefined, legalName: form.legalName.trim() || undefined,
-      businessType: form.businessType, industry: form.industry.trim(), description: form.description.trim() || undefined,
-      contact: { email: form.email.trim() || null, phone: form.phone.trim() || null },
-    }
-    try {
-      const created = await mutations.create.mutateAsync(payload)
-      setCreateOpen(false)
-      setForm({ name: "", displayName: "", legalName: "", businessType: "single_clinic", industry: "aesthetic_medicine", email: "", phone: "", description: "" })
-      store.dispatch(pushToast({ id: crypto.randomUUID(), kind: "success", title: ar ? "تم إنشاء المؤسسة بنجاح" : "Tenant created successfully" }))
-      navigate("/super-admin/tenants/" + encodeURIComponent(created.id))
-    } catch (error) {
-      store.dispatch(pushToast({ id: crypto.randomUUID(), kind: "error", title: ar ? "تعذر إنشاء المؤسسة" : "Could not create tenant", description: error instanceof Error ? error.message : undefined }))
-    } finally { setSaving(false) }
-  }
-
-  const labels = ar
     ? { eyebrow: "إدارة المؤسسات", title: "العملاء والمؤسسات", description: "إدارة مؤسسات العملاء وملفاتهم وحالة حساباتهم واشتراكاتهم من مساحة تحكم واحدة.", add: "إضافة مؤسسة", total: "إجمالي المؤسسات", active: "نشطة في الصفحة", pending: "بانتظار الإعداد", paused: "متوقفة", directory: "دليل المؤسسات", directoryHint: "ابحث وصنّف المؤسسات للوصول إلى ملف كل عميل.", search: "ابحث بالاسم أو الرابط التعريفي...", allStatus: "كل الحالات", allPlans: "كل الخطط", loading: "جارٍ تحميل المؤسسات...", noRecords: "لا توجد مؤسسات مطابقة", noRecordsHint: "جرّب تغيير البحث أو الفلاتر.", createTitle: "إنشاء مؤسسة جديدة", createHint: "أدخل بيانات المؤسسة الأساسية. يمكن استكمال الملف لاحقًا.", name: "اسم المؤسسة *", display: "الاسم الظاهر", legal: "الاسم القانوني", type: "نوع النشاط", industry: "المجال", email: "البريد الإلكتروني", phone: "رقم الهاتف", descriptionField: "وصف مختصر", cancel: "إلغاء", create: "إنشاء المؤسسة" }
     : { eyebrow: "ORGANIZATION MANAGEMENT", title: "Tenants & organizations", description: "Manage customer organizations, account health, ownership details and subscription relationships from one command center.", add: "Create tenant", total: "Total organizations", active: "Active on page", pending: "Pending setup", paused: "Paused", directory: "Tenant directory", directoryHint: "Search and segment organizations, then open a dedicated tenant workspace.", search: "Search by name or slug...", allStatus: "All statuses", allPlans: "All plans", loading: "Loading tenants...", noRecords: "No matching organizations", noRecordsHint: "Try adjusting your search or filters.", createTitle: "Create a tenant", createHint: "Add the organization's core identity. You can complete the profile later.", name: "Organization name *", display: "Display name", legal: "Legal name", type: "Business type", industry: "Industry", email: "Contact email", phone: "Phone number", descriptionField: "Short description", cancel: "Cancel", create: "Create tenant" }
 
@@ -87,7 +67,7 @@ export function TenantsPage() {
     <header className="relative overflow-hidden rounded-[28px] border border-[#282344] bg-[#151329] p-6 text-white shadow-xl shadow-violet-950/5 sm:p-8">
       <div className="pointer-events-none absolute -end-20 -top-28 size-80 rounded-full bg-violet-500/20 blur-3xl"/>
       <div className="pointer-events-none absolute bottom-[-100px] start-[35%] size-64 rounded-full bg-indigo-500/10 blur-3xl"/>
-      <div className="relative flex flex-col justify-between gap-6 sm:flex-row sm:items-end"><div className="max-w-2xl"><p className="text-[10px] font-bold uppercase tracking-[0.22em] text-violet-300">{labels.eyebrow}</p><h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-[38px]">{labels.title}</h1><p className="mt-3 max-w-xl text-sm leading-6 text-slate-300">{labels.description}</p></div><Button onClick={() => setCreateOpen(true)} className="shrink-0 bg-violet-500 text-white hover:bg-violet-400"><Plus className="size-4"/>{labels.add}</Button></div>
+      <div className="relative flex flex-col justify-between gap-6 sm:flex-row sm:items-end"><div className="max-w-2xl"><p className="text-[10px] font-bold uppercase tracking-[0.22em] text-violet-300">{labels.eyebrow}</p><h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-[38px]">{labels.title}</h1><p className="mt-3 max-w-xl text-sm leading-6 text-slate-300">{labels.description}</p></div><Button onClick={() => navigate("/super-admin/tenants/new")} className="shrink-0 bg-violet-500 text-white hover:bg-violet-400"><Plus className="size-4"/>{labels.add}</Button></div>
       <div className="relative mt-7 flex flex-wrap items-center gap-2 text-xs text-slate-400"><span className="rounded-full border border-white/10 bg-white/5 px-3 py-1.5">Platform / Organization / Tenants</span><span className="rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1.5 text-emerald-200">Live API</span></div>
     </header>
 
@@ -104,26 +84,5 @@ export function TenantsPage() {
       <DataTable columns={columns} data={records} getRowId={(tenant) => tenant.id} isLoading={list.isLoading} loadingLabel={labels.loading} emptyState={<div className="px-6 py-16 text-center"><Building2 className="mx-auto size-9 text-muted-foreground/40"/><p className="mt-3 font-semibold">{labels.noRecords}</p><p className="mt-1 text-sm text-muted-foreground">{labels.noRecordsHint}</p></div>} pagination={pagination} onPageChange={setPage} onPerPageChange={(size) => { setPerPage(size); setPage(1) }}/>
     </section>
 
-    <Dialog open={createOpen} onOpenChange={(open) => !saving && setCreateOpen(open)}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[620px]">
-        <DialogHeader><DialogTitle>{labels.createTitle}</DialogTitle><DialogDescription>{labels.createHint}</DialogDescription></DialogHeader>
-        <form onSubmit={submit} className="space-y-4">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <FormField label={labels.name} value={form.name} required onChange={(value) => setForm((current) => ({ ...current, name: value }))}/>
-            <FormField label={labels.display} value={form.displayName} onChange={(value) => setForm((current) => ({ ...current, displayName: value }))}/>
-            <FormField label={labels.legal} value={form.legalName} onChange={(value) => setForm((current) => ({ ...current, legalName: value }))}/>
-            <FormField label={labels.industry} value={form.industry} required onChange={(value) => setForm((current) => ({ ...current, industry: value }))}/>
-            <div><label className="mb-1.5 block text-sm font-medium">{labels.type}</label><SelectMenu value={form.businessType} onValueChange={(value) => setForm((current) => ({ ...current, businessType: value }))}><SelectMenuTrigger><SelectMenuValue/></SelectMenuTrigger><SelectMenuContent><SelectMenuItem value="single_clinic">{ar ? "عيادة واحدة" : "Single clinic"}</SelectMenuItem><SelectMenuItem value="clinic_group">{ar ? "مجموعة عيادات" : "Clinic group"}</SelectMenuItem></SelectMenuContent></SelectMenu></div>
-            <FormField label={labels.email} value={form.email} type="email" onChange={(value) => setForm((current) => ({ ...current, email: value }))}/>
-            <FormField label={labels.phone} value={form.phone} onChange={(value) => setForm((current) => ({ ...current, phone: value }))}/>
-          </div>
-          <div><label className="mb-1.5 block text-sm font-medium">{labels.descriptionField}</label><Textarea value={form.description} onChange={(event) => setForm((current) => ({ ...current, description: event.target.value }))} rows={3}/></div>
-          <DialogFooter><Button type="button" variant="outline" onClick={() => setCreateOpen(false)} disabled={saving}>{labels.cancel}</Button><Button type="submit" loading={saving} disabled={!form.name.trim() || !form.industry.trim()}>{labels.create}</Button></DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
-  </div>
-}
-function FormField({ label, value, onChange, required = false, type = "text" }: { label: string; value: string; onChange: (value: string) => void; required?: boolean; type?: string }) {
-  return <div><label className="mb-1.5 block text-sm font-medium">{label}</label><Input type={type} required={required} value={value} onChange={(event) => onChange(event.target.value)}/></div>
+      </div>
 }
