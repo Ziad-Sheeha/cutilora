@@ -12,6 +12,7 @@ import { SuperAdminModulePage, SuperAdminOverviewPage } from "@/portals/super-ad
 import { GeoLocationPage } from "@/portals/super-admin/features/geo-location/pages/geo-location.page"
 import { TenantsPage } from "@/portals/super-admin/features/tenants/pages/tenants.page"
 import { TenantDetailsPage } from "@/portals/super-admin/features/tenants/pages/tenant-details.page"
+import { TenantFormPage } from "@/portals/super-admin/features/tenants/pages/tenant-form.page"
 import { AuditMonitoringPage } from "@/portals/super-admin/features/monitoring/pages/audit-monitoring.page"
 import { adminNavigation } from "@/portals/clinic/config/navigation"
 
