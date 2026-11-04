@@ -65,7 +65,7 @@ export function TenantPdfDocument({ values, tenantId, slug, locale }: {
         {logo && <img src={logo} alt="" style={{width:76,height:76,objectFit:"contain",borderRadius:12,border:"1px solid #e2e8f0",padding:6}}/>}
       </header>
       <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12,marginBottom:22}}>
-        <div style={{background:"#f5f3ff",padding:12,borderRadius:10}}><p style={{fontSize:9,color:"#64748b"}}>{ar ? "معرّف المؤسسة" : "Tenant reference"}</p><p style={{fontSize:11,fontWeight:700,marginTop:4}}>{tenantId || "—"}</p></div>
+        <div style={{background:"#f5f3ff",padding:12,borderRadius:10}}><p style={{fontSize:9,color:"#64748b"}}>{ar ? "نوع الملف" : "Record type"}</p><p style={{fontSize:11,fontWeight:700,marginTop:4}}>{ar ? "مؤسسة عميلة" : "Tenant organization"}</p></div>
         <div style={{background:"#f5f3ff",padding:12,borderRadius:10}}><p style={{fontSize:9,color:"#64748b"}}>{ar ? "الرابط التعريفي" : "Slug"}</p><p style={{fontSize:11,fontWeight:700,marginTop:4}}>{slug || "—"}</p></div>
       </div>
       {groups.map((group) => {
@@ -75,7 +75,7 @@ export function TenantPdfDocument({ values, tenantId, slug, locale }: {
           <h2 style={{fontSize:13,fontWeight:800,color:"#5b43b5",paddingBottom:7,borderBottom:"1px solid #e2e8f0",marginBottom:8}}>{group.title}</h2>
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"9px 18px"}}>
             {rows.map(([label,value]) => <div key={label} style={{minWidth:0}}>
-              <p style={{fontSize:9,color:"#64748b",marginBottom:3}}>{label}</p>
+              <p style={{fontSize:9,color:"#64748b",marginBottom:3}}>{ar ? ({Country:"الدولة",Governorate:"المحافظة",City:"المدينة",District:"الحي",Address:"العنوان","Additional address":"تفاصيل إضافية",Building:"المبنى",Floor:"الدور",Unit:"الوحدة",Landmark:"علامة مميزة","Postal code":"الرمز البريدي",Latitude:"خط العرض",Longitude:"خط الطول"} as Record<string,string>)[label] ?? label : label}</p>
               <p style={{fontSize:11,fontWeight:600,overflowWrap:"anywhere",whiteSpace:"pre-wrap"}}>{value}</p>
             </div>)}
           </div>
