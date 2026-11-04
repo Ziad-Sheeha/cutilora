@@ -22,7 +22,8 @@ export function GeoLocationPage() {
  const kind = kinds.includes(rawKind as GeoKind) ? rawKind as GeoKind : "countries"
  const config = geoConfigs[kind]
  const { t, locale } = useI18n()
- const list = useGeoList(config.endpoint)
+ const [page, setPage] = useState(1)
+ const list = useGeoList(config.endpoint, page, 50)
  const parents = useGeoList(config.parent ? geoConfigs[config.parent].endpoint : "")
  const mutations = useGeoMutations(config.endpoint)
  const [search, setSearch] = useState("")
@@ -42,7 +43,7 @@ export function GeoLocationPage() {
  const schema = geoLocationSchema(kind, { nameRequired: t.geo.nameRequired, codeRequired: t.geo.codeRequired, parentRequired: t.geo.parentRequired })
 
  useEffect(() => { if (selected && detail.data) setFormOpen(true) }, [selected, detail.data])
- useEffect(() => { setSearch(""); setNotice(""); setActionError(""); setSelected(null); setFormOpen(false); setDeleteTarget(null) }, [kind])
+ useEffect(() => { setPage(1); setSearch(""); setNotice(""); setActionError(""); setSelected(null); setFormOpen(false); setDeleteTarget(null) }, [kind])
 
  const initialValues: FormValues = {
   name_en: detail.data?.name_en ?? "",
@@ -85,10 +86,17 @@ export function GeoLocationPage() {
   {notice && <div role="status" className="rounded-xl border border-emerald-500/25 bg-emerald-500/5 px-4 py-3 text-sm text-emerald-700">{notice}</div>}
   {errorText && <div role="alert" className="flex items-center justify-between gap-3 rounded-xl border border-error/25 bg-error/5 px-4 py-3 text-sm text-error"><span>{translateError(errorText)}</span><button type="button" onClick={() => setActionError("")} aria-label={t.common.dismiss}>×</button></div>}
   <section className="overflow-hidden rounded-2xl border bg-card">
-   <div className="flex flex-col gap-3 border-b p-4 sm:flex-row sm:items-center sm:justify-between"><div><h2 className="font-semibold">{title}</h2><p className="mt-1 text-xs text-muted-foreground">{visibleRecords.length}</p></div><div className="flex gap-2"><div className="relative min-w-0 flex-1 sm:w-72"><Search className="absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" /><Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder={t.common.search} className="ps-9" /></div><Button variant="outline" size="icon" onClick={() => { void list.refetch(); if (config.parent) void parents.refetch() }} disabled={list.isFetching} aria-label={t.common.refresh}><RefreshCw className={`size-4 ${list.isFetching ? "animate-spin" : ""}`} /></Button></div></div>
+   <div className="flex flex-col gap-3 border-b p-4 sm:flex-row sm:items-center sm:justify-between"><div><h2 className="font-semibold">{title}</h2><p className="mt-1 text-xs text-muted-foreground">{list.data?.total ?? visibleRecords.length} · {t.geo.id}</p></div><div className="flex gap-2"><div className="relative min-w-0 flex-1 sm:w-72"><Search className="absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" /><Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder={t.common.search} className="ps-9" /></div><Button variant="outline" size="icon" onClick={() => { void list.refetch(); if (config.parent) void parents.refetch() }} disabled={list.isFetching} aria-label={t.common.refresh}><RefreshCw className={`size-4 ${list.isFetching ? "animate-spin" : ""}`} /></Button></div></div>
    {list.isLoading ? <div className="flex items-center justify-center gap-2 p-12 text-sm text-muted-foreground"><LoaderCircle className="size-4 animate-spin" />{t.common.loading}</div> : visibleRecords.length === 0 ? <div className="p-12 text-center"><MapPin className="mx-auto size-8 text-muted-foreground/50" /><p className="mt-3 font-medium">{search ? t.common.noResults : t.common.noRecords}</p><p className="mt-1 text-sm text-muted-foreground">{t.geo.emptyHint}</p></div> :
    <Table><TableHeader><TableRow><TableHead>{t.geo.name}</TableHead>{kind === "countries" && <TableHead>{t.geo.code}</TableHead>}{config.parent && <TableHead>{t.geo.parent}</TableHead>}<TableHead className="text-end">{t.common.actions}</TableHead></TableRow></TableHeader><TableBody>{visibleRecords.map((record) => <TableRow key={String(record.id)}><TableCell><span className="font-medium">{geoRecordName(record, locale)}</span><span className="mt-0.5 block text-xs text-muted-foreground">{t.geo.id}: {record.id}</span></TableCell>{kind === "countries" && <TableCell><span className="rounded-md bg-muted px-2 py-1 font-mono text-xs">{record.code || "—"}</span></TableCell>}{config.parent && <TableCell>{parentNames.get(String(record[config.parentField!])) ?? "—"}</TableCell>}<TableCell><div className="flex justify-end gap-1"><Button variant="ghost" size="icon" onClick={() => startEdit(record)} aria-label={t.common.edit}><Pencil className="size-4" /></Button><Button variant="ghost" size="icon" className="text-error hover:text-error" onClick={() => setDeleteTarget(record)} aria-label={t.common.delete}><Trash2 className="size-4" /></Button></div></TableCell></TableRow>)}</TableBody></Table>}
   </section>
+  {list.data && list.data.lastPage > 1 && <div className="flex items-center justify-between gap-3">
+   <span className="text-sm text-muted-foreground">{locale === "ar" ? `صفحة ${list.data.currentPage} من ${list.data.lastPage}` : `Page ${list.data.currentPage} of ${list.data.lastPage}`}</span>
+   <div className="flex gap-2">
+    <Button variant="outline" size="sm" disabled={page <= 1 || list.isFetching} onClick={() => setPage((value) => Math.max(1, value - 1))}>{locale === "ar" ? "السابق" : "Previous"}</Button>
+    <Button variant="outline" size="sm" disabled={page >= list.data.lastPage || list.isFetching} onClick={() => setPage((value) => Math.min(list.data!.lastPage, value + 1))}>{locale === "ar" ? "التالي" : "Next"}</Button>
+   </div>
+  </div>}
   <Dialog open={formOpen} onOpenChange={(open) => { if (!busy) { setFormOpen(open); if (!open) setSelected(null) } }}>
    <DialogContent><DialogHeader><DialogTitle>{selected ? t.geo.editTitle + " " + singular : t.geo.createTitle + " " + singular}</DialogTitle><DialogDescription>{t.geo.description}</DialogDescription></DialogHeader>
     {selected && detail.isLoading ? <div className="p-8 text-center"><LoaderCircle className="mx-auto size-5 animate-spin" /></div> : <Formik key={`${kind}-${selected?.id ?? "new"}-${formOpen}`} initialValues={initialValues} validationSchema={schema} onSubmit={submit} enableReinitialize>
