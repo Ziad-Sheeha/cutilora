@@ -25,9 +25,30 @@ export function useTenantPayments(id: string) {
 export function useTenantMutations() {
   const client = useQueryClient()
   const create = useMutation({ mutationFn: tenantsApi.create, onSuccess: () => client.invalidateQueries({ queryKey: tenantKeys.all }) })
+  const updateProfile = useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: import("../types/tenant.types").TenantPayload }) => tenantsApi.updateProfile(id, payload),
+    onSuccess: (_data, variables) => {
+      void client.invalidateQueries({ queryKey: tenantKeys.all })
+      void client.invalidateQueries({ queryKey: tenantKeys.detail(variables.id) })
+    },
+  })
+  const replaceSubscription = useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: Record<string, unknown> }) => tenantsApi.replaceSubscription(id, payload),
+    onSuccess: (_data, variables) => {
+      void client.invalidateQueries({ queryKey: tenantKeys.subscription(variables.id) })
+      void client.invalidateQueries({ queryKey: tenantKeys.detail(variables.id) })
+    },
+  })
+  const recordPayment = useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: Record<string, unknown> }) => tenantsApi.recordPayment(id, payload),
+    onSuccess: (_data, variables) => {
+      void client.invalidateQueries({ queryKey: tenantKeys.payments(variables.id) })
+      void client.invalidateQueries({ queryKey: tenantKeys.subscription(variables.id) })
+    },
+  })
   const updateStatus = useMutation({ mutationFn: ({ id, status }: { id: string; status: string }) => tenantsApi.updateStatus(id, status), onSuccess: (_data, variables) => {
     void client.invalidateQueries({ queryKey: tenantKeys.all })
     void client.invalidateQueries({ queryKey: tenantKeys.detail(variables.id) })
   } })
-  return { create, updateStatus }
+  return { create, updateStatus, updateProfile, replaceSubscription, recordPayment }
 }
