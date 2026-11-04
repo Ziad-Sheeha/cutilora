@@ -1,4 +1,5 @@
-import { forwardRef, type ButtonHTMLAttributes } from "react"
+import { forwardRef, useState, type ButtonHTMLAttributes, type MouseEventHandler } from "react"
+import { LoaderCircle } from "lucide-react"
 import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
@@ -29,17 +30,42 @@ const buttonVariants = cva(
 
 export interface ButtonProps
   extends ButtonHTMLAttributes<HTMLButtonElement>,
-    VariantProps<typeof buttonVariants> {}
+    VariantProps<typeof buttonVariants> {
+  /** Shows progress and disables the button while its action is running. */
+  loading?: boolean
+}
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, type = "button", ...props }, ref) => (
-    <button
-      ref={ref}
-      type={type}
-      className={cn(buttonVariants({ variant, size }), className)}
-      {...props}
-    />
-  ),
+  ({ className, variant, size, type = "button", loading = false, disabled, onClick, children, ...props }, ref) => {
+    const [actionLoading, setActionLoading] = useState(false)
+    const isLoading = loading || actionLoading
+
+    const handleClick: MouseEventHandler<HTMLButtonElement> = (event) => {
+      const result = onClick?.(event) as unknown
+      if (result && typeof (result as PromiseLike<unknown>).then === "function") {
+        setActionLoading(true)
+        void Promise.resolve(result).then(
+          () => setActionLoading(false),
+          () => setActionLoading(false),
+        )
+      }
+    }
+
+    return (
+      <button
+        ref={ref}
+        type={type}
+        className={cn(buttonVariants({ variant, size }), className)}
+        disabled={disabled || isLoading}
+        aria-busy={isLoading || undefined}
+        onClick={handleClick}
+        {...props}
+      >
+        {isLoading && <LoaderCircle className="size-4 shrink-0 animate-spin" aria-hidden="true" />}
+        {!(isLoading && size === "icon") && children}
+      </button>
+    )
+  },
 )
 
 Button.displayName = "Button"
