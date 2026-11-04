@@ -33,6 +33,7 @@ import {
   type GeoKind,
   type GeoPayload,
   type GeoRecord,
+  type GeoRelation,
 } from "./geo-location.types"
 import { geoLocationSchema } from "./geo-location.schema"
 import { GeoSearchSelect } from "./geo-search-select"
@@ -52,13 +53,16 @@ function ParentName({
   kind,
   id,
   locale,
+  relation,
 }: {
   kind: GeoKind
   id?: GeoId | null
   locale: string
+  relation?: GeoRelation | null
 }) {
-  const query = useGeoDetail(geoConfigs[kind].endpoint, id || undefined)
+  const query = useGeoDetail(geoConfigs[kind].endpoint, relation ? undefined : id || undefined)
 
+  if (relation) return <span className="font-medium">{geoRecordName(relation, locale)}</span>
   if (!id) return <span className="text-muted-foreground">—</span>
   if (query.isLoading) {
     return <span className="inline-block h-4 w-24 animate-pulse rounded bg-muted" />
@@ -169,25 +173,18 @@ export function GeoLocationPage() {
             <p className="mt-0.5 text-xs text-muted-foreground">
               {locale === "ar" ? record.nameEn : record.name_ar}
             </p>
-            <p className="mt-0.5 text-xs text-muted-foreground">
-              {t.geo.id}: {record.id}
-            </p>
           </div>
         ),
       },
     ]
 
-    if (kind === "countries") {
-      result.push({
-        id: "code",
-        header: t.geo.code,
-        cell: (record) => (
-          <span className="rounded-md bg-muted px-2 py-1 font-mono text-xs uppercase">
-            {record.code || "—"}
-          </span>
-        ),
-      })
-    }
+    result.push({
+      id: "code",
+      header: t.geo.code,
+      cell: (record) => record.code ? (
+        <span className="inline-flex rounded-lg border border-primary/10 bg-primary/[0.045] px-2.5 py-1 font-mono text-xs font-semibold tracking-wide text-primary">{record.code}</span>
+      ) : <span className="text-muted-foreground">—</span>,
+    })
 
     if (config.parent) {
       const parentKind = config.parent
@@ -200,6 +197,7 @@ export function GeoLocationPage() {
           <ParentName
             kind={parentKind}
             id={parentField ? record[parentField] : undefined}
+            relation={record.city ?? record.governorate ?? record.country}
             locale={locale}
           />
         ),
