@@ -348,12 +348,7 @@ export function GeoLocationPage() {
           className="flex items-center justify-between gap-3 rounded-xl border border-error/25 bg-error/5 px-4 py-3 text-sm text-error"
         >
           <span>{translateError(errorText)}</span>
-          <button
-            type="button"
-            aria-label={t.common.dismiss}
-          >
-            ×
-          </button>
+
         </div>
       )}
 
