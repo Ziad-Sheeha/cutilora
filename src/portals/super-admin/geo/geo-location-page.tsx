@@ -100,6 +100,7 @@ export function GeoLocationPage() {
   const schema = geoLocationSchema(kind, {
     nameRequired: t.geo.nameRequired,
     codeRequired: t.geo.codeRequired,
+    codeInvalid: t.geo.codeInvalid,
     parentRequired: t.geo.parentRequired,
   })
 
@@ -115,6 +116,12 @@ export function GeoLocationPage() {
   useEffect(() => {
     if (selected && detail.data) setFormOpen(true)
   }, [selected, detail.data])
+
+  useEffect(() => {
+    if (pagination && page > pagination.totalPages) {
+      setPage(Math.max(1, pagination.totalPages))
+    }
+  }, [page, pagination])
 
   useEffect(() => {
     setSearch("")
