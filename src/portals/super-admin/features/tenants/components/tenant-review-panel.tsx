@@ -51,7 +51,8 @@ export function TenantReviewPanel({ values, labels, onEdit, ar }: {
       ["Logo", values.branding.logoUrl ? (values.branding.logoUrl.startsWith("data:") ? "Image selected" : "Existing image") : ""],
       ["Cover image", values.branding.coverImageUrl ? (values.branding.coverImageUrl.startsWith("data:") ? "Image selected" : "Existing image") : ""],
     ] },
-    ...(values.owner.name || values.owner.email ? [{ title: labels.owner ?? (ar ? "حساب مدير المؤسسة" : "Owner account"), icon: UserRound, step: 5, rows: [[ar ? "اسم المستخدم" : "Owner name", values.owner.name], [ar ? "بريد تسجيل الدخول" : "Login email", values.owner.email]] as [string, string][] }] : []),\n    { title: labels.preferences, icon: Settings2, step: 4, rows: [
+    ...(values.owner.name || values.owner.email ? [{ title: labels.owner ?? (ar ? "حساب مدير المؤسسة" : "Owner account"), icon: UserRound, step: 5, rows: [[ar ? "اسم المستخدم" : "Owner name", values.owner.name], [ar ? "بريد تسجيل الدخول" : "Login email", values.owner.email]] as [string, string][] }] : []),
+    { title: labels.preferences, icon: Settings2, step: 4, rows: [
       ["Timezone", values.preferences.timezone], ["Organization language", values.preferences.locale],
       ["Currency", values.preferences.currency], ["Date format", values.preferences.dateFormat],
       ["Week starts on", values.preferences.weekStartsOn],
