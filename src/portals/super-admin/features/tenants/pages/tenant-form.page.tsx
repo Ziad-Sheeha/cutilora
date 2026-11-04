@@ -1,23 +1,14 @@
 import { useEffect, useMemo, useState } from "react"
 import { Link, useNavigate, useParams } from "react-router"
-import { ArrowLeft, ArrowRight, Building2, Check, ChevronRight, Landmark, MapPin, Settings2, ShieldCheck, Sparkles, UserRound, ClipboardCheck, Download } from "lucide-react"
+import { ArrowLeft, ArrowRight, Building2, Check, ChevronRight, Landmark, MapPin, Settings2, Sparkles, UserRound, ClipboardCheck, ShieldAlert } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Input } from "@/components/ui/input"
-import { PhoneNumberField } from "@/components/ui/phone-number-field"
-import { Label } from "@/components/ui/label"
-import { SelectMenu, SelectMenuContent, SelectMenuItem, SelectMenuTrigger, SelectMenuValue } from "@/components/ui/select-menu"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { useI18n } from "@/i18n/i18n-provider"
 import { pushToast, store } from "@/store"
-import { GeoSearchSelect } from "@/portals/super-admin/features/geo-location/components/geo-search-select"
 import { useTenant, useTenantMutations } from "../hooks/use-tenants"
-import { TenantFormField } from "../components/tenant-form-field"
-import { TenantFormSection } from "../components/tenant-form-section"
-import { TenantImageUpload } from "../components/tenant-image-upload"
 import { TenantReviewPanel } from "../components/tenant-review-panel"
-import { TenantPdfDocument } from "../components/tenant-pdf-document"
+import { TenantContactSection, TenantIdentitySection, TenantLegalBrandingSection, TenantLocationSection, TenantOwnerSection, TenantPreferencesSection } from "../components/tenant-form-sections"
 import { emptyTenantForm, formToPayload, tenantToForm, type TenantFormValues } from "../types/tenant-form.types"
 import type { Tenant } from "../types/tenant.types"
 
@@ -36,6 +27,7 @@ export function TenantFormPage() {
   const [step, setStep] = useState(0)
   const [highestUnlockedStep, setHighestUnlockedStep] = useState(0)
   const [successOpen, setSuccessOpen] = useState(false)
+  const [confirmOpen, setConfirmOpen] = useState(false)
   const [savedTenant, setSavedTenant] = useState<Tenant | null>(null)
   const saving = mutations.create.isPending || mutations.updateProfile.isPending
   const steps = isEdit ? ["identity", "contact", "location", "legal", "preferences", "review"] as const : ["identity", "contact", "location", "legal", "preferences", "owner", "review"] as const
@@ -102,7 +94,7 @@ export function TenantFormPage() {
     ? ["البيانات الأساسية", "التواصل", "العنوان", "القانوني والعلامة", "التفضيلات", ...(!isEdit ? ["حساب المدير"] : []), "المراجعة"]
     : ["Basics", "Contact", "Location", "Legal & branding", "Preferences", ...(!isEdit ? ["Owner account"] : []), "Review"]
 
-  function update<K extends "contact" | "address" | "legal" | "branding" | "preferences">(section: K, key: keyof TenantFormValues[K], value: string) {
+  function update<K extends "contact" | "address" | "legal" | "branding" | "preferences">(section: K, key: string, value: string) {
     setValues((current) => ({
       ...current,
       [section]: { ...(current[section] as Record<string, unknown>), [key]: value },
@@ -175,14 +167,6 @@ export function TenantFormPage() {
     setStep((current) => Math.min(steps.length - 1, current + 1))
   }
 
-  function downloadTenantPdf() {
-    const previousTitle = document.title
-    document.title = "Cutilora - " + (savedTenant?.name || values.name) + " - Tenant Profile"
-    const restoreTitle = () => { document.title = previousTitle; window.removeEventListener("afterprint", restoreTitle) }
-    window.addEventListener("afterprint", restoreTitle)
-    window.print()
-  }
-
   async function submitTenant() {
     if (step !== finalStep || saving) return
     const invalidStep = steps.slice(0, finalStep).findIndex((_, index) => validateStep(index).length > 0)
@@ -202,88 +186,52 @@ export function TenantFormPage() {
   if (isEdit && (tenantQuery.error || !tenantQuery.data)) return <div className="space-y-4"><Link to={"/super-admin/tenants/" + encodeURIComponent(tenantId)} className="inline-flex items-center gap-2 text-sm font-semibold text-primary"><ArrowLeft className="size-4"/>{copy.back}</Link><div role="alert" className="rounded-2xl border border-destructive/20 bg-destructive/5 p-6 text-sm text-destructive">{tenantQuery.error instanceof Error ? tenantQuery.error.message : copy.loadError}</div></div>
 
   const sectionContent = [
-    <TenantFormSection key="identity" title={copy.identity} description={copy.identityHint} icon={Building2}>
-      <TenantFormField id="tenant-name" label={copy.name} value={values.name} onChange={(value) => updateTop("name", value)} required autoComplete="organization" />
-      <TenantFormField id="tenant-display-name" label={copy.displayName} value={values.displayName} onChange={(value) => updateTop("displayName", value)} />
-      <TenantFormField id="tenant-legal-name" label={copy.legalName} value={values.legalName} onChange={(value) => updateTop("legalName", value)} />
-      <div className="space-y-2"><Label>{copy.businessType}<span className="ms-1 text-destructive">*</span></Label><SelectMenu value={values.businessType} onValueChange={(value) => updateTop("businessType", value)}><SelectMenuTrigger id="tenant-business-type" aria-invalid={!values.businessType ? true : undefined} className={!values.businessType ? "border-destructive ring-1 ring-destructive/20" : ""}><SelectMenuValue placeholder={copy.choose}/></SelectMenuTrigger><SelectMenuContent>{values.businessType && !["single_clinic","clinic_group"].includes(values.businessType) && <SelectMenuItem value={values.businessType}>{values.businessType}</SelectMenuItem>}<SelectMenuItem value="single_clinic">{ar ? "عيادة واحدة" : "Single clinic"}</SelectMenuItem><SelectMenuItem value="clinic_group">{ar ? "مجموعة عيادات" : "Clinic group"}</SelectMenuItem></SelectMenuContent></SelectMenu></div>
-      <div className="space-y-2"><Label>{copy.industry}<span className="ms-1 text-destructive">*</span></Label><SelectMenu value={values.industry} onValueChange={(value) => updateTop("industry", value)}><SelectMenuTrigger id="tenant-industry" aria-invalid={!values.industry ? true : undefined} className={!values.industry ? "border-destructive ring-1 ring-destructive/20" : ""}><SelectMenuValue placeholder={copy.choose}/></SelectMenuTrigger><SelectMenuContent>{values.industry && values.industry !== "aesthetic_medicine" && <SelectMenuItem value={values.industry}>{values.industry}</SelectMenuItem>}<SelectMenuItem value="aesthetic_medicine">{ar ? "الطب التجميلي" : "Aesthetic medicine"}</SelectMenuItem></SelectMenuContent></SelectMenu><p className="text-xs text-muted-foreground">{ar ? "المتاح حاليًا هو المجال المؤكد في بيانات الـ API." : "Only the industry key confirmed by the supplied API data is offered."}</p></div>
-      <TenantFormField id="tenant-description" label={copy.description} value={values.description} onChange={(value) => updateTop("description", value)} multiline />
-    </TenantFormSection>,
-    <TenantFormSection key="contact" title={copy.contact} description={copy.contactHint} icon={UserRound}>
-      <TenantFormField id="tenant-email" label={copy.email} type="email" value={values.contact.email} onChange={(value) => update("contact", "email", value)} autoComplete="email"/>
-      <PhoneNumberField id="tenant-phone" label={copy.phone} value={values.contact.phone} phoneCode={values.contact.phoneCode} onChange={(value) => update("contact", "phone", value)} onPhoneCodeChange={(value) => update("contact", "phoneCode", value)} placeholder="010 1234 5678"/>
-      <PhoneNumberField id="tenant-alt-phone" label={copy.alternatePhone} value={values.contact.alternatePhone} phoneCode={values.contact.phoneCode} onChange={(value) => update("contact", "alternatePhone", value)} onPhoneCodeChange={(value) => update("contact", "phoneCode", value)} placeholder="010 1234 5678"/>
-      <PhoneNumberField id="tenant-whatsapp" label={copy.whatsapp} value={values.contact.whatsapp} phoneCode={values.contact.phoneCode} onChange={(value) => update("contact", "whatsapp", value)} onPhoneCodeChange={(value) => update("contact", "phoneCode", value)} placeholder="010 1234 5678"/>
-      <TenantFormField id="tenant-website" label={copy.website} type="url" value={values.contact.website} onChange={(value) => update("contact", "website", value)} placeholder="https://"/>
-    </TenantFormSection>,
-    <TenantFormSection key="location" title={copy.location} description={copy.locationHint} icon={MapPin}>
-      <div className="space-y-2"><Label>{copy.country}</Label><GeoSearchSelect kind="countries" value={values.address.countryId} onChange={(value) => updateLocation("countryId", value)} placeholder={copy.choose}/></div>
-      <div className="space-y-2"><Label>{copy.governorate}</Label><GeoSearchSelect kind="governorates" value={values.address.governorateId} parentId={values.address.countryId} onChange={(value) => updateLocation("governorateId", value)} placeholder={copy.choose}/></div>
-      <div className="space-y-2"><Label>{copy.city}</Label><GeoSearchSelect kind="cities" value={values.address.cityId} parentId={values.address.governorateId} onChange={(value) => updateLocation("cityId", value)} placeholder={copy.choose}/></div>
-      <div className="space-y-2"><Label>{copy.district}</Label><GeoSearchSelect kind="districts" value={values.address.districtId} parentId={values.address.cityId} onChange={(value) => updateLocation("districtId", value)} placeholder={copy.choose}/></div>
-      <TenantFormField id="tenant-address-1" label={copy.addressLine1} value={values.address.addressLine1} onChange={(value) => update("address", "addressLine1", value)}/>
-      <TenantFormField id="tenant-address-2" label={copy.addressLine2} value={values.address.addressLine2} onChange={(value) => update("address", "addressLine2", value)}/>
-      <TenantFormField id="tenant-building" label={copy.building} value={values.address.building} onChange={(value) => update("address", "building", value)}/>
-      <TenantFormField id="tenant-floor" label={copy.floor} value={values.address.floor} onChange={(value) => update("address", "floor", value)}/>
-      <TenantFormField id="tenant-unit" label={copy.unit} value={values.address.unit} onChange={(value) => update("address", "unit", value)}/>
-      <TenantFormField id="tenant-landmark" label={copy.landmark} value={values.address.landmark} onChange={(value) => update("address", "landmark", value)}/>
-      <TenantFormField id="tenant-postal" label={copy.postalCode} value={values.address.postalCode} onChange={(value) => update("address", "postalCode", value)}/>
-      <TenantFormField id="tenant-latitude" label={copy.latitude} type="number" min="-90" max="90" step="any" value={values.address.latitude} onChange={(value) => update("address", "latitude", value)}/>
-      <TenantFormField id="tenant-longitude" label={copy.longitude} type="number" min="-180" max="180" step="any" value={values.address.longitude} onChange={(value) => update("address", "longitude", value)}/>
-    </TenantFormSection>,
-    <TenantFormSection key="legal" title={copy.legal} description={copy.legalHint} icon={ShieldCheck}>
-      <TenantFormField id="tenant-tax" label={copy.taxNumber} value={values.legal.taxNumber} onChange={(value) => update("legal", "taxNumber", value)}/>
-      <TenantFormField id="tenant-vat" label={copy.vatNumber} value={values.legal.vatNumber} onChange={(value) => update("legal", "vatNumber", value)}/>
-      <TenantFormField id="tenant-registration" label={copy.commercialRegistrationNumber} value={values.legal.commercialRegistrationNumber} onChange={(value) => update("legal", "commercialRegistrationNumber", value)}/>
-      <div className="hidden sm:block"/>
-      <TenantImageUpload id="tenant-logo" label={copy.logoUrl} value={values.branding.logoUrl} onChange={(value) => update("branding", "logoUrl", value)} hint={copy.uploadHint} uploadLabel={copy.upload} replaceLabel={copy.replace} removeLabel={copy.remove} invalidTypeLabel={copy.invalidImage} readErrorLabel={copy.readImageError} tooLargeLabel={copy.imageTooLarge} previewLabel={copy.preview}/>
-      <TenantImageUpload id="tenant-cover" label={copy.coverImageUrl} value={values.branding.coverImageUrl} onChange={(value) => update("branding", "coverImageUrl", value)} hint={copy.uploadHint} uploadLabel={copy.upload} replaceLabel={copy.replace} removeLabel={copy.remove} invalidTypeLabel={copy.invalidImage} readErrorLabel={copy.readImageError} tooLargeLabel={copy.imageTooLarge} previewLabel={copy.preview}/>
-      <div className="space-y-3 sm:col-span-2"><Label htmlFor="tenant-primary-color">{copy.primaryColor}</Label><div className="flex flex-wrap items-center gap-3 rounded-2xl border bg-muted/20 p-4"><span className="size-12 rounded-xl border shadow-inner" style={{backgroundColor: values.branding.primaryColor}}/><div className="min-w-0 flex-1"><p className="font-mono text-sm font-semibold">{values.branding.primaryColor.toUpperCase()}</p><p className="text-xs text-muted-foreground">{ar ? "اختر لونًا جاهزًا أو خصص اللون." : "Choose a curated color or open the custom picker."}</p></div><Input id="tenant-primary-color" type="color" value={values.branding.primaryColor} onChange={(event) => update("branding", "primaryColor", event.target.value)} className="h-11 w-16 cursor-pointer p-1"/></div><div className="flex flex-wrap gap-2">{["#2563eb","#6d4aff","#0f766e","#0e7490","#be123c","#b45309","#334155","#111827"].map((color) => <Button key={color} type="button" variant="outline" size="icon" aria-label={color} title={color} onClick={() => update("branding","primaryColor",color)} className={"size-8 rounded-full border-2 p-0 " + (values.branding.primaryColor.toLowerCase() === color ? "ring-2 ring-primary ring-offset-2" : "")} style={{backgroundColor:color}} />)}</div></div>
-    </TenantFormSection>,
-    <TenantFormSection key="preferences" title={copy.preferences} description={copy.preferencesHint} icon={Settings2}>
-      <div className="space-y-2"><Label>{copy.timezone}</Label><SelectMenu value={values.preferences.timezone} onValueChange={(value) => update("preferences", "timezone", value)}><SelectMenuTrigger><SelectMenuValue/></SelectMenuTrigger><SelectMenuContent>{!["Africa/Cairo","Asia/Riyadh","Asia/Dubai","Asia/Kuwait","Asia/Qatar","Asia/Bahrain","Asia/Muscat","UTC"].includes(values.preferences.timezone) && <SelectMenuItem value={values.preferences.timezone}>{values.preferences.timezone}</SelectMenuItem>}{["Africa/Cairo","Asia/Riyadh","Asia/Dubai","UTC"].map((zone) => <SelectMenuItem key={zone} value={zone}>{zone}</SelectMenuItem>)}</SelectMenuContent></SelectMenu></div>
-      <div className="space-y-2"><Label>{copy.locale}</Label><SelectMenu value={values.preferences.locale} onValueChange={(value) => update("preferences", "locale", value)}><SelectMenuTrigger><SelectMenuValue/></SelectMenuTrigger><SelectMenuContent>{!["en","ar"].includes(values.preferences.locale) && <SelectMenuItem value={values.preferences.locale}>{values.preferences.locale}</SelectMenuItem>}<SelectMenuItem value="en">English</SelectMenuItem><SelectMenuItem value="ar">العربية</SelectMenuItem></SelectMenuContent></SelectMenu></div>
-      <div className="space-y-2"><Label>{copy.currency}</Label><SelectMenu value={values.preferences.currency} onValueChange={(value) => update("preferences", "currency", value)}><SelectMenuTrigger><SelectMenuValue/></SelectMenuTrigger><SelectMenuContent>{!["EGP","SAR","AED","QAR","KWD","BHD","OMR","USD"].includes(values.preferences.currency) && <SelectMenuItem value={values.preferences.currency}>{values.preferences.currency}</SelectMenuItem>}<SelectMenuItem value="EGP">EGP — Egyptian Pound</SelectMenuItem><SelectMenuItem value="SAR">SAR — Saudi Riyal</SelectMenuItem><SelectMenuItem value="AED">AED — UAE Dirham</SelectMenuItem><SelectMenuItem value="QAR">QAR — Qatari Riyal</SelectMenuItem><SelectMenuItem value="KWD">KWD — Kuwaiti Dinar</SelectMenuItem><SelectMenuItem value="BHD">BHD — Bahraini Dinar</SelectMenuItem><SelectMenuItem value="OMR">OMR — Omani Rial</SelectMenuItem><SelectMenuItem value="USD">USD — US Dollar</SelectMenuItem></SelectMenuContent></SelectMenu></div>
-      <div className="space-y-2"><Label>{copy.dateFormat}</Label><SelectMenu value={values.preferences.dateFormat} onValueChange={(value) => update("preferences", "dateFormat", value)}><SelectMenuTrigger><SelectMenuValue/></SelectMenuTrigger><SelectMenuContent>{!["YYYY-MM-DD","DD/MM/YYYY","MM/DD/YYYY"].includes(values.preferences.dateFormat) && <SelectMenuItem value={values.preferences.dateFormat}>{values.preferences.dateFormat}</SelectMenuItem>}<SelectMenuItem value="YYYY-MM-DD">YYYY-MM-DD</SelectMenuItem><SelectMenuItem value="DD/MM/YYYY">DD/MM/YYYY</SelectMenuItem><SelectMenuItem value="MM/DD/YYYY">MM/DD/YYYY</SelectMenuItem></SelectMenuContent></SelectMenu></div>
-      <div className="space-y-2"><Label>{copy.weekStartsOn}</Label><SelectMenu value={values.preferences.weekStartsOn} onValueChange={(value) => update("preferences", "weekStartsOn", value)}><SelectMenuTrigger><SelectMenuValue/></SelectMenuTrigger><SelectMenuContent>{(ar ? ["الأحد", "الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"] : ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]).map((day, index) => <SelectMenuItem key={index} value={String(index)}>{day}</SelectMenuItem>)}</SelectMenuContent></SelectMenu></div>
-      <div className="sm:col-span-2 space-y-3"><Label>{copy.supportedLanguages}</Label><div className="flex flex-wrap gap-4 rounded-xl border bg-muted/20 p-4"><Label className="flex cursor-pointer items-center gap-2 text-sm"><Checkbox checked={values.preferences.supportedLanguages.includes("en")} onChange={(event) => toggleLanguage("en", event.target.checked)}/>{copy.english}</Label><Label className="flex cursor-pointer items-center gap-2 text-sm"><Checkbox checked={values.preferences.supportedLanguages.includes("ar")} onChange={(event) => toggleLanguage("ar", event.target.checked)}/>{copy.arabic}</Label></div></div>
-    </TenantFormSection>,
+    <TenantIdentitySection key="identity" values={values} copy={copy} ar={ar} updateTop={updateTop}/>,
+    <TenantContactSection key="contact" values={values} copy={copy} ar={ar} update={update}/>,
+    <TenantLocationSection key="location" values={values} copy={copy} ar={ar} update={update} updateLocation={updateLocation}/>,
+    <TenantLegalBrandingSection key="legal" values={values} copy={copy} ar={ar} update={update}/>,
+    <TenantPreferencesSection key="preferences" values={values} copy={copy} ar={ar} update={update} toggleLanguage={toggleLanguage}/>,
   ]
 
   return (
-    <div dir={dir} className="mx-auto max-w-[1180px] space-y-6 pb-8">
+    <div dir={dir} className="mx-auto w-full min-w-0 max-w-[1180px] space-y-5 overflow-x-clip pb-8 sm:space-y-6>
       <Link to="/super-admin/tenants" className="inline-flex items-center gap-2 text-sm font-semibold text-muted-foreground transition hover:text-primary"><ArrowLeft className="size-4"/>{copy.back}</Link>
-      <header className="relative overflow-hidden rounded-[28px] border border-[#282344] bg-[#151329] px-6 py-7 text-white shadow-xl sm:px-8">
+      <header className="relative min-w-0 overflow-hidden rounded-2xl border border-[#282344] bg-[#151329] px-4 py-5 text-white shadow-xl sm:rounded-[28px] sm:px-8 sm:py-7>
         <div className="pointer-events-none absolute -end-16 -top-28 size-72 rounded-full bg-violet-500/20 blur-3xl"/>
         <div className="relative flex items-start gap-4"><span className="flex size-12 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white/10 text-violet-200"><Sparkles className="size-5"/></span><div className="min-w-0"><p className="text-[10px] font-bold uppercase tracking-[0.2em] text-violet-300">CUTILORA / PLATFORM / TENANTS</p><h1 className="mt-2 text-2xl font-semibold tracking-tight sm:text-3xl">{isEdit ? copy.editTitle : copy.createTitle}</h1><p className="mt-2 max-w-2xl text-sm leading-6 text-slate-300">{isEdit ? copy.editDescription : copy.createDescription}</p></div></div>
       </header>
-      <div className="grid items-start gap-5 lg:grid-cols-[260px_minmax(0,1fr)]">
-        <nav aria-label={ar ? "أقسام النموذج" : "Form sections"} className="rounded-2xl border bg-card p-2 lg:sticky lg:top-5">
+      <div className="grid min-w-0 items-start gap-4 lg:grid-cols-[248px_minmax(0,1fr)] lg:gap-5>
+        <nav aria-label={ar ? "أقسام النموذج" : "Form sections"} className="flex min-w-0 gap-2 overflow-x-auto rounded-2xl border bg-card p-2 lg:sticky lg:top-5 lg:block lg:space-y-1">
           <div className="px-3 pb-3 pt-2"><p className="text-xs font-semibold text-muted-foreground">{copy.stepOf} {step + 1} / {steps.length}</p><div className="mt-3 h-1.5 overflow-hidden rounded-full bg-muted"><div className="h-full rounded-full bg-primary transition-all" style={{ width: ((step + 1) / steps.length * 100) + "%" }}/></div></div>
-          {steps.map((item, index) => { const Icon = stepIcons[index] ?? Building2; const locked = index > highestUnlockedStep; return <Button key={item} type="button" disabled={locked || saving} variant={step === index ? "secondary" : "ghost"} onClick={() => setStep(index)} className={"flex h-auto w-full justify-start gap-3 rounded-xl px-3 py-3 text-start " + (step === index ? "bg-primary/10 text-primary hover:bg-primary/15" : locked ? "cursor-not-allowed text-muted-foreground/40" : "text-muted-foreground hover:bg-muted hover:text-foreground")}><span className={"flex size-9 shrink-0 items-center justify-center rounded-lg " + (step === index ? "bg-primary text-primary-foreground" : "bg-muted")}><Icon className="size-4"/></span><span className="min-w-0 flex-1"><span className="block text-sm font-semibold">{stepLabels[index]}</span><span className="mt-0.5 block text-[11px] opacity-70">{locked ? (ar ? "أكمل الخطوة السابقة" : "Complete previous step") : index + 1 + " / " + steps.length}</span></span>{index < highestUnlockedStep ? <Check className="size-4"/> : <ChevronRight className="size-4 opacity-50"/>}</Button> })}
+          {steps.map((item, index) => { const Icon = stepIcons[index] ?? Building2; const locked = index > highestUnlockedStep; return <Button key={item} type="button" disabled={locked || saving} variant={step === index ? "secondary" : "ghost"} onClick={() => setStep(index)} className={"flex h-auto min-w-[168px] shrink-0 justify-start gap-2 rounded-xl px-3 py-2.5 text-start lg:w-full " + (step === index ? "bg-primary/10 text-primary hover:bg-primary/15" : locked ? "cursor-not-allowed text-muted-foreground/40" : "text-muted-foreground hover:bg-muted hover:text-foreground")}><span className={"flex size-9 shrink-0 items-center justify-center rounded-lg " + (step === index ? "bg-primary text-primary-foreground" : "bg-muted")}><Icon className="size-4"/></span><span className="min-w-0 flex-1"><span className="block text-sm font-semibold">{stepLabels[index]}</span><span className="mt-0.5 block text-[11px] opacity-70">{locked ? (ar ? "أكمل الخطوة السابقة" : "Complete previous step") : index + 1 + " / " + steps.length}</span></span>{index < highestUnlockedStep ? <Check className="size-4"/> : <ChevronRight className="size-4 opacity-50"/>}</Button> })}
         </nav>
         <form onSubmit={(event) => event.preventDefault()} className="min-w-0 space-y-5">
           <div className="flex items-center justify-between gap-3"><div><p className="text-xs font-semibold uppercase tracking-wider text-primary">{copy.stepOf} {step + 1}</p><h2 className="mt-1 text-xl font-semibold">{stepLabels[step]}</h2></div><span className="rounded-full border bg-card px-3 py-1.5 text-xs text-muted-foreground">{step + 1} / {steps.length}</span></div>
           {step === 0 && <p className="text-xs text-muted-foreground"><span className="text-destructive">*</span> {ar ? "الحقول المطلوبة" : "Required fields"}</p>}
-          {step < 5 ? sectionContent[step] : !isEdit && step === 5 ? <TenantFormSection title={copy.owner} description={copy.ownerHint} icon={UserRound}>
-            <TenantFormField id="tenant-owner-name" label={copy.ownerName} value={values.owner.name} onChange={(value) => updateOwner("name", value)} required autoComplete="name"/>
-            <TenantFormField id="tenant-owner-email" label={copy.ownerEmail} type="email" value={values.owner.email} onChange={(value) => updateOwner("email", value)} required autoComplete="email"/>
-            <div className="space-y-2"><TenantFormField id="tenant-owner-password" label={copy.ownerPassword} type="password" value={values.owner.password} onChange={(value) => updateOwner("password", value)} required autoComplete="new-password"/>
-              {(() => { const password = values.owner.password; const checks = [password.length >= 8, /[A-Z]/.test(password), /[a-z]/.test(password), /\d/.test(password), /[^A-Za-z0-9]/.test(password)]; const score = checks.filter(Boolean).length; const strength = score <= 2 ? copy.passwordWeak : score === 3 ? copy.passwordFair : score === 4 ? copy.passwordGood : copy.passwordStrong; return <div className="space-y-2 rounded-xl border bg-muted/20 p-3"><div className="flex items-center justify-between text-xs"><span className="font-medium">{ar ? "قوة كلمة المرور" : "Password strength"}</span><span className="font-semibold">{password ? strength : "—"}</span></div><div className="grid grid-cols-5 gap-1">{checks.map((valid, index) => <span key={index} className={"h-1.5 rounded-full " + (valid ? "bg-emerald-500" : "bg-muted-foreground/20")}/>)}</div><ul className="grid gap-1 text-xs text-muted-foreground sm:grid-cols-2">{[ar ? "8 أحرف على الأقل" : "At least 8 characters", ar ? "حرف كبير" : "Uppercase letter", ar ? "حرف صغير" : "Lowercase letter", ar ? "رقم" : "Number", ar ? "رمز خاص" : "Special character"].map((rule, index) => <li key={rule} className={checks[index] ? "text-emerald-600" : ""}>{checks[index] ? "✓" : "○"} {rule}</li>)}</ul></div> })()}
-            </div>
-            <TenantFormField id="tenant-owner-confirm" label={copy.ownerConfirm} type="password" value={values.owner.passwordConfirmation} onChange={(value) => updateOwner("passwordConfirmation", value)} required autoComplete="new-password"/>
-            {values.owner.passwordConfirmation && values.owner.password !== values.owner.passwordConfirmation && <p className="text-xs font-medium text-destructive">{copy.passwordMismatch}</p>}
-          </TenantFormSection> : <TenantReviewPanel values={values} ar={ar} onEdit={setStep} labels={{identity:copy.identity,contact:copy.contact,location:copy.location,legal:copy.legal,preferences:copy.preferences,owner:copy.owner,edit:copy.edit,empty:copy.empty}}/>}
+          {step < 5 ? sectionContent[step] : !isEdit && step === 5 ? <TenantOwnerSection values={values} copy={copy} ar={ar} updateOwner={updateOwner}/> : <TenantReviewPanel values={values} ar={ar} onEdit={setStep} labels={{identity:copy.identity,contact:copy.contact,location:copy.location,legal:copy.legal,preferences:copy.preferences,owner:copy.owner,edit:copy.edit,empty:copy.empty}}/>}
           {step === 4 && <p className="rounded-xl border border-primary/15 bg-primary/[0.04] px-4 py-3 text-xs leading-5 text-muted-foreground">{copy.review}</p>}
           <div className="flex flex-col-reverse justify-between gap-3 rounded-2xl border bg-card p-4 sm:flex-row sm:items-center">
             <Button type="button" variant="outline" onClick={() => step === 0 ? navigate("/super-admin/tenants") : setStep((current) => current - 1)} disabled={saving}><ArrowLeft className="size-4"/>{step === 0 ? copy.back : copy.previous}</Button>
             {step < finalStep
               ? <Button type="button" onClick={continueToNextStep}>{copy.next}<ArrowRight className="size-4"/></Button>
-              : <Button type="button" loading={saving} disabled={saving} onClick={submitTenant}><Check className="size-4"/>{saving ? copy.saving : isEdit ? copy.save : copy.create}</Button>}
+              : <Button type="button" loading={saving} disabled={saving} onClick={() => setConfirmOpen(true)}><ShieldAlert className="size-4"/>{saving ? copy.saving : isEdit ? copy.save : copy.create}</Button>}
           </div>
         </form>
       </div>
+      <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <DialogContent className="w-[calc(100%-2rem)] max-w-md rounded-2xl">
+          <DialogHeader>
+            <div className="mb-2 flex size-12 items-center justify-center rounded-2xl bg-primary/10 text-primary"><ShieldAlert className="size-6"/></div>
+            <DialogTitle>{isEdit ? (ar ? "تأكيد حفظ التعديلات" : "Confirm profile changes") : (ar ? "تأكيد إنشاء المؤسسة" : "Confirm tenant creation")}</DialogTitle>
+            <DialogDescription>{isEdit ? (ar ? "هل تريد حفظ التعديلات على بيانات هذه المؤسسة؟" : "Are you sure you want to save these changes to this tenant?") : (ar ? "سيتم إنشاء المؤسسة وحساب المدير بالبيانات التي أدخلتها. هل تريد المتابعة؟" : "This will create the tenant and its owner account using the information you entered. Do you want to continue?")}</DialogDescription>
+          </DialogHeader>
+          <div className="rounded-xl border bg-muted/30 p-3"><p className="text-sm font-semibold">{values.displayName || values.name || (ar ? "مؤسسة جديدة" : "New tenant")}</p>{!isEdit && <p className="mt-1 break-all text-xs text-muted-foreground">{values.owner.email}</p>}</div>
+          <DialogFooter className="flex-col-reverse gap-2 sm:flex-row">
+            <Button type="button" variant="outline" className="w-full sm:w-auto" onClick={() => setConfirmOpen(false)}>{ar ? "مراجعة البيانات" : "Go back"}</Button>
+            <Button type="button" className="w-full sm:w-auto" loading={saving} disabled={saving} onClick={() => { setConfirmOpen(false); void submitTenant() }}>{isEdit ? (ar ? "تأكيد الحفظ" : "Confirm changes") : (ar ? "تأكيد الإنشاء" : "Confirm creation")}</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       <Dialog open={successOpen} onOpenChange={setSuccessOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
@@ -295,13 +243,9 @@ export function TenantFormPage() {
             <p className="text-sm font-semibold">{savedTenant?.displayName || savedTenant?.name || values.name}</p>
             <p className="mt-1 text-xs text-muted-foreground">{savedTenant?.slug || ""}</p>
           </div>
-          <DialogFooter className="sm:flex-row">
-            <Button type="button" variant="outline" onClick={downloadTenantPdf}><Download className="size-4"/>{copy.downloadPdf}</Button>
-            <Button type="button" onClick={() => navigate("/super-admin/tenants/" + encodeURIComponent(savedTenant?.id || tenantId))}>{copy.done}</Button>
-          </DialogFooter>
+          <DialogFooter><Button type="button" className="w-full sm:w-auto" onClick={() => navigate("/super-admin/tenants/" + encodeURIComponent(savedTenant?.id || tenantId))}>{copy.done}</Button></DialogFooter>
         </DialogContent>
       </Dialog>
-      {savedTenant && <TenantPdfDocument values={values} slug={savedTenant.slug} locale={locale}/>}
     </div>
   )
 }
