@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type FormEvent } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { Link, useNavigate, useParams } from "react-router"
 import { ArrowLeft, ArrowRight, Building2, Check, ChevronRight, Landmark, MapPin, Settings2, ShieldCheck, Sparkles, UserRound, ClipboardCheck, Download } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -274,7 +274,7 @@ export function TenantFormPage() {
             </div>
             <TenantFormField id="tenant-owner-confirm" label={copy.ownerConfirm} type="password" value={values.owner.passwordConfirmation} onChange={(value) => updateOwner("passwordConfirmation", value)} required autoComplete="new-password"/>
             {values.owner.passwordConfirmation && values.owner.password !== values.owner.passwordConfirmation && <p className="text-xs font-medium text-destructive">{copy.passwordMismatch}</p>}
-          </TenantFormSection> : <TenantReviewPanel values={values} ar={ar} onEdit={setStep} labels={{identity:copy.identity,contact:copy.contact,location:copy.location,legal:copy.legal,preferences:copy.preferences,edit:copy.edit,empty:copy.empty}}/>}
+          </TenantFormSection> : <TenantReviewPanel values={values} ar={ar} onEdit={setStep} labels={{identity:copy.identity,contact:copy.contact,location:copy.location,legal:copy.legal,preferences:copy.preferences,owner:copy.owner,edit:copy.edit,empty:copy.empty}}/>}
           {step === 4 && <p className="rounded-xl border border-primary/15 bg-primary/[0.04] px-4 py-3 text-xs leading-5 text-muted-foreground">{copy.review}</p>}
           <div className="flex flex-col-reverse justify-between gap-3 rounded-2xl border bg-card p-4 sm:flex-row sm:items-center">
             <Button type="button" variant="outline" onClick={() => step === 0 ? navigate("/super-admin/tenants") : setStep((current) => current - 1)} disabled={saving}><ArrowLeft className="size-4"/>{step === 0 ? copy.back : copy.previous}</Button>
