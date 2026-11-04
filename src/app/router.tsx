@@ -3,8 +3,8 @@ import { App } from "@/app/pages/landing-page"
 import { ClinicLayout } from "@/portals/clinic/layout/clinic-layout"
 import { DashboardPage } from "@/portals/clinic/features/dashboard/pages/dashboard.page"
 import { ClinicModulePage } from "@/portals/clinic/features/clinic/pages/clinic-module.page"
-import { AdminPlaceholderPage } from "@/pages/admin-placeholder-page"
-import { NotFoundPage } from "@/pages/not-found-page"
+import { AdminPlaceholderPage } from "@/app/pages/admin-placeholder.page"
+import { NotFoundPage } from "@/app/pages/not-found.page"
 import { ClinicLoginPage } from "@/portals/clinic/auth/login-page"
 import { SuperAdminLoginPage } from "@/portals/super-admin/auth/login-page"
 import { SuperAdminGuard } from "@/portals/super-admin/auth/super-admin-guard"
@@ -12,7 +12,7 @@ import { SuperAdminLayout } from "@/portals/super-admin/layout/super-admin-layou
 import { SuperAdminModulePage, SuperAdminOverviewPage } from "@/portals/super-admin/pages/super-admin-pages"
 import { GeoLocationPage } from "@/portals/super-admin/features/geo-location/pages/geo-location.page"
 import { AuditMonitoringPage } from "@/portals/super-admin/features/monitoring/pages/audit-monitoring.page"
-import { adminNavigation } from "@/config/admin-navigation"
+import { adminNavigation } from "@/portals/clinic/config/navigation"
 
 export const router = createBrowserRouter([
   { path: "/", element: <App /> },
