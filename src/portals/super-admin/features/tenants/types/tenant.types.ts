@@ -73,7 +73,9 @@ export interface TenantListResult {
   totalKnown: boolean
   hasNext: boolean
 }
-export interface TenantOwnerPayload { name: string; email: string; password: string }\nexport interface TenantPayload {\n  owner: TenantOwnerPayload
+export interface TenantOwnerPayload { name: string; email: string; password: string }
+export interface TenantPayload {
+  owner: TenantOwnerPayload
   name: string
   displayName?: string
   legalName?: string
