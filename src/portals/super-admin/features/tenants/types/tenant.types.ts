@@ -3,6 +3,7 @@ export type TenantBusinessType = "single_clinic" | "clinic_group" | string
 
 export interface TenantContact {
   email: string | null
+  phoneCode: string
   phone: string | null
   alternatePhone: string | null
   whatsapp: string | null
