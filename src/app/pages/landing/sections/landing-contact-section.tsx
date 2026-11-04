@@ -25,7 +25,7 @@ export function LandingContactSection({ copy }: { copy: LandingCopy }) {
       String(values.get("message") || ""),
     ].join("\n")
 
-    window.location.href = `mailto:${encodeURIComponent(contactEmail)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
+    window.location.href = `mailto:${contactEmail.trim()}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
     setFeedback("prepared")
   }
 
