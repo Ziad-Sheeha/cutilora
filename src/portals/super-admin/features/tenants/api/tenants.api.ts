@@ -87,21 +87,6 @@ function rowsFrom(payload: unknown): unknown[] {
   if (Array.isArray(nested?.items)) return nested.items
   throw new Error("UNEXPECTED_RESPONSE")
 }
-function listResult(payload: unknown, page: number, perPage: number): TenantListResult {
-  const root = object(payload) ?? {}
-  const nested = object(root.data)
-  const meta = object(root.meta) ?? object(nested?.meta) ?? object(root.pagination) ?? object(nested?.pagination) ?? {}
-  const items = rowsFrom(payload).map(normalizeTenant)
-  const totalValue = Number(meta.total ?? meta.totalItems ?? meta.totalCount)
-  const totalKnown = Number.isFinite(totalValue) && (meta.total !== undefined || meta.totalItems !== undefined || meta.totalCount !== undefined)
-  const actualPage = Number(meta.current_page ?? meta.currentPage ?? meta.page ?? page) || page
-  const actualPerPage = Number(meta.per_page ?? meta.perPage ?? meta.limit ?? perPage) || perPage
-  const total = totalKnown ? totalValue : (actualPage - 1) * actualPerPage + items.length
-  const totalPages = Number(meta.last_page ?? meta.totalPages)
-  return { items, page: actualPage, perPage: actualPerPage, total, totalKnown,
-    hasNext: meta.has_next === true || meta.hasNext === true || meta.next_page_url != null ||
-      (Number.isFinite(totalPages) && totalPages > 0 ? actualPage < totalPages : totalKnown ? actualPage * actualPerPage < total : items.length === actualPerPage) }
-}
 interface ApiError { message?: string; error?: { message?: string }; errors?: Record<string, unknown> }
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
   const token = getSuperAdminToken()
