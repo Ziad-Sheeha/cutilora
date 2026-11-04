@@ -189,17 +189,15 @@ export function GeoLocationPage() {
       },
     ]
 
-    if (kind === "countries") {
-      result.push({
-        id: "code",
-        header: t.geo.code,
-        cell: (record) => (
-          <span className="rounded-md bg-muted px-2 py-1 font-mono text-xs uppercase">
-            {record.code || "—"}
-          </span>
-        ),
-      })
-    }
+    result.push({
+      id: "code",
+      header: t.geo.code,
+      cell: (record) => record.code ? (
+        <span className="inline-flex rounded-lg border border-primary/10 bg-primary/[0.045] px-2.5 py-1 font-mono text-xs font-semibold tracking-wide text-primary">
+          {record.code}
+        </span>
+      ) : <span className="text-muted-foreground">—</span>,
+    })
 
     if (config.parent) {
       const parentKind = config.parent
