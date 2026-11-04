@@ -144,8 +144,8 @@ export function GeoLocationPage() {
     </div> },
   ], [isArabic, kind, parentKind, parentField, parentNames, locale, t.common.actions, t.common.edit, t.common.delete])
 
-  const rangeStart = pagination && pagination.total > 0 ? (pagination.page - 1) * pagination.perPage + 1 : 0
-  const rangeEnd = pagination ? Math.min(pagination.page * pagination.perPage, pagination.total) : records.length
+  const rangeStart = records.length > 0 ? (page - 1) * PAGE_SIZE + 1 : 0
+  const rangeEnd = rangeStart > 0 ? rangeStart + records.length - 1 : 0
 
   return (
     <div className="space-y-6" dir={isArabic ? "rtl" : "ltr"}>
@@ -175,7 +175,7 @@ export function GeoLocationPage() {
       <section className="overflow-hidden rounded-2xl border bg-card shadow-sm">
         <div className="flex flex-col gap-4 border-b bg-gradient-to-r from-muted/40 to-transparent p-5 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <div className="flex items-center gap-2"><h2 className="text-base font-semibold">{title}</h2><span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">{pagination?.total ?? "—"}</span></div>
+            <div className="flex items-center gap-2"><h2 className="text-base font-semibold">{title}</h2><span className="rounded-full bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary">{pagination?.totalKnown ? pagination.total : "—"}</span></div>
             <p className="mt-1 text-xs text-muted-foreground">{isArabic ? "إدارة البيانات الجغرافية والارتباطات التابعة" : "Manage geographic records and their parent relationships"}</p>
           </div>
           <div className="flex w-full gap-2 sm:w-auto">
@@ -198,7 +198,7 @@ export function GeoLocationPage() {
         />
 
         <footer className="flex flex-col gap-3 border-t bg-muted/20 px-5 py-3 sm:flex-row sm:items-center sm:justify-between">
-          <p className="text-xs text-muted-foreground">{isArabic ? `عرض ${rangeStart}–${rangeEnd} من ${pagination?.total ?? records.length}` : `Showing ${rangeStart}–${rangeEnd} of ${pagination?.total ?? records.length}`}</p>
+          <p className="text-xs text-muted-foreground">{pagination?.totalKnown ? (isArabic ? `عرض ${rangeStart}–${rangeEnd} من ${pagination.total}` : `Showing ${rangeStart}–${rangeEnd} of ${pagination.total}`) : (isArabic ? `عرض ${rangeStart}–${rangeEnd}` : `Showing ${rangeStart}–${rangeEnd}`)}</p>
           <div className="flex items-center justify-end gap-2">
             <Button type="button" variant="outline" size="sm" className="h-9 rounded-lg" disabled={page <= 1 || list.isFetching} onClick={() => setPage((current) => Math.max(1, current - 1))}><ArrowLeft className="size-4" />{isArabic ? "السابق" : "Previous"}</Button>
             <span className="min-w-16 text-center text-xs font-medium tabular-nums">{page} / {pagination?.totalPages ?? 1}</span>
