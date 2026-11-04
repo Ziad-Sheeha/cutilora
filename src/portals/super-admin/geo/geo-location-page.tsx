@@ -67,8 +67,15 @@ export function GeoLocationPage() {
  async function confirmDelete() {
   if (!deleteTarget) return
   setActionError("")
-  try { await mutations.remove.mutateAsync(deleteTarget.id); setDeleteTarget(null); setNotice(t.geo.deleted) }
-  catch (error) { setActionError(error instanceof Error ? translateError(error.message) : t.geo.apiError) }
+  try {
+   const result = await mutations.remove.mutateAsync(deleteTarget.id)
+   setDeleteTarget(null)
+   showToast("success", responseMessage(result, t.geo.deleted))
+  } catch (error) {
+   const message = error instanceof Error ? translateError(error.message) : t.geo.apiError
+   setActionError(message)
+   showToast("error", message)
+  }
  }
  function startEdit(record: GeoRecord) { setActionError(""); setSelected(record) }
  function showToast(kind: "success" | "error", title: string) { store.dispatch(pushToast({ id: crypto.randomUUID(), kind, title })) }
