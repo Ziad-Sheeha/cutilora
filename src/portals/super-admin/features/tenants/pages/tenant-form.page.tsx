@@ -4,6 +4,7 @@ import { ArrowLeft, ArrowRight, Building2, Check, ChevronRight, Landmark, MapPin
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
+import { PhoneNumberField } from "@/components/ui/phone-number-field"
 import { Label } from "@/components/ui/label"
 import { SelectMenu, SelectMenuContent, SelectMenuItem, SelectMenuTrigger, SelectMenuValue } from "@/components/ui/select-menu"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -66,7 +67,7 @@ export function TenantFormPage() {
     loading: "جارٍ تحميل بيانات المؤسسة...", loadError: "تعذر تحميل بيانات المؤسسة.",
     successCreate: "تم إنشاء المؤسسة بنجاح", successUpdate: "تم تحديث بيانات المؤسسة", error: "تعذر حفظ بيانات المؤسسة",
     stepOf: "الخطوة", review: "مراجعة البيانات قبل الإرسال", choose: "اختر",
-    uploadHint: "PNG, JPG or WebP · بحد أقصى 5MB", upload: "رفع صورة", replace: "استبدال الصورة", remove: "حذف الصورة", invalidImage: "صيغة الصورة غير مدعومة. استخدم PNG أو JPG أو WebP.", readImageError: "تعذرت قراءة الصورة. حاول اختيار ملف آخر.", imageTooLarge: "حجم الصورة يجب ألا يتجاوز 5MB.", preview: "معاينة الصورة", requiredFields: "أكمل الحقول المطلوبة المميزة بعلامة النجمة قبل المتابعة.", done: "تم", downloadPdf: "حفظ كملف PDF", successTitle: "تم حفظ المؤسسة بنجاح", successDescription: "تم حفظ البيانات. يمكنك تنزيل نسخة PDF من ملف المؤسسة أو المتابعة إلى صفحة التفاصيل.", edit: "تعديل", empty: "لا توجد بيانات مدخلة.", invalidCoordinates: "الإحداثيات يجب أن تكون أرقامًا ضمن النطاق الصحيح.", invalidEmail: "أدخل بريدًا إلكترونيًا صحيحًا.", invalidUrl: "أدخل رابطًا صحيحًا يبدأ بـ https:// أو http://."
+    uploadHint: "PNG, JPG or WebP · بحد أقصى 5MB", upload: "رفع صورة", replace: "استبدال الصورة", remove: "حذف الصورة", invalidImage: "صيغة الصورة غير مدعومة. استخدم PNG أو JPG أو WebP.", readImageError: "تعذرت قراءة الصورة. حاول اختيار ملف آخر.", imageTooLarge: "حجم الصورة يجب ألا يتجاوز 5MB.", preview: "معاينة الصورة", requiredFields: "أكمل الحقول المطلوبة المميزة بعلامة النجمة قبل المتابعة.", done: "تم", downloadPdf: "حفظ كملف PDF", successTitle: "تم حفظ المؤسسة بنجاح", successDescription: "تم حفظ البيانات. يمكنك تنزيل نسخة PDF من ملف المؤسسة أو المتابعة إلى صفحة التفاصيل.", edit: "تعديل", empty: "لا توجد بيانات مدخلة.", invalidCoordinates: "الإحداثيات يجب أن تكون أرقامًا ضمن النطاق الصحيح.", invalidEmail: "أدخل بريدًا إلكترونيًا صحيحًا.", invalidUrl: "أدخل رابطًا صحيحًا يبدأ بـ https:// أو http://.", duplicatePhone: "رقم الهاتف الأساسي والبديل يجب أن يكونا مختلفين.", invalidPhone: "أدخل رقم هاتف صحيحًا من 7 إلى 15 رقمًا."
   } : {
     back: "Back to tenants", createTitle: "Create a tenant", editTitle: "Edit tenant profile",
     createDescription: "Build the organization profile through focused steps. Review each section before saving.",
@@ -90,7 +91,7 @@ export function TenantFormPage() {
     loading: "Loading tenant profile...", loadError: "Could not load tenant profile.",
     successCreate: "Tenant created successfully", successUpdate: "Tenant profile updated", error: "Could not save tenant profile",
     stepOf: "Step", review: "Review all information before submission", choose: "Choose",
-    uploadHint: "PNG, JPG or WebP · Up to 5MB", upload: "Upload image", replace: "Replace image", remove: "Remove image", invalidImage: "Unsupported image format. Use PNG, JPG or WebP.", readImageError: "The image could not be read. Try another file.", imageTooLarge: "Image size must not exceed 5MB.", preview: "Image preview", requiredFields: "Complete the required fields marked with an asterisk before continuing.", done: "Done", downloadPdf: "Save as PDF", successTitle: "Tenant saved successfully", successDescription: "Your changes have been saved. Save a PDF copy of this tenant profile or continue to its details page.", edit: "Edit", empty: "No information provided.", invalidCoordinates: "Coordinates must be valid numbers within the supported range.", invalidEmail: "Enter a valid email address.", invalidUrl: "Enter a valid URL starting with https:// or http://."
+    uploadHint: "PNG, JPG or WebP · Up to 5MB", upload: "Upload image", replace: "Replace image", remove: "Remove image", invalidImage: "Unsupported image format. Use PNG, JPG or WebP.", readImageError: "The image could not be read. Try another file.", imageTooLarge: "Image size must not exceed 5MB.", preview: "Image preview", requiredFields: "Complete the required fields marked with an asterisk before continuing.", done: "Done", downloadPdf: "Save as PDF", successTitle: "Tenant saved successfully", successDescription: "Your changes have been saved. Save a PDF copy of this tenant profile or continue to its details page.", edit: "Edit", empty: "No information provided.", invalidCoordinates: "Coordinates must be valid numbers within the supported range.", invalidEmail: "Enter a valid email address.", invalidUrl: "Enter a valid URL starting with https:// or http://.", duplicatePhone: "The primary and alternate phone numbers must be different.", invalidPhone: "Enter a valid phone number containing 7 to 15 digits."
   }, [ar])
 
   const stepLabels = ar
@@ -126,6 +127,11 @@ export function TenantFormPage() {
     if (index === 0) return [values.name.trim(), values.businessType.trim(), values.industry.trim()].every(Boolean) ? [] : [copy.requiredFields]
     if (index === 1) {
       if (values.contact.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.contact.email.trim())) return [copy.invalidEmail]
+      const primaryPhone = values.contact.phone.replace(/\D/g, "").replace(/^0/, "")
+      const alternatePhone = values.contact.alternatePhone.replace(/\D/g, "").replace(/^0/, "")
+      const whatsappPhone = values.contact.whatsapp.replace(/\D/g, "").replace(/^0/, "")
+      if ([primaryPhone, alternatePhone, whatsappPhone].some((number) => number && (number.length < 7 || number.length > 15))) return [copy.invalidPhone]
+      if (primaryPhone && alternatePhone && primaryPhone === alternatePhone) return [copy.duplicatePhone]
       const website = values.contact.website.trim()
       if (website) { try { const url = new URL(website); if (url.protocol !== "http:" && url.protocol !== "https:") return [copy.invalidUrl] } catch { return [copy.invalidUrl] } }
       return []
@@ -194,9 +200,9 @@ export function TenantFormPage() {
     </TenantFormSection>,
     <TenantFormSection key="contact" title={copy.contact} description={copy.contactHint} icon={UserRound}>
       <TenantFormField id="tenant-email" label={copy.email} type="email" value={values.contact.email} onChange={(value) => update("contact", "email", value)} autoComplete="email"/>
-      <TenantFormField id="tenant-phone" label={copy.phone} type="tel" value={values.contact.phone} onChange={(value) => update("contact", "phone", value)} autoComplete="tel"/>
-      <TenantFormField id="tenant-alt-phone" label={copy.alternatePhone} type="tel" value={values.contact.alternatePhone} onChange={(value) => update("contact", "alternatePhone", value)}/>
-      <TenantFormField id="tenant-whatsapp" label={copy.whatsapp} type="tel" value={values.contact.whatsapp} onChange={(value) => update("contact", "whatsapp", value)}/>
+      <PhoneNumberField id="tenant-phone" label={copy.phone} value={values.contact.phone} phoneCode={values.contact.phoneCode} onChange={(value) => update("contact", "phone", value)} onPhoneCodeChange={(value) => update("contact", "phoneCode", value)} placeholder="010 1234 5678"/>
+      <PhoneNumberField id="tenant-alt-phone" label={copy.alternatePhone} value={values.contact.alternatePhone} phoneCode={values.contact.phoneCode} onChange={(value) => update("contact", "alternatePhone", value)} onPhoneCodeChange={(value) => update("contact", "phoneCode", value)} placeholder="010 1234 5678"/>
+      <PhoneNumberField id="tenant-whatsapp" label={copy.whatsapp} value={values.contact.whatsapp} phoneCode={values.contact.phoneCode} onChange={(value) => update("contact", "whatsapp", value)} onPhoneCodeChange={(value) => update("contact", "phoneCode", value)} placeholder="010 1234 5678"/>
       <TenantFormField id="tenant-website" label={copy.website} type="url" value={values.contact.website} onChange={(value) => update("contact", "website", value)} placeholder="https://"/>
     </TenantFormSection>,
     <TenantFormSection key="location" title={copy.location} description={copy.locationHint} icon={MapPin}>
