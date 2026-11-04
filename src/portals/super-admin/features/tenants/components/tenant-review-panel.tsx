@@ -1,5 +1,8 @@
 import { ArrowUpRight, Building2, MapPin, Settings2, ShieldCheck, UserRound } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { useGeoDetail } from "@/portals/super-admin/features/geo-location/hooks/use-geo-location"
+import { geoConfigs, geoRecordName } from "@/portals/super-admin/features/geo-location/types/geo-location.types"
+import { useI18n } from "@/i18n/i18n-provider"
 import type { TenantFormValues } from "../types/tenant-form.types"
 
 type Group = { title: string; icon: typeof Building2; step: number; rows: [string, string][] }
@@ -10,11 +13,16 @@ export function TenantReviewPanel({ values, labels, onEdit, ar }: {
   onEdit: (step: number) => void
   ar: boolean
 }) {
+  const { locale } = useI18n()
+  const country = useGeoDetail(geoConfigs.countries.endpoint, values.address.countryId || undefined)
+  const governorate = useGeoDetail(geoConfigs.governorates.endpoint, values.address.governorateId || undefined)
+  const city = useGeoDetail(geoConfigs.cities.endpoint, values.address.cityId || undefined)
+  const district = useGeoDetail(geoConfigs.districts.endpoint, values.address.districtId || undefined)
   const localizedLabels: Record<string, string> = ar ? {
     "Organization name": "اسم المؤسسة", "Display name": "الاسم الظاهر", "Legal name": "الاسم القانوني",
     "Business type": "نوع النشاط", "Industry": "المجال", "Description": "الوصف",
     "Email": "البريد الإلكتروني", "Phone": "رقم الهاتف", "Alternate phone": "رقم بديل", "WhatsApp": "واتساب", "Website": "الموقع الإلكتروني",
-    "Address": "العنوان", "Additional address": "تفاصيل إضافية", "Building": "المبنى", "Floor": "الدور", "Unit": "الوحدة",
+    "Country": "الدولة", "Governorate": "المحافظة", "City": "المدينة", "District": "الحي", "Address": "العنوان", "Additional address": "تفاصيل إضافية", "Building": "المبنى", "Floor": "الدور", "Unit": "الوحدة",
     "Landmark": "علامة مميزة", "Postal code": "الرمز البريدي", "Latitude": "خط العرض", "Longitude": "خط الطول",
     "Tax number": "الرقم الضريبي", "VAT number": "رقم ضريبة القيمة المضافة", "Commercial registration": "السجل التجاري",
     "Brand color": "لون العلامة", "Logo": "الشعار", "Cover image": "صورة الغلاف",
@@ -31,7 +39,7 @@ export function TenantReviewPanel({ values, labels, onEdit, ar }: {
       ["WhatsApp", values.contact.whatsapp], ["Website", values.contact.website],
     ] },
     { title: labels.location, icon: MapPin, step: 2, rows: [
-      ["Address", values.address.addressLine1], ["Additional address", values.address.addressLine2],
+      ["Country", country.data ? geoRecordName(country.data, locale) : ""], ["Governorate", governorate.data ? geoRecordName(governorate.data, locale) : ""], ["City", city.data ? geoRecordName(city.data, locale) : ""], ["District", district.data ? geoRecordName(district.data, locale) : ""], ["Address", values.address.addressLine1], ["Additional address", values.address.addressLine2],
       ["Building", values.address.building], ["Floor", values.address.floor], ["Unit", values.address.unit],
       ["Landmark", values.address.landmark], ["Postal code", values.address.postalCode],
       ["Latitude", values.address.latitude], ["Longitude", values.address.longitude],
