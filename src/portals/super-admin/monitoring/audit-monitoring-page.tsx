@@ -278,7 +278,7 @@ export function AuditMonitoringPage() {
       </CardContent>
     </Card>}
 
-    {tab === "overview" && <Card><CardHeader className="pb-2"><div className="flex items-center gap-2"><Clock3 className="size-4 text-primary" /><CardTitle className="text-base">{t.timeline}</CardTitle></div></CardHeader><CardContent><MonitoringTimeline events={timeline} locale={locale} emptyLabel={timelineQuery.isLoading ? t.loading : t.noTimeline} /></CardContent></Card>}
+    {tab === "overview" && <Card><CardHeader className="pb-2"><div className="flex items-center gap-2"><Clock3 className="size-4 text-primary" /><CardTitle className="text-base">{t.timeline}</CardTitle></div></CardHeader><CardContent><DailyTimeline points={timelinePoints} locale={locale} emptyLabel={timelineQuery.isLoading ? t.loading : t.noTimeline} eventsLabel={t.dailyEvents} errorsLabel={t.dailyErrors} /></CardContent></Card>}
 
     <Dialog open={Boolean(selected)} onOpenChange={(open) => { if (!open) setSelected(null) }}>
       <DialogContent className="max-h-[85vh] max-w-3xl overflow-y-auto">
