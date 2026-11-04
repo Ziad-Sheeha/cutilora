@@ -13,3 +13,7 @@ export const arabicTextSchema = (message: string) =>
 /** For identifiers such as email addresses: allow normal symbols, reject Arabic script. */
 export const latinInputSchema = (message: string) =>
   Yup.string().test("latin-input", message, (value) => !value || !ARABIC_LETTERS.test(value))
+
+/** Runtime checks for controlled forms that do not use Formik. */
+export const isEnglishText = (value: string) => !ARABIC_LETTERS.test(value)
+export const isArabicText = (value: string) => !LATIN_LETTERS.test(value)
