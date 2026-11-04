@@ -1,8 +1,7 @@
-import { useEffect, useState } from "react"
 import {
-  Activity, ArrowDownRight, ArrowUpRight, ArrowUpLeft, CalendarDays,
-  Check, ChevronRight, CircleCheck, Clock3, Command, HeartPulse,
-  LayoutDashboard, Moon, ShieldCheck, Sparkles, Sun, Users, Wallet,
+  Activity, ArrowUpRight, ArrowUpLeft, CalendarDays, Check, ChevronRight,
+  CircleCheck, Clock3, Command, HeartPulse, LayoutDashboard, ShieldCheck,
+  Sparkles, Users, Wallet,
   Workflow, Zap,
 } from "lucide-react"
 import { Link } from "react-router"
@@ -84,17 +83,12 @@ const content = {
 } as const
 
 export function LandingPage() {
-  const [theme, setTheme] = useState<"light" | "dark">("dark")
   const { locale, t } = useI18n()
   const copy = content[locale === "ar" ? "ar" : "en"]
   const isArabic = locale === "ar"
 
-  useEffect(() => {
-    document.documentElement.dataset.theme = theme
-  }, [theme])
-
   return (
-    <main dir={isArabic ? "rtl" : "ltr"} className="landing-shell min-h-svh overflow-hidden bg-background text-foreground">
+    <main dir={isArabic ? "rtl" : "ltr"} className="landing-shell dark min-h-svh overflow-hidden bg-background text-foreground">
       <div className="landing-orb landing-orb-one" aria-hidden="true" />
       <div className="landing-orb landing-orb-two" aria-hidden="true" />
 
@@ -112,15 +106,6 @@ export function LandingPage() {
 
           <div className="landing-nav-actions">
             <LanguageSwitch />
-            <button
-              type="button"
-              onClick={() => setTheme((current) => current === "dark" ? "light" : "dark")}
-              className="landing-theme-toggle"
-              aria-label={theme === "dark" ? t.common.lightTheme : t.common.darkTheme}
-              title={theme === "dark" ? t.common.lightTheme : t.common.darkTheme}
-            >
-              {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
-            </button>
             <Link to="/super-admin/login" className="landing-login landing-login-admin">
               <ShieldCheck size={15} />
               <span>{copy.platformAdmin}</span>
