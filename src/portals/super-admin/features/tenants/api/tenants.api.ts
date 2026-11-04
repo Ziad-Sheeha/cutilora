@@ -30,7 +30,7 @@ function normalizeTenant(value: unknown): Tenant {
   const tenantAddress: TenantAddress = {
     countryId: nullableText(address.countryId), governorateId: nullableText(address.governorateId), cityId: nullableText(address.cityId),
     districtId: nullableText(address.districtId), addressLine1: text(address.addressLine1), addressLine2: text(address.addressLine2),
-    building: text(address.building), floor: text(address.floor), unit: text(address.unit), postalCode: text(address.postalCode),
+    building: text(address.building), floor: text(address.floor), unit: text(address.unit), postalCode: text(address.postalCode), landmark: text(address.landmark),
     latitude: numberOrNull(address.latitude), longitude: numberOrNull(address.longitude),
   }
   const tenantLegal: TenantLegal = {
