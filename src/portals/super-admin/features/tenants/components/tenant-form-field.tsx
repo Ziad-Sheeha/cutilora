@@ -30,8 +30,8 @@ export function TenantFormField({ id, label, value, onChange, type = "text", pla
         {trailing}
       </div>
       {multiline
-        ? <Textarea id={id} value={value} onChange={(event) => onChange(event.target.value)} placeholder={placeholder} required={required} disabled={disabled} rows={rows} />
-        : <Input id={id} type={type} value={value} onChange={(event) => onChange(event.target.value)} placeholder={placeholder} required={required} disabled={disabled} min={min} max={max} step={step} autoComplete={autoComplete} />}
+        ? <Textarea id={id} value={value} onChange={(event) => onChange(event.target.value)} placeholder={placeholder} required={required} aria-invalid={required && !value.trim() ? true : undefined} disabled={disabled} rows={rows} />
+        : <Input id={id} type={type} value={value} onChange={(event) => onChange(event.target.value)} placeholder={placeholder} required={required} aria-invalid={required && !value.trim() ? true : undefined} disabled={disabled} min={min} max={max} step={step} autoComplete={autoComplete} />}
       {hint && <p className="text-xs leading-5 text-muted-foreground">{hint}</p>}
     </div>
   )
