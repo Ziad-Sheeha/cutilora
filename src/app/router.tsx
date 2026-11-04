@@ -10,6 +10,8 @@ import { SuperAdminGuard } from "@/portals/super-admin/auth/super-admin-guard"
 import { SuperAdminLayout } from "@/portals/super-admin/layout/super-admin-layout"
 import { SuperAdminModulePage, SuperAdminOverviewPage } from "@/portals/super-admin/pages/super-admin-pages"
 import { GeoLocationPage } from "@/portals/super-admin/features/geo-location/pages/geo-location.page"
+import { TenantsPage } from "@/portals/super-admin/features/tenants/pages/tenants.page"
+import { TenantDetailsPage } from "@/portals/super-admin/features/tenants/pages/tenant-details.page"
 import { AuditMonitoringPage } from "@/portals/super-admin/features/monitoring/pages/audit-monitoring.page"
 import { adminNavigation } from "@/portals/clinic/config/navigation"
 
@@ -35,7 +37,8 @@ export const router = createBrowserRouter([
       element: <SuperAdminLayout />,
       children: [
         { index: true, element: <SuperAdminOverviewPage /> },
-        { path: "tenants", element: <SuperAdminModulePage moduleKey="tenants" /> },
+        { path: "tenants", element: <TenantsPage /> },
+        { path: "tenants/:tenantId", element: <TenantDetailsPage /> },
         { path: "clinics", element: <SuperAdminModulePage moduleKey="clinics" /> },
         { path: "branches", element: <SuperAdminModulePage moduleKey="branches" /> },
         { path: "users", element: <SuperAdminModulePage moduleKey="users" /> },
