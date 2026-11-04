@@ -17,16 +17,17 @@ function unwrap(value: unknown): unknown {
   return root.data ?? value
 }
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const token = getSuperAdminToken()
+  if (!token) throw new Error("Your Super Admin session has expired. Please sign in again.")
+
   let response: Response
   try {
-    const token = getSuperAdminToken()
-    if (!token) throw new Error("Your Super Admin session has expired. Please sign in again.")
     response = await fetch(base + path, {
       ...init,
       headers: {
         Accept: "application/json",
         ...(init?.body ? { "Content-Type": "application/json" } : {}),
-        ...(token ? { Authorization: "Bearer " + token } : {}),
+        Authorization: `Bearer ${token}`,
         ...init?.headers,
       },
     })
@@ -54,7 +55,13 @@ function normalizeList(payload: unknown): GeoListResult {
   const nested = object(root?.data)
   const candidates = [normalized, root?.data, nested?.data, nested?.items, root?.items]
   const rows = candidates.find(Array.isArray) as unknown[] | undefined
-  const meta = object(root?.meta) ?? object(nested?.meta) ?? object(root?.pagination) ?? {}
+  const meta = object(root?.meta)
+    ?? object(root?.pagination)
+    ?? (root && ("current_page" in root || "last_page" in root) ? root : undefined)
+    ?? object(nested?.meta)
+    ?? object(nested?.pagination)
+    ?? (nested && ("current_page" in nested || "last_page" in nested) ? nested : undefined)
+    ?? {}
   return {
     items: (rows ?? []) as GeoRecord[],
     currentPage: Number(meta.current_page ?? meta.currentPage ?? 1),
