@@ -55,7 +55,7 @@ export function TenantFormPage() {
     timezone: "المنطقة الزمنية", locale: "لغة المؤسسة", currency: "العملة", dateFormat: "تنسيق التاريخ", weekStartsOn: "بداية الأسبوع",
     supportedLanguages: "اللغات المدعومة", english: "الإنجليزية", arabic: "العربية",
     next: "التالي", previous: "السابق", create: "إنشاء المؤسسة", save: "حفظ التغييرات", saving: "جارٍ الحفظ...",
-    required: "مطلوب", optional: "اختياري", loading: "جارٍ تحميل بيانات المؤسسة...", loadError: "تعذر تحميل بيانات المؤسسة.",
+    loading: "جارٍ تحميل بيانات المؤسسة...", loadError: "تعذر تحميل بيانات المؤسسة.",
     successCreate: "تم إنشاء المؤسسة بنجاح", successUpdate: "تم تحديث بيانات المؤسسة", error: "تعذر حفظ بيانات المؤسسة",
     stepOf: "الخطوة", review: "راجع البيانات ثم احفظ", choose: "اختر",
     invalidCoordinates: "الإحداثيات يجب أن تكون أرقامًا ضمن النطاق الصحيح.", invalidEmail: "أدخل بريدًا إلكترونيًا صحيحًا.", invalidUrl: "أدخل رابطًا صحيحًا يبدأ بـ https:// أو http://."
@@ -79,7 +79,7 @@ export function TenantFormPage() {
     timezone: "Timezone", locale: "Organization language", currency: "Currency", dateFormat: "Date format", weekStartsOn: "Week starts on",
     supportedLanguages: "Supported languages", english: "English", arabic: "Arabic",
     next: "Continue", previous: "Previous", create: "Create tenant", save: "Save changes", saving: "Saving...",
-    required: "Required", optional: "Optional", loading: "Loading tenant profile...", loadError: "Could not load tenant profile.",
+    loading: "Loading tenant profile...", loadError: "Could not load tenant profile.",
     successCreate: "Tenant created successfully", successUpdate: "Tenant profile updated", error: "Could not save tenant profile",
     stepOf: "Step", review: "Review your information, then save", choose: "Choose",
     noOwner: "Owner fields are not present in the supplied request schema, so no unverified fields have been added.",
