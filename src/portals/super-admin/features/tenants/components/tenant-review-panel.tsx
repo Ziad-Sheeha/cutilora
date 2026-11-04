@@ -35,8 +35,8 @@ export function TenantReviewPanel({ values, labels, onEdit, ar }: {
       ["Business type", values.businessType], ["Industry", values.industry], ["Description", values.description],
     ] },
     { title: labels.contact, icon: UserRound, step: 1, rows: [
-      ["Email", values.contact.email], ["Phone", values.contact.phone], ["Alternate phone", values.contact.alternatePhone],
-      ["WhatsApp", values.contact.whatsapp], ["Website", values.contact.website],
+      ["Email", values.contact.email], ["Phone", values.contact.phone ? values.contact.phoneCode + " " + values.contact.phone : ""], ["Alternate phone", values.contact.alternatePhone ? values.contact.phoneCode + " " + values.contact.alternatePhone : ""],
+      ["WhatsApp", values.contact.whatsapp ? values.contact.phoneCode + " " + values.contact.whatsapp : ""], ["Website", values.contact.website],
     ] },
     { title: labels.location, icon: MapPin, step: 2, rows: [
       ["Country", country.data ? geoRecordName(country.data, locale) : ""], ["Governorate", governorate.data ? geoRecordName(governorate.data, locale) : ""], ["City", city.data ? geoRecordName(city.data, locale) : ""], ["District", district.data ? geoRecordName(district.data, locale) : ""], ["Address", values.address.addressLine1], ["Additional address", values.address.addressLine2],
