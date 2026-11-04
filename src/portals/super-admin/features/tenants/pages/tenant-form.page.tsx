@@ -101,7 +101,7 @@ export function TenantFormPage() {
     setValues((current) => ({
       ...current,
       [section]: { ...(current[section] as Record<string, unknown>), [key]: value },
-    }))
+    } as TenantFormValues))
   }
   function updateTop(key: "name" | "displayName" | "legalName" | "businessType" | "description" | "industry", value: string) {
     setValues((current) => ({ ...current, [key]: value }))
