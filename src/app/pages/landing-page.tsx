@@ -1,5 +1,6 @@
 import { useEffect } from "react"
 import { Link } from "react-router"
+import { ArrowUpRight, ShieldCheck } from "lucide-react"
 import { landingContent } from "@/app/pages/landing/landing-content"
 import { LandingHeroSection } from "@/app/pages/landing/sections/landing-hero-section"
 import { LandingFeaturesSection } from "@/app/pages/landing/sections/landing-features-section"
