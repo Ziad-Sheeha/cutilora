@@ -27,22 +27,27 @@ npm run build
 
 ## Application structure
 
+The source follows a portal-first, feature-first architecture. Read [the frontend architecture guide](docs/frontend-architecture.md) before adding or moving code.
+
 ```text
 src/
-  app/                  # Router and application-level setup
-  components/
-    layouts/            # Portal layout shells
-    shared/             # Reusable business-agnostic components
-    ui/                 # Reusable design-system primitives
+  app/                       # Router, app providers and route-level pages
   portals/
-    clinic/             # Clinic portal pages and authentication UI
-    super-admin/        # Platform administration pages and authentication UI
-    shared/             # Shared portal-level UI such as the login form
-  config/               # Navigation and application configuration
-  features/             # Feature modules (currently clinic dashboard preview)
-  lib/                  # Utilities and API infrastructure
-  pages/                # Route-level fallback and placeholder pages
+    clinic/
+      auth/ config/ layout/ features/
+    super-admin/
+      auth/ layout/ pages/ features/
+  components/
+    brand/                   # Brand components
+    ui/                      # Design-system primitives
+  config/                    # App-wide configuration
+  i18n/                      # Single localization source of truth
+  lib/                       # HTTP client and technical utilities
+  shared/                    # Cross-portal components, types and validation
+  store/                     # Cross-feature client state
 ```
+
+Feature modules own their API calls, hooks, pages, components, schemas and domain types. Keep Clinic Portal code inside `portals/clinic`, Super Admin code inside `portals/super-admin`, and generic code inside `shared` or `components/ui`.
 
 ## Routes
 
