@@ -1,22 +1,27 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react"
 import { Link, useNavigate, useParams } from "react-router"
-import { ArrowLeft, ArrowRight, Building2, Check, ChevronRight, Landmark, MapPin, Settings2, ShieldCheck, Sparkles, UserRound } from "lucide-react"
+import { ArrowLeft, ArrowRight, Building2, Check, ChevronRight, Landmark, MapPin, Settings2, ShieldCheck, Sparkles, UserRound, ClipboardCheck, Palette, Download } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { SelectMenu, SelectMenuContent, SelectMenuItem, SelectMenuTrigger, SelectMenuValue } from "@/components/ui/select-menu"
 import { Skeleton } from "@/components/ui/skeleton"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { useI18n } from "@/i18n/i18n-provider"
 import { pushToast, store } from "@/store"
 import { GeoSearchSelect } from "@/portals/super-admin/features/geo-location/components/geo-search-select"
 import { useTenant, useTenantMutations } from "../hooks/use-tenants"
 import { TenantFormField } from "../components/tenant-form-field"
 import { TenantFormSection } from "../components/tenant-form-section"
+import { TenantImageUpload } from "../components/tenant-image-upload"
+import { TenantReviewPanel } from "../components/tenant-review-panel"
+import { TenantPdfDocument } from "../components/tenant-pdf-document"
 import { emptyTenantForm, formToPayload, tenantToForm, type TenantFormValues } from "../types/tenant-form.types"
+import type { Tenant } from "../types/tenant.types"
 
-const stepIcons = [Building2, UserRound, MapPin, Landmark, Settings2]
-const steps = ["identity", "contact", "location", "legal", "preferences"] as const
+const stepIcons = [Building2, UserRound, MapPin, Landmark, Settings2, ClipboardCheck]
+const steps = ["identity", "contact", "location", "legal", "preferences", "review"] as const
 
 export function TenantFormPage() {
   const { tenantId = "" } = useParams<{ tenantId: string }>()
@@ -29,6 +34,9 @@ export function TenantFormPage() {
   const mutations = useTenantMutations()
   const [values, setValues] = useState<TenantFormValues>(emptyTenantForm)
   const [step, setStep] = useState(0)
+  const [highestUnlockedStep, setHighestUnlockedStep] = useState(0)
+  const [successOpen, setSuccessOpen] = useState(false)
+  const [savedTenant, setSavedTenant] = useState<Tenant | null>(null)
   const saving = mutations.create.isPending || mutations.updateProfile.isPending
 
   useEffect(() => {
@@ -51,14 +59,14 @@ export function TenantFormPage() {
     addressLine1: "العنوان", addressLine2: "تفاصيل إضافية", building: "المبنى", floor: "الدور", unit: "الوحدة",
     landmark: "علامة مميزة", postalCode: "الرمز البريدي", latitude: "خط العرض", longitude: "خط الطول",
     taxNumber: "الرقم الضريبي", vatNumber: "رقم ضريبة القيمة المضافة", commercialRegistrationNumber: "رقم السجل التجاري",
-    logoUrl: "رابط الشعار", coverImageUrl: "رابط صورة الغلاف", primaryColor: "اللون الأساسي",
+    logoUrl: "الشعار", coverImageUrl: "صورة الغلاف", primaryColor: "اللون الأساسي",
     timezone: "المنطقة الزمنية", locale: "لغة المؤسسة", currency: "العملة", dateFormat: "تنسيق التاريخ", weekStartsOn: "بداية الأسبوع",
     supportedLanguages: "اللغات المدعومة", english: "الإنجليزية", arabic: "العربية",
     next: "التالي", previous: "السابق", create: "إنشاء المؤسسة", save: "حفظ التغييرات", saving: "جارٍ الحفظ...",
     loading: "جارٍ تحميل بيانات المؤسسة...", loadError: "تعذر تحميل بيانات المؤسسة.",
     successCreate: "تم إنشاء المؤسسة بنجاح", successUpdate: "تم تحديث بيانات المؤسسة", error: "تعذر حفظ بيانات المؤسسة",
-    stepOf: "الخطوة", review: "راجع البيانات ثم احفظ", choose: "اختر",
-    invalidCoordinates: "الإحداثيات يجب أن تكون أرقامًا ضمن النطاق الصحيح.", invalidEmail: "أدخل بريدًا إلكترونيًا صحيحًا.", invalidUrl: "أدخل رابطًا صحيحًا يبدأ بـ https:// أو http://."
+    stepOf: "الخطوة", review: "مراجعة البيانات قبل الإرسال", choose: "اختر",
+    uploadHint: "PNG, JPG or WebP · بحد أقصى 5MB", upload: "رفع صورة", replace: "استبدال الصورة", remove: "حذف الصورة", invalidImage: "صيغة الصورة غير مدعومة. استخدم PNG أو JPG أو WebP.", imageTooLarge: "حجم الصورة يجب ألا يتجاوز 5MB.", preview: "معاينة الصورة", requiredFields: "أكمل الحقول المطلوبة المميزة بعلامة النجمة قبل المتابعة.", done: "تم", downloadPdf: "تنزيل ملف PDF", successTitle: "تم حفظ المؤسسة بنجاح", successDescription: "تم حفظ البيانات. يمكنك تنزيل نسخة PDF من ملف المؤسسة أو المتابعة إلى صفحة التفاصيل.", edit: "تعديل", empty: "لا توجد بيانات مدخلة.", invalidCoordinates: "الإحداثيات يجب أن تكون أرقامًا ضمن النطاق الصحيح.", invalidEmail: "أدخل بريدًا إلكترونيًا صحيحًا.", invalidUrl: "أدخل رابطًا صحيحًا يبدأ بـ https:// أو http://."
   } : {
     back: "Back to tenants", createTitle: "Create a tenant", editTitle: "Edit tenant profile",
     createDescription: "Build the organization profile through focused steps. Review each section before saving.",
@@ -75,20 +83,20 @@ export function TenantFormPage() {
     addressLine1: "Address line 1", addressLine2: "Address line 2", building: "Building", floor: "Floor", unit: "Unit",
     landmark: "Landmark", postalCode: "Postal code", latitude: "Latitude", longitude: "Longitude",
     taxNumber: "Tax number", vatNumber: "VAT number", commercialRegistrationNumber: "Commercial registration number",
-    logoUrl: "Logo URL", coverImageUrl: "Cover image URL", primaryColor: "Primary brand color",
+    logoUrl: "Logo", coverImageUrl: "Cover image", primaryColor: "Primary brand color",
     timezone: "Timezone", locale: "Organization language", currency: "Currency", dateFormat: "Date format", weekStartsOn: "Week starts on",
     supportedLanguages: "Supported languages", english: "English", arabic: "Arabic",
     next: "Continue", previous: "Previous", create: "Create tenant", save: "Save changes", saving: "Saving...",
     loading: "Loading tenant profile...", loadError: "Could not load tenant profile.",
     successCreate: "Tenant created successfully", successUpdate: "Tenant profile updated", error: "Could not save tenant profile",
-    stepOf: "Step", review: "Review your information, then save", choose: "Choose",
+    stepOf: "Step", review: "Review all information before submission", choose: "Choose",
     noOwner: "Owner fields are not present in the supplied request schema, so no unverified fields have been added.",
-    invalidCoordinates: "Coordinates must be valid numbers within the supported range.", invalidEmail: "Enter a valid email address.", invalidUrl: "Enter a valid URL starting with https:// or http://."
+    uploadHint: "PNG, JPG or WebP · Up to 5MB", upload: "Upload image", replace: "Replace image", remove: "Remove image", invalidImage: "Unsupported image format. Use PNG, JPG or WebP.", imageTooLarge: "Image size must not exceed 5MB.", preview: "Image preview", requiredFields: "Complete the required fields marked with an asterisk before continuing.", done: "Done", downloadPdf: "Download PDF", successTitle: "Tenant saved successfully", successDescription: "Your changes have been saved. Download a PDF copy of this tenant profile or continue to its details page.", edit: "Edit", empty: "No information provided.", invalidCoordinates: "Coordinates must be valid numbers within the supported range.", invalidEmail: "Enter a valid email address.", invalidUrl: "Enter a valid URL starting with https:// or http://."
   }, [ar])
 
   const stepLabels = ar
-    ? ["البيانات الأساسية", "التواصل", "العنوان", "القانوني والعلامة", "التفضيلات"]
-    : ["Basics", "Contact", "Location", "Legal & branding", "Preferences"]
+    ? ["البيانات الأساسية", "التواصل", "العنوان", "القانوني والعلامة", "التفضيلات", "المراجعة"]
+    : ["Basics", "Contact", "Location", "Legal & branding", "Preferences", "Review"]
 
   function update<K extends "contact" | "address" | "legal" | "branding" | "preferences">(section: K, key: keyof TenantFormValues[K], value: string) {
     setValues((current) => ({
