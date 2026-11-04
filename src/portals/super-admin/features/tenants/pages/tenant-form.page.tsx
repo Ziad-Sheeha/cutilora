@@ -21,8 +21,7 @@ import { TenantPdfDocument } from "../components/tenant-pdf-document"
 import { emptyTenantForm, formToPayload, tenantToForm, type TenantFormValues } from "../types/tenant-form.types"
 import type { Tenant } from "../types/tenant.types"
 
-const stepIcons = [Building2, UserRound, MapPin, Landmark, Settings2, ClipboardCheck]
-const steps = ["identity", "contact", "location", "legal", "preferences", "review"] as const
+const baseStepIcons = [Building2, UserRound, MapPin, Landmark, Settings2]
 
 export function TenantFormPage() {
   const { tenantId = "" } = useParams<{ tenantId: string }>()
@@ -39,6 +38,9 @@ export function TenantFormPage() {
   const [successOpen, setSuccessOpen] = useState(false)
   const [savedTenant, setSavedTenant] = useState<Tenant | null>(null)
   const saving = mutations.create.isPending || mutations.updateProfile.isPending
+  const steps = isEdit ? ["identity", "contact", "location", "legal", "preferences", "review"] as const : ["identity", "contact", "location", "legal", "preferences", "owner", "review"] as const
+  const stepIcons = isEdit ? [...baseStepIcons, ClipboardCheck] : [...baseStepIcons, UserRound, ClipboardCheck]
+  const finalStep = steps.length - 1
 
   useEffect(() => {
     if (tenantQuery.data && isEdit) { setValues(tenantToForm(tenantQuery.data)); setHighestUnlockedStep(5) }
@@ -50,6 +52,7 @@ export function TenantFormPage() {
     editDescription: "حدّث بيانات المؤسسة مع الحفاظ على تقسيم واضح لكل مجموعة من المعلومات.",
     identity: "الهوية الأساسية", identityHint: "اسم المؤسسة وهويتها القانونية ونوع نشاطها.",
     contact: "بيانات التواصل", contactHint: "قنوات التواصل الرسمية الخاصة بالمؤسسة.",
+    owner: "حساب مدير المؤسسة", ownerHint: "أنشئ حساب المستخدم المسؤول الذي سيستطيع تسجيل الدخول وإدارة المؤسسة.", ownerName: "اسم المستخدم", ownerEmail: "بريد تسجيل الدخول", ownerPassword: "كلمة المرور", ownerConfirm: "تأكيد كلمة المرور", passwordWeak: "ضعيفة", passwordFair: "متوسطة", passwordGood: "جيدة", passwordStrong: "قوية", passwordRules: "استخدم 8 أحرف على الأقل، وحرفًا كبيرًا وصغيرًا ورقمًا ورمزًا خاصًا.", passwordMismatch: "كلمتا المرور غير متطابقتين.",
     location: "العنوان والموقع", locationHint: "حدد الدولة والمحافظة والمدينة والحي ثم أكمل العنوان.",
     legal: "البيانات القانونية والهوية البصرية", legalHint: "بيانات التسجيل والضرائب وعناصر العلامة التجارية.",
     preferences: "إعدادات المؤسسة", preferencesHint: "المنطقة الزمنية واللغة والعملة وتفضيلات العرض.",
@@ -74,6 +77,7 @@ export function TenantFormPage() {
     editDescription: "Update the organization profile with every information group kept clearly separated.",
     identity: "Organization identity", identityHint: "The organization's name, legal identity and operating model.",
     contact: "Contact information", contactHint: "Official communication channels for this organization.",
+    owner: "Organization owner account", ownerHint: "Create the user account that will sign in and manage this organization.", ownerName: "Owner full name", ownerEmail: "Login email", ownerPassword: "Password", ownerConfirm: "Confirm password", passwordWeak: "Weak", passwordFair: "Fair", passwordGood: "Good", passwordStrong: "Strong", passwordRules: "Use at least 8 characters, uppercase and lowercase letters, a number and a special character.", passwordMismatch: "Passwords do not match.",
     location: "Address & location", locationHint: "Choose the country, governorate, city and district, then complete the address.",
     legal: "Legal & brand identity", legalHint: "Registration and tax details alongside brand assets.",
     preferences: "Organization preferences", preferencesHint: "Timezone, locale, currency and display preferences.",
@@ -95,8 +99,8 @@ export function TenantFormPage() {
   }, [ar])
 
   const stepLabels = ar
-    ? ["البيانات الأساسية", "التواصل", "العنوان", "القانوني والعلامة", "التفضيلات", "المراجعة"]
-    : ["Basics", "Contact", "Location", "Legal & branding", "Preferences", "Review"]
+    ? ["البيانات الأساسية", "التواصل", "العنوان", "القانوني والعلامة", "التفضيلات", ...(!isEdit ? ["حساب المدير"] : []), "المراجعة"]
+    : ["Basics", "Contact", "Location", "Legal & branding", "Preferences", ...(!isEdit ? ["Owner account"] : []), "Review"]
 
   function update<K extends "contact" | "address" | "legal" | "branding" | "preferences">(section: K, key: keyof TenantFormValues[K], value: string) {
     setValues((current) => ({
@@ -104,6 +108,7 @@ export function TenantFormPage() {
       [section]: { ...(current[section] as Record<string, unknown>), [key]: value },
     } as TenantFormValues))
   }
+  function updateOwner(key: keyof TenantFormValues["owner"], value: string) { setValues((current) => ({ ...current, owner: { ...current.owner, [key]: value } })) }
   function updateTop(key: "name" | "displayName" | "legalName" | "businessType" | "description" | "industry", value: string) {
     setValues((current) => ({ ...current, [key]: value }))
   }
@@ -146,6 +151,13 @@ export function TenantFormPage() {
       return urls.some((value) => value && !value.startsWith("data:image/") && !/^https?:\/\//i.test(value)) ? [copy.invalidUrl] : []
     }
     if (index === 4) return values.preferences.supportedLanguages.length ? [] : [ar ? "اختر لغة واحدة على الأقل." : "Select at least one supported language."]
+    if (index === 5 && !isEdit) {
+      const password = values.owner.password
+      if (!values.owner.name.trim() || !values.owner.email.trim() || !password || !values.owner.passwordConfirmation) return [copy.requiredFields]
+      if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(values.owner.email.trim())) return [copy.invalidEmail]
+      if (password.length < 8 || !/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/\\d/.test(password) || !/[^A-Za-z0-9]/.test(password)) return [copy.passwordRules]
+      if (password !== values.owner.passwordConfirmation) return [copy.passwordMismatch]
+    }
     return []
   }
 
@@ -171,13 +183,13 @@ export function TenantFormPage() {
     window.print()
   }
 
-  async function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    const invalidStep = steps.slice(0, 5).findIndex((_, index) => validateStep(index).length > 0)
+  async function submitTenant() {
+    if (step !== finalStep || saving) return
+    const invalidStep = steps.slice(0, finalStep).findIndex((_, index) => validateStep(index).length > 0)
     if (invalidStep >= 0) { setStep(invalidStep); store.dispatch(pushToast({ id: crypto.randomUUID(), kind: "error", title: validateStep(invalidStep)[0] })); return }
     const payload = formToPayload(values)
     try {
-      const saved = isEdit ? await mutations.updateProfile.mutateAsync({ id: tenantId, payload }) : await mutations.create.mutateAsync(payload)
+      const saved = isEdit ? await mutations.updateProfile.mutateAsync({ id: tenantId, payload: (({ owner: _owner, ...profile }) => profile)(payload) }) : await mutations.create.mutateAsync(payload)
       setSavedTenant(saved)
       setSuccessOpen(true)
       store.dispatch(pushToast({ id: crypto.randomUUID(), kind: "success", title: isEdit ? copy.successUpdate : copy.successCreate }))
@@ -251,16 +263,24 @@ export function TenantFormPage() {
           <div className="px-3 pb-3 pt-2"><p className="text-xs font-semibold text-muted-foreground">{copy.stepOf} {step + 1} / {steps.length}</p><div className="mt-3 h-1.5 overflow-hidden rounded-full bg-muted"><div className="h-full rounded-full bg-primary transition-all" style={{ width: ((step + 1) / steps.length * 100) + "%" }}/></div></div>
           {steps.map((item, index) => { const Icon = stepIcons[index] ?? Building2; const locked = index > highestUnlockedStep; return <Button key={item} type="button" disabled={locked || saving} variant={step === index ? "secondary" : "ghost"} onClick={() => setStep(index)} className={"flex h-auto w-full justify-start gap-3 rounded-xl px-3 py-3 text-start " + (step === index ? "bg-primary/10 text-primary hover:bg-primary/15" : locked ? "cursor-not-allowed text-muted-foreground/40" : "text-muted-foreground hover:bg-muted hover:text-foreground")}><span className={"flex size-9 shrink-0 items-center justify-center rounded-lg " + (step === index ? "bg-primary text-primary-foreground" : "bg-muted")}><Icon className="size-4"/></span><span className="min-w-0 flex-1"><span className="block text-sm font-semibold">{stepLabels[index]}</span><span className="mt-0.5 block text-[11px] opacity-70">{locked ? (ar ? "أكمل الخطوة السابقة" : "Complete previous step") : index + 1 + " / " + steps.length}</span></span>{index < highestUnlockedStep ? <Check className="size-4"/> : <ChevronRight className="size-4 opacity-50"/>}</Button> })}
         </nav>
-        <form onSubmit={submit} className="min-w-0 space-y-5">
+        <form onSubmit={(event) => event.preventDefault()} className="min-w-0 space-y-5">
           <div className="flex items-center justify-between gap-3"><div><p className="text-xs font-semibold uppercase tracking-wider text-primary">{copy.stepOf} {step + 1}</p><h2 className="mt-1 text-xl font-semibold">{stepLabels[step]}</h2></div><span className="rounded-full border bg-card px-3 py-1.5 text-xs text-muted-foreground">{step + 1} / {steps.length}</span></div>
           {step === 0 && <p className="text-xs text-muted-foreground"><span className="text-destructive">*</span> {ar ? "الحقول المطلوبة" : "Required fields"}</p>}
-          {step < 5 ? sectionContent[step] : <TenantReviewPanel values={values} ar={ar} onEdit={setStep} labels={{identity:copy.identity,contact:copy.contact,location:copy.location,legal:copy.legal,preferences:copy.preferences,edit:copy.edit,empty:copy.empty}}/>}
+          {step < 5 ? sectionContent[step] : !isEdit && step === 5 ? <TenantFormSection title={copy.owner} description={copy.ownerHint} icon={UserRound}>
+            <TenantFormField id="tenant-owner-name" label={copy.ownerName} value={values.owner.name} onChange={(value) => updateOwner("name", value)} required autoComplete="name"/>
+            <TenantFormField id="tenant-owner-email" label={copy.ownerEmail} type="email" value={values.owner.email} onChange={(value) => updateOwner("email", value)} required autoComplete="email"/>
+            <div className="space-y-2"><TenantFormField id="tenant-owner-password" label={copy.ownerPassword} type="password" value={values.owner.password} onChange={(value) => updateOwner("password", value)} required autoComplete="new-password"/>
+              {(() => { const password = values.owner.password; const checks = [password.length >= 8, /[A-Z]/.test(password), /[a-z]/.test(password), /\\d/.test(password), /[^A-Za-z0-9]/.test(password)]; const score = checks.filter(Boolean).length; const strength = score <= 2 ? copy.passwordWeak : score === 3 ? copy.passwordFair : score === 4 ? copy.passwordGood : copy.passwordStrong; return <div className="space-y-2 rounded-xl border bg-muted/20 p-3"><div className="flex items-center justify-between text-xs"><span className="font-medium">{ar ? "قوة كلمة المرور" : "Password strength"}</span><span className="font-semibold">{password ? strength : "—"}</span></div><div className="grid grid-cols-5 gap-1">{checks.map((valid, index) => <span key={index} className={"h-1.5 rounded-full " + (valid ? "bg-emerald-500" : "bg-muted-foreground/20")}/>)}</div><ul className="grid gap-1 text-xs text-muted-foreground sm:grid-cols-2">{[ar ? "8 أحرف على الأقل" : "At least 8 characters", ar ? "حرف كبير" : "Uppercase letter", ar ? "حرف صغير" : "Lowercase letter", ar ? "رقم" : "Number", ar ? "رمز خاص" : "Special character"].map((rule, index) => <li key={rule} className={checks[index] ? "text-emerald-600" : ""}>{checks[index] ? "✓" : "○"} {rule}</li>)}</ul></div> })()}
+            </div>
+            <TenantFormField id="tenant-owner-confirm" label={copy.ownerConfirm} type="password" value={values.owner.passwordConfirmation} onChange={(value) => updateOwner("passwordConfirmation", value)} required autoComplete="new-password"/>
+            {values.owner.passwordConfirmation && values.owner.password !== values.owner.passwordConfirmation && <p className="text-xs font-medium text-destructive">{copy.passwordMismatch}</p>}
+          </TenantFormSection> : <TenantReviewPanel values={values} ar={ar} onEdit={setStep} labels={{identity:copy.identity,contact:copy.contact,location:copy.location,legal:copy.legal,preferences:copy.preferences,edit:copy.edit,empty:copy.empty}}/>}
           {step === 4 && <p className="rounded-xl border border-primary/15 bg-primary/[0.04] px-4 py-3 text-xs leading-5 text-muted-foreground">{copy.review}</p>}
           <div className="flex flex-col-reverse justify-between gap-3 rounded-2xl border bg-card p-4 sm:flex-row sm:items-center">
             <Button type="button" variant="outline" onClick={() => step === 0 ? navigate("/super-admin/tenants") : setStep((current) => current - 1)} disabled={saving}><ArrowLeft className="size-4"/>{step === 0 ? copy.back : copy.previous}</Button>
-            {step < steps.length - 1
+            {step < finalStep
               ? <Button type="button" onClick={continueToNextStep}>{copy.next}<ArrowRight className="size-4"/></Button>
-              : <Button type="submit" loading={saving} disabled={saving}><Check className="size-4"/>{saving ? copy.saving : isEdit ? copy.save : copy.create}</Button>}
+              : <Button type="button" loading={saving} disabled={saving} onClick={submitTenant}><Check className="size-4"/>{saving ? copy.saving : isEdit ? copy.save : copy.create}</Button>}
           </div>
         </form>
       </div>
