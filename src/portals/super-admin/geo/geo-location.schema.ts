@@ -15,9 +15,11 @@ export const geoLocationSchema = (
     ...(kind === "countries"
       ? {
           code: Yup.string()
-            .trim()
+            .transform((value: unknown) =>
+              typeof value === "string" ? value.trim().toUpperCase() : value,
+            )
             .required(messages.codeRequired)
-            .matches(/^[A-Za-z]{2,3}$/, messages.codeInvalid),
+            .matches(/^[A-Z]{2}$/, messages.codeInvalid),
         }
       : {}),
     ...(kind !== "countries"
