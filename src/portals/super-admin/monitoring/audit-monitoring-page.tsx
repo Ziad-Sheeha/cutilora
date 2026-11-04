@@ -11,7 +11,7 @@ import { DataTable, type DataTableColumn } from "@/components/ui/data-table"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Select } from "@/components/ui/select"
-import { Spinner } from "@/components/ui/spinner"
+import { Spinner } from "@/components/ui/spinner"\nimport { Skeleton } from "@/components/ui/skeleton"
 import { useI18n } from "@/i18n/i18n-provider"
 import { monitoringApi, type MonitoringLog, type MonitoringStats } from "./monitoring.api"
 import { MonitoringTimeline, type TimelineEvent } from "./monitoring-timeline"
@@ -73,14 +73,14 @@ function levelClass(level: string) {
   return "border-primary/15 bg-primary/10 text-primary"
 }
 
-function StatCard({ title, value, icon: Icon, note, tone = "primary" }: {
-  title: string; value: string | number; icon: typeof Activity; note: string; tone?: string
+function StatCard({ title, value, icon: Icon, note, tone = "primary", loading = false }: {
+  title: string; value: string | number; icon: typeof Activity; note: string; tone?: string; loading?: boolean
 }) {
   return <Card className="relative overflow-hidden">
     <CardContent className="flex items-start justify-between gap-3 p-5">
       <div className="min-w-0">
         <p className="text-sm font-medium text-muted-foreground">{title}</p>
-        <p className="mt-2 text-3xl font-semibold tracking-tight tabular-nums">{value.toLocaleString()}</p>
+        {loading ? <Skeleton className="mt-2 h-9 w-24" /> : <p className="mt-2 text-3xl font-semibold tracking-tight tabular-nums">{value.toLocaleString()}</p>}
         <p className="mt-2 text-xs text-muted-foreground">{note}</p>
       </div>
       <span className={`flex size-11 shrink-0 items-center justify-center rounded-2xl ${toneClass}`}>
@@ -215,10 +215,10 @@ export function AuditMonitoringPage() {
     {hasError && <div role="alert" className="flex items-center justify-between gap-3 rounded-xl border border-error/25 bg-error/5 px-4 py-3 text-sm text-error"><span className="flex items-center gap-2"><AlertCircle className="size-4" />{errorText}</span><Button size="sm" variant="outline" onClick={refresh}>{t.retry}</Button></div>}
 
     {(tab === "overview" || tab === "logs") && <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-      <StatCard title={t.total} value={stats?.total ?? 0} icon={Database} note={t.period} />
-      <StatCard title={t.errors} value={stats?.byLevel.filter((x) => ["error", "fatal", "critical"].includes(x.name.toLowerCase())).reduce((sum, x) => sum + x.count, 0) ?? 0} icon={AlertCircle} note={t.byLevel} tone="error" />
-      <StatCard title={t.warnings} value={stats?.byLevel.filter((x) => ["warn", "warning"].includes(x.name.toLowerCase())).reduce((sum, x) => sum + x.count, 0) ?? 0} icon={AlertTriangle} note={t.byLevel} tone="warning" />
-      <StatCard title={t.categories} value={stats?.byCategory.length ?? 0} icon={ListFilter} note={t.byCategory} />
+      <StatCard title={t.total} value={stats?.total ?? 0} icon={Database} note={t.period} loading={viewQuery.isLoading && statsQuery.isLoading} />
+      <StatCard title={t.errors} value={stats?.byLevel.filter((x) => ["error", "fatal", "critical"].includes(x.name.toLowerCase())).reduce((sum, x) => sum + x.count, 0) ?? 0} icon={AlertCircle} note={t.byLevel} tone="error" loading={viewQuery.isLoading && statsQuery.isLoading} />
+      <StatCard title={t.warnings} value={stats?.byLevel.filter((x) => ["warn", "warning"].includes(x.name.toLowerCase())).reduce((sum, x) => sum + x.count, 0) ?? 0} icon={AlertTriangle} note={t.byLevel} tone="warning" loading={viewQuery.isLoading && statsQuery.isLoading} />
+      <StatCard title={t.categories} value={stats?.byCategory.length ?? 0} icon={ListFilter} note={t.byCategory} loading={viewQuery.isLoading && statsQuery.isLoading} />
     </section>}
 
     {tab === "overview" && <div className="grid gap-4 xl:grid-cols-[1.5fr_1fr]">
