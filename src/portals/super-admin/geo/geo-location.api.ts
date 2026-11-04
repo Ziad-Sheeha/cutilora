@@ -113,7 +113,7 @@ function readList(
   )
 
   const perPage = Number(
-    meta?.per_page ?? meta?.perPage ?? meta?.limit ?? requestedPerPage,
+    meta?.per_page ?? requestedPerPage,
   )
 
   const page = Number(
