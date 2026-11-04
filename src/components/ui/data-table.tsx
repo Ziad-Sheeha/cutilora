@@ -27,6 +27,7 @@ interface DataTableProps<T> {
   updatedAtLabel?: string
   exportPdfLabel?: string
   exportExcelLabel?: string
+  exportPendingLabel?: string
   locale?: string
   tableClassName?: string
 }
@@ -42,7 +43,7 @@ function formatDate(value: string | null | undefined, locale: string): ReactNode
 export function DataTable<T>({
   columns, data, getRowId, isLoading = false, emptyState, loadingLabel,
   createdAtLabel = "Created", updatedAtLabel = "Updated",
-  exportPdfLabel = "PDF", exportExcelLabel = "Excel", locale = "en", tableClassName,
+  exportPdfLabel = "PDF", exportExcelLabel = "Excel", exportPendingLabel = "Export will be enabled when the API supports it", locale = "en", tableClassName,
 }: DataTableProps<T>) {
   const hasAuditFields = data.some((row) => {
     const item = row as T & AuditableRecord
@@ -61,7 +62,7 @@ export function DataTable<T>({
     <div className="w-full">
       <div className="flex flex-wrap items-center justify-end gap-2 border-b border-border/70 bg-muted/10 px-4 py-3">
         <span className="me-auto hidden items-center gap-2 text-xs text-muted-foreground sm:inline-flex"><Download className="size-3.5" />{exportPdfLabel} / {exportExcelLabel}</span>
-        <Button type="button" size="sm" variant="outline" disabled title="Export will be enabled when the API supports it" className="h-8 gap-1.5 text-xs"><FileText className="size-3.5" />{exportPdfLabel}</Button>
+        <Button type="button" size="sm" variant="outline" disabled title={exportPendingLabel} className="h-8 gap-1.5 text-xs"><FileText className="size-3.5" />{exportPdfLabel}</Button>
         <Button type="button" size="sm" variant="outline" disabled title="Export will be enabled when the API supports it" className="h-8 gap-1.5 text-xs"><FileSpreadsheet className="size-3.5" />{exportExcelLabel}</Button>
       </div>
       {isLoading ? (
