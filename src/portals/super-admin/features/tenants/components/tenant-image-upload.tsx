@@ -14,6 +14,7 @@ interface TenantImageUploadProps {
   uploadLabel: string
   removeLabel: string
   invalidTypeLabel: string
+  readErrorLabel: string
   tooLargeLabel: string
   previewLabel: string
   maxSizeMb?: number
