@@ -1,6 +1,6 @@
 import { Bell, ChevronLeft, ChevronRight, Moon, Search, Sun } from "lucide-react"
 import { useLocation } from "react-router"
-import { adminNavigation } from "@/config/admin-navigation"
+import { adminNavigation } from "@/portals/clinic/config/navigation"
 import { LanguageSwitch } from "@/i18n/language-switch"
 import { useI18n } from "@/i18n/i18n-provider"
 type AdminHeaderProps={theme:"light"|"dark";onToggleTheme:()=>void;sidebarCollapsed:boolean;onToggleSidebar:()=>void}
