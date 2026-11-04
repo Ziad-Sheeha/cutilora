@@ -1,4 +1,4 @@
-import { CalendarDays, X } from "lucide-react"
+import { CalendarDays } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
@@ -33,7 +33,6 @@ export function DatePicker({ value, onChange, placeholder, locale = "en", dir = 
     <PopoverTrigger asChild>
       <Button type="button" variant="outline" className={cn("h-11 w-full justify-start gap-2 px-3 text-start font-normal", !selected && "text-muted-foreground", className)}>
         <CalendarDays className="size-4 shrink-0" /><span className="min-w-0 flex-1 truncate">{label}</span>
-        {selected && <span role="presentation" onClick={(event) => { event.stopPropagation(); onChange("") }}><X className="size-3.5 text-muted-foreground hover:text-foreground" /></span>}
       </Button>
     </PopoverTrigger>
     <PopoverContent align="start" className="w-auto p-0">
