@@ -8,7 +8,7 @@ import type {
   GeoPayload,
   GeoRecord,
   GeoRelation,
-} from "./geo-location.types"
+} from "../types/geo-location.types"
 
 const baseUrl = appEnv.apiBaseUrl.replace(/\/$/, "")
 const DEFAULT_PAGE_SIZE = 10
