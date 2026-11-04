@@ -4,7 +4,7 @@ import { Activity, Building2, ChevronLeft, ChevronRight, LayoutDashboard, LogOut
 import { BrandLogo } from "@/components/brand/brand-logo"
 import { logoutSuperAdmin } from "@/portals/super-admin/auth/super-admin-auth"
 import { LanguageSwitch } from "@/i18n/language-switch"
-import { useI18n } from "@/i18n/i18n-provider"
+import { useI18n } from "@/i18n/i18n-provider"\nimport { pushToast, store } from "@/store"
 export function SuperAdminLayout(){
  const [collapsed,setCollapsed]=useState(false);const [mobileOpen,setMobileOpen]=useState(false);const navigate=useNavigate();const {t,locale}=useI18n()
  const groups=useMemo(()=>[
@@ -14,7 +14,7 @@ export function SuperAdminLayout(){
   {label:t.geo.platformData,items:[{label:t.admin.geo,href:"/super-admin/geo-location",icon:MapPinned}]},
   {label:t.admin.governance,items:[{label:t.admin.audit,href:"/super-admin/audit",icon:Activity},{label:t.admin.settings,href:"/super-admin/settings",icon:Settings}]}
  ],[t])
- async function handleLogout(){await logoutSuperAdmin();navigate("/super-admin/login",{replace:true})}
+ async function handleLogout(){try{await logoutSuperAdmin();store.dispatch(pushToast({id:crypto.randomUUID(),kind:"success",title:locale==="ar"?"تم تسجيل الخروج بنجاح":"Signed out successfully"}))}catch(error){store.dispatch(pushToast({id:crypto.randomUUID(),kind:"error",title:error instanceof Error?error.message:(locale==="ar"?"تعذر تسجيل الخروج":"Sign out failed")}))}finally{navigate("/super-admin/login",{replace:true})}}
  const sidebar=<aside dir={locale==="ar"?"rtl":"ltr"} className={`flex h-full flex-col border-slate-800 bg-[#111329] text-slate-200 ${locale==="ar"?"border-l":"border-r"} ${collapsed?"w-[76px]":"w-[264px]"}`}>
   <div className={`flex h-[76px] shrink-0 items-center border-b border-slate-800 ${collapsed?"justify-center px-2":"px-6"}`}>{collapsed?<span className="flex size-10 items-center justify-center rounded-xl bg-violet-500 text-lg font-bold text-white">C</span>:<BrandLogo imageClassName="h-10"/>}</div>
   <div className={`border-b border-slate-800 py-4 ${collapsed?"px-2 text-center":"px-5"}`}>{!collapsed&&<><p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-violet-300">{t.admin.workspace}</p><p className="mt-1 text-sm font-semibold text-white">Cutilora Platform</p><p className="mt-0.5 text-xs text-slate-500">{t.admin.superAdmin}</p></>}{collapsed&&<ShieldCheck className="mx-auto size-5 text-violet-300"/>}</div>
