@@ -380,7 +380,7 @@ export function GeoLocationPage() {
               type="button"
               variant="outline"
               size="icon"
-              onClick={() => void list.refetch()}
+              onClick={() => list.refetch()}
               disabled={list.isFetching}
               aria-label={t.common.refresh}
             >
@@ -549,18 +549,9 @@ export function GeoLocationPage() {
                     </Button>
                     <Button
                       type="submit"
-                      disabled={busy || isSubmitting}
+                      loading={busy || isSubmitting}
                     >
-                      {busy || isSubmitting ? (
-                        <>
-                          <LoaderCircle className="size-4 animate-spin" />
-                          {t.common.saving}
-                        </>
-                      ) : selected ? (
-                        t.common.save
-                      ) : (
-                        t.common.create
-                      )}
+                      {selected ? t.common.save : t.common.create}
                     </Button>
                   </DialogFooter>
                 </Form>
@@ -596,7 +587,7 @@ export function GeoLocationPage() {
             <Button
               type="button"
               variant="destructive"
-              onClick={() => void confirmDelete()}
+              onClick={confirmDelete}
               disabled={busy}
             >
               {busy ? t.common.saving : t.common.confirmDelete}
