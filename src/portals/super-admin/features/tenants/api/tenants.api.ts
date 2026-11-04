@@ -131,6 +131,20 @@ export const tenantsApi = {
     const root = object(result)
     return normalizeTenant(root?.data ?? result)
   },
+  updateProfile: async (id: string, payload: Partial<TenantPayload>): Promise<Tenant> => {
+    const result = await request<unknown>(tenantPath(id), { method: "PATCH", body: JSON.stringify(payload) })
+    const root = object(result)
+    return normalizeTenant(root?.data ?? result)
+  },
+  replaceSubscription: async (id: string, payload: Record<string, unknown>): Promise<TenantSubscription> => {
+    const result = await request<unknown>(tenantPath(id) + "/subscription", { method: "PUT", body: JSON.stringify(payload) })
+    return normalizeSubscription(result)
+  },
+  recordPayment: async (id: string, payload: Record<string, unknown>): Promise<TenantPayment> => {
+    const result = await request<unknown>(tenantPath(id) + "/subscription/payments", { method: "POST", body: JSON.stringify(payload) })
+    const root = object(result)
+    return normalizePayment(root?.data ?? result)
+  },
   updateStatus: async (id: string, status: string): Promise<void> => {
     await request(tenantPath(id) + "/status", { method: "PATCH", body: JSON.stringify({ status }) })
   },
