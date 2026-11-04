@@ -124,17 +124,13 @@ function readList(
       ? root
       : undefined)
 
+  const rawTotal = meta?.total ?? meta?.totalItems ?? meta?.totalCount
+  const parsedTotal = rawTotal === undefined ? Number.NaN : Number(rawTotal)
   const totalKnown =
-    meta?.total !== undefined ||
-    meta?.totalItems !== undefined ||
-    meta?.totalCount !== undefined
-
-  const total = Number(
-    meta?.total ??
-      meta?.totalItems ??
-      meta?.totalCount ??
-      (requestedPage - 1) * requestedPerPage + rows.length,
-  )
+    Number.isFinite(parsedTotal) && parsedTotal >= 0
+  const total = totalKnown
+    ? parsedTotal
+    : (requestedPage - 1) * requestedPerPage + rows.length
 
   const perPage = Number(
     meta?.per_page ?? requestedPerPage,
@@ -144,18 +140,24 @@ function readList(
     meta?.current_page ?? meta?.currentPage ?? meta?.page ?? requestedPage,
   )
 
-  const inferredTotalPages =
-    rows.length >= requestedPerPage ? requestedPage + 1 : requestedPage
-
-  const totalPages = Number(
-    meta?.last_page ??
-      meta?.totalPages ??
-      Math.max(
-        1,
-        Math.ceil(total / Math.max(perPage, 1)),
-        inferredTotalPages,
-      ),
-  )
+  const explicitTotalPages = meta?.last_page ?? meta?.totalPages
+  const totalPages = explicitTotalPages !== undefined
+    ? Number(explicitTotalPages)
+    : totalKnown
+      ? Math.max(1, Math.ceil(total / Math.max(perPage, 1)))
+      : 0
+  const hasNext =
+    meta?.has_more_pages === true ||
+    meta?.hasMore === true ||
+    meta?.has_next === true ||
+    meta?.hasNext === true ||
+    meta?.next_page_url != null ||
+    meta?.nextPageUrl != null ||
+    (explicitTotalPages !== undefined
+      ? page < totalPages
+      : totalKnown
+        ? page < totalPages
+        : rows.length >= requestedPerPage)
 
   return {
     items: rows.map(normalizeRecord),
@@ -167,8 +169,9 @@ function readList(
           : requestedPerPage,
       total: Number.isFinite(total) && total >= 0 ? total : rows.length,
       totalPages:
-        Number.isFinite(totalPages) && totalPages > 0 ? totalPages : 1,
+        Number.isFinite(totalPages) && totalPages >= 0 ? totalPages : 0,
       totalKnown,
+      hasNext,
     },
   }
 }

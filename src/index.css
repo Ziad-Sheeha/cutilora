@@ -6,14 +6,17 @@
 :root,
 [data-theme="light"] {
   color-scheme: light;
-  --cu-primary: #6C3EF2;
-  --cu-primary-hover: #5B2FDB;
-  --cu-primary-active: #4C25BC;
-  --cu-primary-light: #9B7BFF;
+  /* Interactive purple: white label contrast >= 7:1 on the primary surface. */
+  --cu-primary: #5B2FDB;
+  --cu-primary-hover: #4C25BC;
+  --cu-primary-active: #3F1FA3;
+  --cu-primary-light: #6C3EF2;
   --cu-accent: #F472B6;
   --cu-success: #22C55E;
   --cu-warning: #F59E0B;
   --cu-error: #EF4444;
+  --cu-danger-action: #B91C1C;
+  --cu-danger-foreground: #FFFFFF;
   --cu-info: #0EA5E9;
   --cu-bg: #F6F3FF;
   --cu-surface: #FFFFFF;
@@ -36,18 +39,24 @@
 
 [data-theme="dark"] {
   color-scheme: dark;
-  --cu-primary: #9B7BFF;
+  /* Light lavender on dark surfaces requires a dark foreground label. */
+  --cu-primary: #B49AFF;
+  --cu-primary-hover: #C4B5FD;
+  --cu-primary-active: #A78BFA;
+  --cu-primary-light: #B49AFF;
   --cu-bg: #0B1020;
   --cu-surface: #141A33;
   --cu-border: #262E52;
   --cu-text: #F1F5F9;
   --cu-muted: #A5B0C8;
+  --cu-danger-action: #FCA5A5;
+  --cu-danger-foreground: #450A0A;
 
   --background: var(--cu-bg);
   --foreground: var(--cu-text);
   --card: var(--cu-surface);
   --primary: var(--cu-primary);
-  --primary-foreground: #0B1020;
+  --primary-foreground: #17102B;
   --muted: #262E52;
   --muted-foreground: var(--cu-muted);
   --border: var(--cu-border);
@@ -62,9 +71,10 @@
   --color-foreground: var(--foreground);
   --color-card: var(--card);
   --color-primary: var(--primary);
-  --color-primary-hover: #5B2FDB;
-  --color-primary-active: #4C25BC;
-  --color-primary-light: #9B7BFF;
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-hover: var(--cu-primary-hover);
+  --color-primary-active: var(--cu-primary-active);
+  --color-primary-light: var(--cu-primary-light);
   --color-accent: #F472B6;
   --color-success: #22C55E;
   --color-warning: #F59E0B;

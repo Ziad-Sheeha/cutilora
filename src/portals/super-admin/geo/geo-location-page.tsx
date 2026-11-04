@@ -47,7 +47,7 @@ interface FormValues {
 }
 
 const kinds: GeoKind[] = ["countries", "governorates", "cities", "districts"]
-const PAGE_SIZE = 10
+const DEFAULT_PAGE_SIZE = 10
 
 function ParentName({
   kind,
@@ -87,11 +87,12 @@ export function GeoLocationPage() {
   const [search, setSearch] = useState("")
   const [debouncedSearch, setDebouncedSearch] = useState("")
   const [page, setPage] = useState(1)
+  const [perPage, setPerPage] = useState(DEFAULT_PAGE_SIZE)
   const [formOpen, setFormOpen] = useState(false)
   const [selected, setSelected] = useState<GeoRecord | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<GeoRecord | null>(null)
 
-  const list = useGeoList(config.endpoint, debouncedSearch, page, PAGE_SIZE)
+  const list = useGeoList(config.endpoint, debouncedSearch, page, perPage)
   const mutations = useGeoMutations(config.endpoint)
   const detail = useGeoDetail(config.endpoint, selected?.id)
 
@@ -123,8 +124,8 @@ export function GeoLocationPage() {
   }, [selected, detail.data])
 
   useEffect(() => {
-    if (pagination && page > pagination.totalPages) {
-      setPage(Math.max(1, pagination.totalPages))
+    if (pagination?.totalKnown && pagination.totalPages > 0 && page > pagination.totalPages) {
+      setPage(pagination.totalPages)
     }
   }, [page, pagination])
 
@@ -132,6 +133,7 @@ export function GeoLocationPage() {
     setSearch("")
     setDebouncedSearch("")
     setPage(1)
+    setPerPage(DEFAULT_PAGE_SIZE)
     setSelected(null)
     setFormOpen(false)
     setDeleteTarget(null)
@@ -358,8 +360,9 @@ export function GeoLocationPage() {
           <div>
             <h2 className="font-semibold">{title}</h2>
             <p className="mt-1 text-xs text-muted-foreground">
-              {pagination?.totalKnown ? pagination.total : records.length}{" "}
-              {t.geo.records}
+              {pagination?.totalKnown
+                ? `${pagination.total} ${t.geo.records}`
+                : `${records.length} ${isArabic ? "في الصفحة الحالية" : "on this page"}`}
             </p>
           </div>
 
@@ -395,38 +398,13 @@ export function GeoLocationPage() {
           isLoading={list.isLoading}
           loadingLabel={t.common.loading}
           emptyState={emptyState}
+          pagination={pagination}
+          onPageChange={setPage}
+          onPerPageChange={(size) => {
+            setPerPage(size)
+            setPage(1)
+          }}
         />
-
-        {pagination && pagination.totalPages > 1 && (
-          <div className="flex items-center justify-between border-t px-4 py-3">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => setPage((current) => Math.max(1, current - 1))}
-              disabled={page <= 1 || list.isFetching}
-            >
-              {t.geo.previous}
-            </Button>
-            <span className="text-sm text-muted-foreground">
-              {t.geo.page} {pagination.page} {t.geo.of}{" "}
-              {pagination.totalPages}
-            </span>
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() =>
-                setPage((current) =>
-                  Math.min(pagination.totalPages, current + 1),
-                )
-              }
-              disabled={page >= pagination.totalPages || list.isFetching}
-            >
-              {t.geo.next}
-            </Button>
-          </div>
-        )}
       </section>
 
       <Dialog
