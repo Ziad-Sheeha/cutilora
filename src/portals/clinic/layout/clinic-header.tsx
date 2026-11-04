@@ -4,7 +4,7 @@ import { adminNavigation } from "@/portals/clinic/config/navigation"
 import { LanguageSwitch } from "@/i18n/language-switch"
 import { useI18n } from "@/i18n/i18n-provider"
 type AdminHeaderProps={theme:"light"|"dark";onToggleTheme:()=>void;sidebarCollapsed:boolean;onToggleSidebar:()=>void}
-export function AdminHeader({theme,onToggleTheme,sidebarCollapsed,onToggleSidebar}:AdminHeaderProps){
+export function ClinicHeader({theme,onToggleTheme,sidebarCollapsed,onToggleSidebar}:AdminHeaderProps){
  const {pathname}=useLocation();const {t,locale}=useI18n()
  const current=[...adminNavigation].sort((a,b)=>b.href.length-a.href.length).find(item=>item.href===pathname)
  const title=current?t.clinic.labels[current.label as keyof typeof t.clinic.labels]:t.common.clinicWorkspace
