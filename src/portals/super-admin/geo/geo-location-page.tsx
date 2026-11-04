@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useState, type ChangeEvent } from "react"
 import { Form, Formik, Field } from "formik"
 import { NavLink, useParams } from "react-router"
 import {
@@ -24,6 +24,7 @@ import {
 } from "@/components/ui/dialog"
 import { DataTable, type DataTableColumn } from "@/components/ui/data-table"
 import { useI18n } from "@/i18n/i18n-provider"
+import { pushToast, store } from "@/store"
 
 import {
   geoConfigs,
@@ -85,8 +86,6 @@ export function GeoLocationPage() {
   const [formOpen, setFormOpen] = useState(false)
   const [selected, setSelected] = useState<GeoRecord | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<GeoRecord | null>(null)
-  const [notice, setNotice] = useState("")
-  const [actionError, setActionError] = useState("")
 
   const list = useGeoList(config.endpoint, debouncedSearch, page, PAGE_SIZE)
   const mutations = useGeoMutations(config.endpoint)
@@ -127,8 +126,6 @@ export function GeoLocationPage() {
     setSearch("")
     setDebouncedSearch("")
     setPage(1)
-    setNotice("")
-    setActionError("")
     setSelected(null)
     setFormOpen(false)
     setDeleteTarget(null)
@@ -148,8 +145,7 @@ export function GeoLocationPage() {
     mutations.remove.isPending
 
   const apiError = list.error || detail.error
-  const errorText =
-    actionError || (apiError instanceof Error ? apiError.message : "")
+  const errorText = apiError instanceof Error ? apiError.message : ""
 
   const translateError = (message: string) => {
     if (message === "NETWORK_ERROR") return t.geo.networkError
@@ -240,19 +236,15 @@ export function GeoLocationPage() {
   }, [config.parent, config.parentField, kind, locale, t])
 
   function startEdit(record: GeoRecord) {
-    setActionError("")
     setSelected(record)
   }
 
   function startCreate() {
-    setActionError("")
     setSelected(null)
     setFormOpen(true)
   }
 
   async function submit(values: FormValues) {
-    setActionError("")
-
     const payload: GeoPayload = {
       name_en: values.name_en.trim(),
       name_ar: values.name_ar.trim(),
@@ -273,29 +265,23 @@ export function GeoLocationPage() {
         await mutations.create.mutateAsync(payload)
       }
 
-      setNotice(selected ? t.geo.updated : t.geo.created)
+      store.dispatch(pushToast({ id: crypto.randomUUID(), kind: "success", title: selected ? t.geo.updated : t.geo.created }))
       setFormOpen(false)
       setSelected(null)
     } catch (error) {
-      setActionError(
-        error instanceof Error ? translateError(error.message) : t.geo.apiError,
-      )
+      store.dispatch(pushToast({ id: crypto.randomUUID(), kind: "error", title: t.geo.apiError, description: error instanceof Error ? translateError(error.message) : t.geo.apiError }))
     }
   }
 
   async function confirmDelete() {
     if (!deleteTarget) return
 
-    setActionError("")
-
     try {
       await mutations.remove.mutateAsync(deleteTarget.id)
       setDeleteTarget(null)
-      setNotice(t.geo.deleted)
+      store.dispatch(pushToast({ id: crypto.randomUUID(), kind: "success", title: t.geo.deleted }))
     } catch (error) {
-      setActionError(
-        error instanceof Error ? translateError(error.message) : t.geo.apiError,
-      )
+      store.dispatch(pushToast({ id: crypto.randomUUID(), kind: "error", title: t.geo.apiError, description: error instanceof Error ? translateError(error.message) : t.geo.apiError }))
     }
   }
 
@@ -356,15 +342,6 @@ export function GeoLocationPage() {
         ))}
       </nav>
 
-      {notice && (
-        <div
-          role="status"
-          className="rounded-xl border border-emerald-500/25 bg-emerald-500/5 px-4 py-3 text-sm text-emerald-700"
-        >
-          {notice}
-        </div>
-      )}
-
       {errorText && (
         <div
           role="alert"
@@ -373,7 +350,6 @@ export function GeoLocationPage() {
           <span>{translateError(errorText)}</span>
           <button
             type="button"
-            onClick={() => setActionError("")}
             aria-label={t.common.dismiss}
           >
             ×
@@ -545,8 +521,14 @@ export function GeoLocationPage() {
                         id="geo-code"
                         name="code"
                         dir="ltr"
-                        maxLength={3}
-                        className="uppercase"
+                        maxLength={2}
+                        autoComplete="off"
+                        inputMode="text"
+                        onChange={(event: ChangeEvent<HTMLInputElement>) => {
+                          const normalized = event.target.value.replace(/[^a-z]/gi, "").slice(0, 2).toUpperCase()
+                          void setFieldValue("code", normalized)
+                        }}
+                        className="font-mono uppercase tracking-widest"
                         aria-invalid={Boolean(touched.code && errors.code)}
                       />
                       {touched.code && errors.code && (
