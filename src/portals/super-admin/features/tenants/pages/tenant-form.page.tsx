@@ -150,7 +150,7 @@ export function TenantFormPage() {
     setStep((current) => Math.min(steps.length - 1, current + 1))
   }
 
-  async function submit(event: FormEvent<HTMLFormElement>) {
+  function downloadTenantPdf() {\n    const previousTitle = document.title\n    document.title = "Cutilora - " + (savedTenant?.name || values.name) + " - Tenant Profile"\n    const restoreTitle = () => { document.title = previousTitle; window.removeEventListener("afterprint", restoreTitle) }\n    window.addEventListener("afterprint", restoreTitle)\n    window.print()\n  }\n\n  async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     const invalidStep = steps.slice(0, 5).findIndex((_, index) => validateStep(index).length > 0)
     if (invalidStep >= 0) { setStep(invalidStep); store.dispatch(pushToast({ id: crypto.randomUUID(), kind: "error", title: validateStep(invalidStep)[0] })); return }
@@ -255,7 +255,7 @@ export function TenantFormPage() {
             <p className="mt-1 text-xs text-muted-foreground">{savedTenant?.slug || ""}</p>
           </div>
           <DialogFooter className="sm:flex-row">
-            <Button type="button" variant="outline" onClick={() => window.print()}><Download className="size-4"/>{copy.downloadPdf}</Button>
+            <Button type="button" variant="outline" onClick={downloadTenantPdf}><Download className="size-4"/>{copy.downloadPdf}</Button>
             <Button type="button" onClick={() => navigate("/super-admin/tenants/" + encodeURIComponent(savedTenant?.id || tenantId))}>{copy.done}</Button>
           </DialogFooter>
         </DialogContent>
