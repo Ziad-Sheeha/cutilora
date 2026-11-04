@@ -152,6 +152,7 @@ export function GeoLocationPage() {
     if (message.startsWith("HTTP_")) return t.geo.httpError
     if (message === "UNEXPECTED_RESPONSE") return t.geo.unexpectedResponse
     if (message === "UNAUTHENTICATED") return t.geo.sessionExpired
+    if (/INVALID_COUNTRY_CODE|country code must be two uppercase letters/i.test(message)) return t.geo.codeInvalid
     return message
   }
 
