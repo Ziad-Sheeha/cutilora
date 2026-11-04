@@ -4,7 +4,7 @@ import { ArrowLeft, ArrowUpRight, Building2, CalendarClock, CheckCircle2, Credit
 import { Button } from "@/components/ui/button"
 import { DataTable, type DataTableColumn } from "@/components/ui/data-table"
 import { TenantStatusBadge } from "../components/tenant-status-badge"
-import { TenantProfileOverview } from "../components/tenant-profile-overview"
+import { TenantProfileField, TenantProfileOverview, TenantProfileSection } from "../components/tenant-profile-overview"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useI18n } from "@/i18n/i18n-provider"
 import { useTenant, useTenantMutations, useTenantPayments, useTenantSubscription } from "../hooks/use-tenants"
@@ -28,7 +28,7 @@ function SubscriptionPanel({ data, loading, error, locale, labels }: { data: Ten
   if (!data) return <PanelState text={labels.empty}/>
   return <div className="space-y-5">
     <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4"><InfoCard label={labels.plan} value={data.plan?.name || "—"} hint={data.plan ? money(data.plan.amount, data.plan.currency, locale) : "—"} icon={CreditCard}/><InfoCard label={labels.subscriptionStatus} value={human(data.status)} hint={human(data.billingCycle)} icon={ShieldCheck}/><InfoCard label={labels.currentPeriod} value={dateTime(data.currentPeriodStartsAt, locale)} hint={labels.until + " " + dateTime(data.currentPeriodEndsAt, locale)} icon={CalendarClock}/><InfoCard label={labels.nextBilling} value={dateTime(data.nextBillingAt, locale)} hint={data.cancelAtPeriodEnd ? labels.cancelScheduled : labels.renewalExpected} icon={WalletCards}/></div>
-    <Section title={labels.subscriptionTimeline}><div className="grid gap-5 sm:grid-cols-2"><Field label={labels.trialStarts} value={dateTime(data.trialStartsAt, locale)}/><Field label={labels.trialEnds} value={dateTime(data.trialEndsAt, locale)}/><Field label={labels.periodStarts} value={dateTime(data.currentPeriodStartsAt, locale)}/><Field label={labels.periodEnds} value={dateTime(data.currentPeriodEndsAt, locale)}/><Field label={labels.canceledAt} value={dateTime(data.canceledAt, locale)}/><Field label={labels.cancelAtPeriodEnd} value={data.cancelAtPeriodEnd ? labels.yes : labels.no}/></div>{data.notes && <p className="mt-5 rounded-xl bg-muted/50 p-4 text-sm leading-6 text-muted-foreground">{data.notes}</p>}</Section>
+    <TenantProfileSection title={labels.subscriptionTimeline}><div className="grid gap-5 sm:grid-cols-2"><TenantProfileField label={labels.trialStarts} value={dateTime(data.trialStartsAt, locale)}/><TenantProfileField label={labels.trialEnds} value={dateTime(data.trialEndsAt, locale)}/><TenantProfileField label={labels.periodStarts} value={dateTime(data.currentPeriodStartsAt, locale)}/><TenantProfileField label={labels.periodEnds} value={dateTime(data.currentPeriodEndsAt, locale)}/><TenantProfileField label={labels.canceledAt} value={dateTime(data.canceledAt, locale)}/><TenantProfileField label={labels.cancelAtPeriodEnd} value={data.cancelAtPeriodEnd ? labels.yes : labels.no}/></div>{data.notes && <p className="mt-5 rounded-xl bg-muted/50 p-4 text-sm leading-6 text-muted-foreground">{data.notes}</p>}</TenantProfileSection>
   </div>
 }
 function PaymentsPanel({ data, loading, error, locale, labels }: { data: TenantPayment[] | undefined; loading: boolean; error: unknown; locale: string; labels: Record<string, string> }) {
