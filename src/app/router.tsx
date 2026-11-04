@@ -1,6 +1,6 @@
 import { createBrowserRouter, Navigate } from "react-router"
-import { App } from "@/App"
-import { AdminLayout } from "@/components/layouts/admin-layout"
+import { App } from "@/app/pages/landing-page"
+import { ClinicLayout } from "@/portals/clinic/layout/clinic-layout"
 import { DashboardPage } from "@/portals/clinic/features/dashboard/pages/dashboard.page"
 import { ClinicModulePage } from "@/portals/clinic/features/clinic/pages/clinic-module.page"
 import { AdminPlaceholderPage } from "@/pages/admin-placeholder-page"
@@ -20,7 +20,7 @@ export const router = createBrowserRouter([
   { path: "/super-admin/login", element: <SuperAdminLoginPage /> },
   {
     path: "/clinic",
-    element: <AdminLayout />,
+    element: <ClinicLayout />,
     children: [
       { index: true, element: <DashboardPage /> },
       ...adminNavigation.filter((item) => item.href !== "/clinic").map((item) => ({
