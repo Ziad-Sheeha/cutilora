@@ -2,6 +2,7 @@ import { useState, type ReactNode } from "react"
 import { Link, useParams } from "react-router"
 import { ArrowLeft, ArrowUpRight, Building2, CalendarClock, CheckCircle2, CreditCard, ExternalLink, Globe2, Mail, MapPin, Phone, ShieldCheck, WalletCards } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { DataTable, type DataTableColumn } from "@/components/ui/data-table"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { useI18n } from "@/i18n/i18n-provider"
 import { useTenant, useTenantMutations, useTenantPayments, useTenantSubscription } from "../hooks/use-tenants"
@@ -52,10 +53,28 @@ function SubscriptionPanel({ data, loading, error, locale, labels }: { data: Ten
   </div>
 }
 function PaymentsPanel({ data, loading, error, locale, labels }: { data: TenantPayment[] | undefined; loading: boolean; error: unknown; locale: string; labels: Record<string, string> }) {
-  if (loading) return <PanelState text={labels.loading}/>
-  if (error) return <PanelState text={error instanceof Error ? error.message : labels.failed}/>
-  if (!data?.length) return <PanelState text={labels.noPayments}/>
-  return <div className="overflow-hidden rounded-2xl border bg-card"><div className="border-b px-5 py-4"><h2 className="font-semibold">{labels.paymentHistory}</h2><p className="mt-1 text-xs text-muted-foreground">{data.length} {labels.records}</p></div><div className="overflow-x-auto"><table className="w-full min-w-[760px] text-sm"><thead className="bg-muted/50 text-start text-xs text-muted-foreground"><tr>{[labels.invoice, labels.amount, labels.method, labels.provider, labels.status, labels.paidAt, labels.action].map((item) => <th key={item} className="px-5 py-3 text-start font-semibold">{item}</th>)}</tr></thead><tbody>{data.map((payment, index) => <tr key={payment.providerReference || payment.invoiceNumber || index} className="border-t"><td className="px-5 py-4 font-semibold">{payment.invoiceNumber || "—"}</td><td className="px-5 py-4 font-semibold tabular-nums">{money(payment.amount, payment.currency, locale)}</td><td className="px-5 py-4">{human(payment.method)}</td><td className="px-5 py-4">{payment.provider || "—"}</td><td className="px-5 py-4"><Badge value={payment.status} positive={payment.status === "paid" || payment.status === "success"}/>{payment.failureReason && <p className="mt-1 max-w-[190px] text-xs text-rose-600">{payment.failureReason}</p>}</td><td className="px-5 py-4 text-xs text-muted-foreground">{dateTime(payment.paidAt, locale)}</td><td className="px-5 py-4">{payment.invoiceUrl ? <a href={payment.invoiceUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline">{labels.viewInvoice}<ExternalLink className="size-3"/></a> : "—"}</td></tr>)}</tbody></table></div></div>
+  const columns: DataTableColumn<TenantPayment>[] = [
+    { id: "invoice", header: labels.invoice, cell: (payment) => <span className="font-semibold">{payment.invoiceNumber || "—"}</span> },
+    { id: "amount", header: labels.amount, cell: (payment) => <span className="whitespace-nowrap font-semibold tabular-nums">{money(payment.amount, payment.currency, locale)}</span> },
+    { id: "method", header: labels.method, cell: (payment) => human(payment.method) },
+    { id: "provider", header: labels.provider, cell: (payment) => payment.provider || "—" },
+    { id: "status", header: labels.status, cell: (payment) => <div className="space-y-1"><Badge value={payment.status} positive={payment.status === "paid" || payment.status === "success"}/>{payment.failureReason && <p className="max-w-[190px] text-xs text-rose-600">{payment.failureReason}</p>}</div> },
+    { id: "paid-at", header: labels.paidAt, cell: (payment) => <span className="whitespace-nowrap text-xs text-muted-foreground">{dateTime(payment.paidAt, locale)}</span> },
+    { id: "actions", header: labels.action, headerClassName: "text-end", cell: (payment) => payment.invoiceUrl ? <div className="flex justify-end"><a href={payment.invoiceUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline">{labels.viewInvoice}<ExternalLink className="size-3"/></a></div> : <span className="block text-end text-muted-foreground">—</span> },
+  ]
+  return (
+    <section className="overflow-hidden rounded-2xl border bg-card">
+      <div className="border-b px-5 py-4"><h2 className="font-semibold">{labels.paymentHistory}</h2><p className="mt-1 text-xs text-muted-foreground">{data?.length ?? 0} {labels.records}</p></div>
+      <DataTable
+        columns={columns}
+        data={data ?? []}
+        getRowId={(payment) => payment.providerReference || payment.invoiceNumber || [payment.amount, payment.currency, payment.paidAt].join("-")}
+        isLoading={loading}
+        loadingLabel={labels.loading}
+        emptyState={<PanelState text={error instanceof Error ? error.message : data?.length === 0 ? labels.noPayments : labels.failed}/>}
+      />
+    </section>
+  )
 }
 function InfoCard({ label, value, hint, icon: Icon }: { label: string; value: string; hint: string; icon: typeof CreditCard }) {
   return <div className="rounded-2xl border bg-card p-4"><div className="flex items-center justify-between"><p className="text-xs font-medium text-muted-foreground">{label}</p><Icon className="size-4 text-primary"/></div><p className="mt-3 text-lg font-semibold">{value}</p><p className="mt-1 text-xs text-muted-foreground">{hint}</p></div>
