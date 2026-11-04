@@ -2,7 +2,15 @@ export type GeoKind = "countries" | "governorates" | "cities" | "districts"
 export type GeoParentField = "country_id" | "governorate_id" | "city_id"
 export type GeoId = string
 
-/** API responses currently use a mixed naming convention (nameEn/name_ar). */
+export interface GeoRelation {
+  id?: GeoId
+  nameEn: string
+  name_ar: string
+  code?: string | null
+  country?: GeoRelation | null
+}
+
+/** Stable frontend model normalized from the API response. */
 export interface GeoRecord {
   id: GeoId
   nameEn: string
