@@ -1,4 +1,10 @@
 import { useEffect } from "react"
+import { landingContent } from "@/app/pages/landing/landing-content"
+import { LandingJourneySection } from "@/app/pages/landing/sections/landing-journey-section"
+import { LandingStructureSection } from "@/app/pages/landing/sections/landing-structure-section"
+import { LandingFaqSection } from "@/app/pages/landing/sections/landing-faq-section"
+import { LandingContactSection } from "@/app/pages/landing/sections/landing-contact-section"
+import "@/app/pages/landing/landing-page.css"
 import {
   Activity, ArrowUpRight, ArrowUpLeft, CalendarDays, Check, ChevronRight,
   CircleCheck, Clock3, Command, HeartPulse, LayoutDashboard, ShieldCheck,
@@ -10,82 +16,9 @@ import { BrandLogo } from "@/components/brand/brand-logo"
 import { LanguageSwitch } from "@/i18n/language-switch"
 import { useI18n } from "@/i18n/i18n-provider"
 
-const content = {
-  en: {
-    navPlatform: "Platform", navSolutions: "Why Cutilora", navSecurity: "Security",
-    eyebrow: "THE CLINIC OPERATING SYSTEM",
-    headlineA: "Care deserves", headlineB: "better operations.",
-    intro: "One beautifully connected workspace for aesthetic clinics. Bring your people, appointments, services and business into focus — without the operational noise.",
-    explore: "Explore the platform", trusted: "BUILT FOR MODERN CLINIC TEAMS",
-    preview: "ILLUSTRATIVE WORKSPACE PREVIEW", live: "Workspace overview",
-    today: "Today's schedule", patients: "Patient experience", revenue: "Business overview",
-    appointments: "Appointments", completed: "Completed", pending: "Needs confirmation",
-    total: "Total appointments", schedule: "View daily schedule", operational: "Everything in sync",
-    sectionEyebrow: "A CALMER WAY TO RUN YOUR CLINIC",
-    sectionTitle: "Less admin. More room for care.",
-    sectionIntro: "The details that keep a clinic moving, brought together in one considered experience.",
-    opsTitle: "Clinic operations, connected",
-    opsText: "Keep appointments, services, branches and everyday workflows in one organized place. Your team knows what matters next.",
-    peopleTitle: "Your people, working as one",
-    peopleText: "Give every team member the right workspace. Keep roles and access clear as your organization grows.",
-    insightTitle: "A clearer view of the business",
-    insightText: "Bring operational and financial signals closer together, so decisions are grounded in what is happening.",
-    securityEyebrow: "BUILT ON CLEAR BOUNDARIES",
-    securityTitle: "One platform. The right access at every level.",
-    securityText: "Cutilora is designed around the way clinic organizations work — with distinct platform, tenant, clinic and branch contexts. Access belongs where it should, and sensitive operations stay protected.",
-    securityPoint1: "Separate platform administration",
-    securityPoint2: "Organization-aware workspaces",
-    securityPoint3: "Role-based access foundations",
-    securityFoot: "Access policies are enforced by the platform API.",
-    finalEyebrow: "A BETTER FOUNDATION STARTS HERE",
-    finalTitle: "Make space for better care.",
-    finalText: "A more considered way to manage the work behind every great clinic experience.",
-    footer: "A thoughtful operating foundation for modern aesthetic clinics.",
-    platform: "Platform", privacy: "Privacy-minded by design", scroll: "Scroll to explore",
-    clinic: "Clinic", platformAdmin: "Platform admin", workspace: "Workspace",
-    ready: "Illustrative preview", upcoming: "Upcoming", treatment: "Treatment", consultation: "Consultation",
-    team: "Team", patientsCount: "Patients", branch: "Branches", monthly: "This month",
-  },
-  ar: {
-    navPlatform: "المنصة", navSolutions: "لماذا كيوتيلورا", navSecurity: "الأمان",
-    eyebrow: "نظام تشغيل العيادات",
-    headlineA: "رعاية أفضل تبدأ", headlineB: "بإدارة أذكى.",
-    intro: "مساحة عمل واحدة ومترابطة لعيادات التجميل. اجمع فريقك ومواعيدك وخدماتك وعملياتك في تجربة واضحة ومنظمة، بعيدًا عن فوضى التشغيل اليومية.",
-    explore: "اكتشف المنصة", trusted: "مصممة لفرق العيادات الحديثة",
-    preview: "معاينة توضيحية لمساحة العمل", live: "نظرة عامة على مساحة العمل",
-    today: "جدول اليوم", patients: "تجربة المرضى", revenue: "نظرة على الأعمال",
-    appointments: "المواعيد", completed: "مكتمل", pending: "بانتظار التأكيد",
-    total: "إجمالي المواعيد", schedule: "عرض جدول اليوم", operational: "كل شيء في مكانه",
-    sectionEyebrow: "طريقة أكثر هدوءًا لإدارة عيادتك",
-    sectionTitle: "إدارة أقل. مساحة أكبر للرعاية.",
-    sectionIntro: "كل التفاصيل التي تحافظ على سير العيادة، مجتمعة في تجربة واحدة مدروسة.",
-    opsTitle: "عمليات عيادتك، متصلة",
-    opsText: "نظّم المواعيد والخدمات والفروع وسير العمل اليومي في مكان واحد، ليعرف كل فرد في فريقك ما الذي يحتاج إلى اهتمامه.",
-    peopleTitle: "فريقك يعمل بتناغم",
-    peopleText: "امنح كل فرد مساحة العمل المناسبة. وحافظ على وضوح الأدوار والصلاحيات مع نمو مؤسستك.",
-    insightTitle: "رؤية أوضح لأعمالك",
-    insightText: "قرّب المؤشرات التشغيلية والمالية من بعضها لتصبح قراراتك مبنية على صورة أكثر اكتمالًا.",
-    securityEyebrow: "مبنية على حدود واضحة",
-    securityTitle: "منصة واحدة. وصلاحيات في مكانها الصحيح.",
-    securityText: "صُممت كيوتيلورا لتناسب طريقة عمل مؤسسات العيادات، مع فصل واضح بين المنصة والعميل والعيادة والفرع. كل صلاحية في نطاقها الصحيح، والعمليات الحساسة تظل محمية.",
-    securityPoint1: "إدارة مستقلة على مستوى المنصة",
-    securityPoint2: "مساحات عمل مرتبطة بمؤسسة العميل",
-    securityPoint3: "أساس واضح للصلاحيات حسب الدور",
-    securityFoot: "يتم فرض سياسات الوصول من خلال واجهة المنصة الخلفية.",
-    finalEyebrow: "بداية أفضل تحتاج إلى أساس أفضل",
-    finalTitle: "اترك مساحة أكبر للرعاية.",
-    finalText: "طريقة أكثر تنظيمًا لإدارة كل ما يحدث خلف تجربة العيادة المميزة.",
-    footer: "أساس تشغيلي مدروس لعيادات التجميل الحديثة.",
-    platform: "المنصة", privacy: "الخصوصية في صميم التصميم", scroll: "اكتشف المزيد",
-    clinic: "العيادة", platformAdmin: "مدير المنصة", workspace: "مساحة العمل",
-    ready: "معاينة توضيحية", upcoming: "القادمة", treatment: "جلسة علاج", consultation: "استشارة",
-    team: "الفريق", patientsCount: "المرضى", branch: "الفروع", monthly: "هذا الشهر",
-  },
-} as const
-
 export function LandingPage() {
   const { locale, t } = useI18n()
-  const copy = content[locale === "ar" ? "ar" : "en"]
+  const copy = landingContent[locale === "ar" ? "ar" : "en"]
   const isArabic = locale === "ar"
 
   useEffect(() => {
@@ -112,6 +45,7 @@ export function LandingPage() {
             <a href="#platform">{copy.navPlatform}</a>
             <a href="#why-cutilora">{copy.navSolutions}</a>
             <a href="#security">{copy.navSecurity}</a>
+            <a href="#contact">{copy.contactEyebrow}</a>
           </div>
 
           <div className="landing-nav-actions">
@@ -258,6 +192,8 @@ export function LandingPage() {
         </div>
       </section>
 
+      <LandingJourneySection copy={copy} />
+
       <section className="landing-security-section" id="security">
         <div className="landing-security-visual">
           <div className="security-ring security-ring-outer" />
@@ -279,12 +215,18 @@ export function LandingPage() {
         </div>
       </section>
 
+      <LandingStructureSection copy={copy} />
+
+      <LandingFaqSection copy={copy} />
+
+      <LandingContactSection copy={copy} />
+
       <section className="landing-final-section">
         <div className="landing-final-glow" />
         <div className="landing-eyebrow"><span className="landing-eyebrow-dot" />{copy.finalEyebrow}</div>
         <h2>{copy.finalTitle}</h2>
         <p>{copy.finalText}</p>
-        <a href="#platform" className="landing-final-link">{copy.explore}{isArabic ? <ArrowUpLeft size={17} /> : <ArrowUpRight size={17} />}</a>
+        <a href="#contact" className="landing-final-link">{copy.explore}{isArabic ? <ArrowUpLeft size={17} /> : <ArrowUpRight size={17} />}</a>
         <Sparkles className="landing-final-sparkle sparkle-one" size={22} />
         <Sparkles className="landing-final-sparkle sparkle-two" size={15} />
       </section>
