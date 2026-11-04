@@ -144,18 +144,20 @@ function readList(
     meta?.current_page ?? meta?.currentPage ?? meta?.page ?? requestedPage,
   )
 
-  const inferredTotalPages =
-    rows.length >= requestedPerPage ? requestedPage + 1 : requestedPage
-
-  const totalPages = Number(
-    meta?.last_page ??
-      meta?.totalPages ??
-      Math.max(
-        1,
-        Math.ceil(total / Math.max(perPage, 1)),
-        inferredTotalPages,
-      ),
-  )
+  const explicitTotalPages = meta?.last_page ?? meta?.totalPages
+  const totalPages = explicitTotalPages !== undefined
+    ? Number(explicitTotalPages)
+    : totalKnown
+      ? Math.max(1, Math.ceil(total / Math.max(perPage, 1)))
+      : 0
+  const hasNext =
+    meta?.has_more_pages === true ||
+    meta?.hasMore === true ||
+    (explicitTotalPages !== undefined
+      ? page < totalPages
+      : totalKnown
+        ? page < totalPages
+        : rows.length >= requestedPerPage)
 
   return {
     items: rows.map(normalizeRecord),
@@ -167,8 +169,9 @@ function readList(
           : requestedPerPage,
       total: Number.isFinite(total) && total >= 0 ? total : rows.length,
       totalPages:
-        Number.isFinite(totalPages) && totalPages > 0 ? totalPages : 1,
+        Number.isFinite(totalPages) && totalPages >= 0 ? totalPages : 0,
       totalKnown,
+      hasNext,
     },
   }
 }
