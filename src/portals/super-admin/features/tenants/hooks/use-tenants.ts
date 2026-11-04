@@ -26,7 +26,7 @@ export function useTenantMutations() {
   const client = useQueryClient()
   const create = useMutation({ mutationFn: tenantsApi.create, onSuccess: () => client.invalidateQueries({ queryKey: tenantKeys.all }) })
   const updateProfile = useMutation({
-    mutationFn: ({ id, payload }: { id: string; payload: import("../types/tenant.types").TenantPayload }) => tenantsApi.updateProfile(id, payload),
+    mutationFn: ({ id, payload }: { id: string; payload: Partial<TenantPayload> }) => tenantsApi.updateProfile(id, payload),
     onSuccess: (_data, variables) => {
       void client.invalidateQueries({ queryKey: tenantKeys.all })
       void client.invalidateQueries({ queryKey: tenantKeys.detail(variables.id) })
