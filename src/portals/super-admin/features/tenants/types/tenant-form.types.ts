@@ -1,6 +1,7 @@
 import type { Tenant, TenantPayload } from "./tenant.types"
 
 export interface TenantFormValues {
+  owner: { name: string; email: string; password: string; passwordConfirmation: string }
   name: string
   displayName: string
   legalName: string
