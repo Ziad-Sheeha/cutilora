@@ -19,6 +19,7 @@ export interface TenantAddress {
   floor: string
   unit: string
   postalCode: string
+  landmark?: string
   latitude: number | null
   longitude: number | null
 }
