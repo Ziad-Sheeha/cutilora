@@ -6,7 +6,7 @@ const statusStyles: Record<string, string> = {
 }
 
 function humanize(value: string) {
-  return value.replace(/[_-]/g, " ").replace(/\\b\\w/g, (letter) => letter.toUpperCase())
+  return value.replace(/[_-]/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase())
 }
 
 export function TenantStatusBadge({ status }: { status: string }) {
