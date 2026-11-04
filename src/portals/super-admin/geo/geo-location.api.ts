@@ -42,6 +42,7 @@ function readList(payload: unknown, requestedPage: number, requestedPerPage: num
   const rows = Array.isArray(data) ? data : Array.isArray(nested?.data) ? nested.data : Array.isArray(nested?.items) ? nested.items : Array.isArray(root.items) ? root.items : null
   if (!rows) throw new Error("UNEXPECTED_RESPONSE")
   const meta = (root.meta ?? nested?.meta ?? root.pagination ?? nested?.pagination) as Record<string, unknown> | undefined
+  const totalKnown = meta?.total !== undefined || meta?.totalItems !== undefined || meta?.totalCount !== undefined
   const total = Number(meta?.total ?? meta?.totalItems ?? meta?.totalCount ?? ((requestedPage - 1) * requestedPerPage + rows.length))
   const perPage = Number(meta?.per_page ?? meta?.perPage ?? meta?.limit ?? requestedPerPage)
   const page = Number(meta?.current_page ?? meta?.currentPage ?? meta?.page ?? requestedPage)
@@ -54,6 +55,7 @@ function readList(payload: unknown, requestedPage: number, requestedPerPage: num
       perPage: Number.isFinite(perPage) && perPage > 0 ? perPage : requestedPerPage,
       total: Number.isFinite(total) && total >= 0 ? total : rows.length,
       totalPages: Number.isFinite(totalPages) && totalPages > 0 ? totalPages : 1,
+      totalKnown,
     },
   }
 }
