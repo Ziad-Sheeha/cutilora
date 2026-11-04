@@ -21,7 +21,7 @@ interface TenantImageUploadProps {
 
 export function TenantImageUpload({
   id, label, value, onChange, hint, replaceLabel, uploadLabel, removeLabel,
-  invalidTypeLabel, tooLargeLabel, previewLabel, maxSizeMb = 5,
+  invalidTypeLabel, readErrorLabel, tooLargeLabel, previewLabel, maxSizeMb = 5,
 }: TenantImageUploadProps) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [error, setError] = useState("")
@@ -86,7 +86,7 @@ export function TenantImageUpload({
         )}
         <Input ref={inputRef} id={id} type="file" accept="image/png,image/jpeg,image/webp" className="sr-only" onChange={(event) => void handleFile(event.target.files?.[0])} />
       </div>
-      {error && <p role="alert" className="text-xs font-medium text-destructive">{error === "FILE_READ_FAILED" ? invalidTypeLabel : error}</p>}
+      {error && <p role="alert" className="text-xs font-medium text-destructive">{error === "FILE_READ_FAILED" ? readErrorLabel : error}</p>}
     </div>
   )
 }
