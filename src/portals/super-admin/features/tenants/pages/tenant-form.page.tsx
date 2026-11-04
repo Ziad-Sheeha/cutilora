@@ -255,7 +255,7 @@ export function TenantFormPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      {savedTenant && <TenantPdfDocument values={values} tenantId={savedTenant.id} slug={savedTenant.slug} locale={locale}/>}
+      {savedTenant && <TenantPdfDocument values={values} slug={savedTenant.slug} locale={locale}/>}
     </div>
   )
 }
