@@ -17,7 +17,7 @@ const content = {
     headlineA: "Care deserves", headlineB: "better operations.",
     intro: "One beautifully connected workspace for aesthetic clinics. Bring your people, appointments, services and business into focus — without the operational noise.",
     explore: "Explore the platform", trusted: "BUILT FOR MODERN CLINIC TEAMS",
-    preview: "YOUR CLINIC, IN CLEAR VIEW", live: "Workspace overview",
+    preview: "ILLUSTRATIVE WORKSPACE PREVIEW", live: "Workspace overview",
     today: "Today's schedule", patients: "Patient experience", revenue: "Business overview",
     appointments: "Appointments", completed: "Completed", pending: "Needs confirmation",
     total: "Total appointments", schedule: "View daily schedule", operational: "Everything in sync",
@@ -43,7 +43,7 @@ const content = {
     footer: "A thoughtful operating foundation for modern aesthetic clinics.",
     platform: "Platform", privacy: "Privacy-minded by design", scroll: "Scroll to explore",
     clinic: "Clinic", platformAdmin: "Platform admin", workspace: "Workspace",
-    ready: "All systems organized", upcoming: "Upcoming", treatment: "Treatment", consultation: "Consultation",
+    ready: "Illustrative preview", upcoming: "Upcoming", treatment: "Treatment", consultation: "Consultation",
     team: "Team", patientsCount: "Patients", branch: "Branches", monthly: "This month",
   },
   ar: {
@@ -52,7 +52,7 @@ const content = {
     headlineA: "رعاية أفضل تبدأ", headlineB: "بإدارة أذكى.",
     intro: "مساحة عمل واحدة ومترابطة لعيادات التجميل. اجمع فريقك ومواعيدك وخدماتك وعملياتك في تجربة واضحة ومنظمة، بعيدًا عن فوضى التشغيل اليومية.",
     explore: "اكتشف المنصة", trusted: "مصممة لفرق العيادات الحديثة",
-    preview: "عيادتك في صورة أوضح", live: "نظرة عامة على مساحة العمل",
+    preview: "معاينة توضيحية لمساحة العمل", live: "نظرة عامة على مساحة العمل",
     today: "جدول اليوم", patients: "تجربة المرضى", revenue: "نظرة على الأعمال",
     appointments: "المواعيد", completed: "مكتمل", pending: "بانتظار التأكيد",
     total: "إجمالي المواعيد", schedule: "عرض جدول اليوم", operational: "كل شيء في مكانه",
@@ -78,7 +78,7 @@ const content = {
     footer: "أساس تشغيلي مدروس لعيادات التجميل الحديثة.",
     platform: "المنصة", privacy: "الخصوصية في صميم التصميم", scroll: "اكتشف المزيد",
     clinic: "العيادة", platformAdmin: "مدير المنصة", workspace: "مساحة العمل",
-    ready: "كل العمليات منظمة", upcoming: "القادمة", treatment: "جلسة علاج", consultation: "استشارة",
+    ready: "معاينة توضيحية", upcoming: "القادمة", treatment: "جلسة علاج", consultation: "استشارة",
     team: "الفريق", patientsCount: "المرضى", branch: "الفروع", monthly: "هذا الشهر",
   },
 } as const
@@ -165,7 +165,7 @@ export function LandingPage() {
             </div>
             <div className="landing-dashboard-heading">
               <div><span>{copy.preview}</span><h2>{copy.live}</h2></div>
-              <div className="landing-date-chip"><CalendarDays size={13} /> NOV 04, 2026</div>
+              <div className="landing-date-chip"><CalendarDays size={13} /> TODAY</div>
             </div>
             <div className="landing-metric-grid">
               <div className="landing-metric-card">
@@ -204,7 +204,7 @@ export function LandingPage() {
                     <path d="M0 52 C18 48 22 34 42 40 S68 52 86 31 S112 37 130 24 S157 34 174 15 S199 20 220 5" fill="none" stroke="#a78bfa" strokeWidth="2.5" strokeLinecap="round" />
                   </svg>
                 </div>
-                <div className="landing-chart-foot"><span>01 NOV</span><span>04 NOV</span><span>08 NOV</span></div>
+                <div className="landing-chart-foot"><span>WEEK 01</span><span>WEEK 04</span><span>WEEK 08</span></div>
               </div>
             </div>
             <div className="landing-dashboard-footer"><span><span className="landing-footer-pulse" />{copy.ready}</span><span> CUTILORA · 2026</span></div>
