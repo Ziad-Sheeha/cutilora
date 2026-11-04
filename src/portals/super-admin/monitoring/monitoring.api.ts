@@ -25,7 +25,13 @@ export interface MonitoringStats {
   timeline: Array<{ date: string; count: number; errors: number }>
 }
 
-export interface MonitoringTimelinePoint {\n  date: string\n  count: number\n  errors: number\n}\n\nexport interface MonitoringListResult {
+export interface MonitoringTimelinePoint {
+  date: string
+  count: number
+  errors: number
+}
+
+export interface MonitoringListResult {
   items: MonitoringLog[]
   page: number
   limit: number
@@ -150,19 +156,19 @@ export const monitoringApi = {
     normalizeStats(await request(`/platform/monitoring/view${queryString({ from, to })}`)),
   stats: async (from?: string, to?: string) =>
     normalizeStats(await request(`/platform/monitoring/logs/stats${queryString({ from, to })}`)),
-  timeline: async (from?: string, to?: string) =>
-    rowsFrom(await request(`/platform/monitoring/logs/timeline${queryString({ from, to })}`)).map((item, index) => {
+  timeline: async (from?: string, to?: string): Promise<MonitoringTimelinePoint[]> => {
+    const payload = await request(`/platform/monitoring/logs/timeline${queryString({ from, to })}`)
+    const normalized = normalizeStats(payload).timeline
+    if (normalized.length) return normalized
+    return rowsFrom(payload).map((item) => {
       const row = object(item) ?? {}
       return {
-        id: first(row, ["id", "_id", "uuid"], String(index)),
-        date: first(row, ["timestamp", "created_at", "createdAt", "date", "time", "_id"]),
-        level: first(row, ["level", "severity"], "info").toLowerCase(),
-        category: first(row, ["category", "type"], "general"),
-        message: first(row, ["message", "description", "event", "summary"], "—"),
-        module: first(row, ["module", "service", "source"], "—"),
-        raw: row,
+        date: first(row, ["_id", "date", "day", "timestamp", "created_at", "createdAt", "time"]),
+        count: Number(row.count ?? row.total ?? 0) || 0,
+        errors: Number(row.errors ?? row.errorCount ?? 0) || 0,
       }
-    }),
+    })
+  },
   logs: async (params: {
     page: number; limit: number; level?: string; category?: string; module?: string;
     statusCode?: string; search?: string; from?: string; to?: string
