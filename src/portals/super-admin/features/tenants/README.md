@@ -26,6 +26,18 @@ All seven routes from the supplied Postman collection are represented in the API
 
 The three write endpoints for profile, subscription, and payment are exposed through typed query mutations, but their write forms must use the exact request schemas from the collection. The provided subscription/payment examples are response-shaped examples, not sufficient proof of required request fields. The create example also needs confirmation of how the owner payload is represented.
 
+## Tenant create and edit workflow
+
+Create and edit share the dedicated page flow:
+
+- `/super-admin/tenants/new` creates a tenant with `POST /platform/tenants`.
+- `/super-admin/tenants/:tenantId/edit` loads the existing tenant and saves through `PATCH /platform/tenants/{tenantId}`.
+- The form is split into identity, contact, location, legal/branding, and preferences sections.
+- Shared UI primitives are used for inputs, textareas, buttons, checkboxes, cards and selects. Geographic selectors reuse the Geo Location feature and cascade country → governorate → city → district.
+- Form mapping is isolated in `types/tenant-form.types.ts`; reusable field and section presentation lives in `components/`.
+
+The visible request schema supplied for the tenant body does not show owner-specific fields. No guessed owner payload is sent; the remaining owner schema is required before adding owner fields to the form.
+
 ## Boundaries and assumptions
 
 - The API normalizer supports the supplied Mongo-style `_id` and camelCase fields, while accepting `id` as a compatibility fallback.
