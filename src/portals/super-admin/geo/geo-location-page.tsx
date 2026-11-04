@@ -60,7 +60,7 @@ function ParentName({
   locale: string
   relation?: GeoRelation | null
 }) {
-  const query = useGeoDetail(geoConfigs[kind].endpoint, id || undefined)
+  const query = useGeoDetail(geoConfigs[kind].endpoint, relation ? undefined : id || undefined)
 
   if (relation) {
     return (
