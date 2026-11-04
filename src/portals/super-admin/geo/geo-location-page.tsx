@@ -22,6 +22,14 @@ interface GeoFormValues {
 const kinds: GeoKind[] = ["countries", "governorates", "cities", "districts"]
 const PAGE_SIZE = 10
 
+function ParentName({ kind, id, cachedName }: { kind: GeoKind; id?: GeoId; cachedName?: string }) {
+  const query = useGeoDetail(geoConfigs[kind].endpoint, id && !cachedName ? id : undefined)
+  if (!id) return <span className="text-muted-foreground">—</span>
+  if (cachedName) return <span className="font-medium">{cachedName}</span>
+  if (query.isLoading) return <span className="inline-block h-4 w-24 animate-pulse rounded bg-muted" />
+  return <span className="font-medium">{query.data ? query.data.nameEn : "—"}</span>
+}
+
 export function GeoLocationPage() {
   const { kind: rawKind = "countries" } = useParams<{ kind: GeoKind }>()
   const kind = kinds.includes(rawKind as GeoKind) ? rawKind as GeoKind : "countries"
@@ -187,7 +195,7 @@ export function GeoLocationPage() {
                   <TableCell><span className="font-semibold">{record.name_ar}</span></TableCell>
                   <TableCell><span className="font-medium text-foreground/85" dir="ltr">{record.nameEn}</span></TableCell>
                   {kind === "countries" && <TableCell><span className="inline-flex rounded-lg border bg-muted/50 px-2.5 py-1 font-mono text-xs font-semibold tracking-wider">{record.code || "—"}</span></TableCell>}
-                  {parentKind && <TableCell><span className="font-medium">{parentField && record[parentField] ? parentNames.get(String(record[parentField])) ?? "—" : "—"}</span></TableCell>}
+                  {parentKind && <TableCell><ParentName kind={parentKind} id={parentField ? record[parentField] ?? undefined : undefined} cachedName={parentField && record[parentField] ? parentNames.get(String(record[parentField])) : undefined} /></TableCell>}
                   <TableCell><div className="flex justify-end gap-1 opacity-80 transition-opacity group-hover:opacity-100">
                     <Button type="button" variant="ghost" size="icon" className="size-9 rounded-lg hover:bg-primary/10 hover:text-primary" onClick={() => openEdit(record)} aria-label={t.common.edit}><Pencil className="size-4" /></Button>
                     <Button type="button" variant="ghost" size="icon" className="size-9 rounded-lg text-error hover:bg-error/10 hover:text-error" onClick={() => setDeleteTarget(record)} aria-label={t.common.delete}><Trash2 className="size-4" /></Button>
