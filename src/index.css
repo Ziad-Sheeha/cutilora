@@ -71,6 +71,7 @@
   --color-foreground: var(--foreground);
   --color-card: var(--card);
   --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
   --color-primary-hover: var(--cu-primary-hover);
   --color-primary-active: var(--cu-primary-active);
   --color-primary-light: var(--cu-primary-light);
