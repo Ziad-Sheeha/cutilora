@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { useI18n } from "@/i18n/i18n-provider"
-import { geoRecordName, type GeoId, type GeoKind } from "./geo-location.types"
+import { geoRecordName, type GeoId, type GeoKind, type GeoRecord } from "./geo-location.types"
 import { geoConfigs } from "./geo-location.types"
 import { useGeoDetail, useGeoList } from "./use-geo-location"
 
@@ -23,10 +23,11 @@ export function GeoSearchSelect({ kind, value, onChange, placeholder, disabled, 
   const [search, setSearch] = useState("")
   const [debouncedSearch, setDebouncedSearch] = useState("")
   const [page, setPage] = useState(1)
+  const [loadedOptions, setLoadedOptions] = useState<GeoRecord[]>([])
   const config = geoConfigs[kind]
   const query = useGeoList(config.endpoint, debouncedSearch, page, 10)
   const selectedQuery = useGeoDetail(config.endpoint, value || undefined)
-  const options = query.data?.items ?? []
+  const options = loadedOptions.length ? loadedOptions : query.data?.items ?? []
   const selected = selectedQuery.data
   const selectedLabel = selected ? geoRecordName(selected, locale) : ""
 
@@ -37,6 +38,19 @@ export function GeoSearchSelect({ kind, value, onChange, placeholder, disabled, 
     }, 350)
     return () => window.clearTimeout(timeout)
   }, [search])
+
+  useEffect(() => {
+    setLoadedOptions([])
+    setPage(1)
+  }, [debouncedSearch])
+
+  useEffect(() => {
+    if (!query.data || query.isPlaceholderData) return
+    setLoadedOptions((current) => {
+      const merged = page === 1 ? query.data.items : [...current, ...query.data.items]
+      return Array.from(new Map(merged.map((item) => [item.id, item])).values())
+    })
+  }, [query.data, query.isPlaceholderData, page])
 
   useEffect(() => {
     if (!open) {
