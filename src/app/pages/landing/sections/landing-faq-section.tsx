@@ -1,5 +1,6 @@
 import { ChevronDown } from "lucide-react"
 import type { LandingCopy } from "../landing-content"
+import { LandingSectionHeading } from "./landing-section-heading"
 
 const questions = [
   ["faqQ1", "faqA1"],
@@ -11,11 +12,7 @@ const questions = [
 export function LandingFaqSection({ copy }: { copy: LandingCopy }) {
   return (
     <section className="landing-faq-section" aria-labelledby="landing-faq-title">
-      <div className="landing-section-heading">
-        <div className="landing-eyebrow"><span className="landing-eyebrow-dot" />{copy.faqEyebrow}</div>
-        <h2 id="landing-faq-title">{copy.faqTitle}</h2>
-        <p>{copy.faqIntro}</p>
-      </div>
+      <LandingSectionHeading id="landing-faq-title" eyebrow={copy.faqEyebrow} title={copy.faqTitle} description={copy.faqIntro} />
       <div className="landing-faq-list">
         {questions.map(([question, answer], index) => (
           <details className="landing-faq-item" key={question} open={index === 0}>
