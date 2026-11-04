@@ -1,6 +1,6 @@
-import { useState, type ReactNode } from "react"
+import { useState } from "react"
 import { Link, useParams } from "react-router"
-import { ArrowLeft, ArrowUpRight, Building2, CalendarClock, CheckCircle2, CreditCard, ExternalLink, Globe2, Mail, MapPin, Phone, ShieldCheck, WalletCards } from "lucide-react"
+import { ArrowLeft, ArrowUpRight, Building2, CalendarClock, CheckCircle2, CreditCard, ExternalLink, Mail, Phone, ShieldCheck, WalletCards } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { DataTable, type DataTableColumn } from "@/components/ui/data-table"
 import { TenantStatusBadge } from "../components/tenant-status-badge"
@@ -109,4 +109,3 @@ export function TenantDetailsPage() {
     <Tabs value={tab} onValueChange={setTab} className="space-y-5"><TabsList className="h-auto w-full flex-wrap justify-start rounded-2xl p-1.5 sm:w-fit"><TabsTrigger value="overview" className="gap-2"><Building2 className="size-4"/>{labels.overview}</TabsTrigger><TabsTrigger value="subscription" className="gap-2"><CreditCard className="size-4"/>{labels.subscription}</TabsTrigger><TabsTrigger value="payments" className="gap-2"><WalletCards className="size-4"/>{labels.payments}</TabsTrigger></TabsList><TabsContent value="overview"><TenantProfileOverview tenant={tenant} labels={labels} locale={locale}/></TabsContent><TabsContent value="subscription"><SubscriptionPanel data={subscriptionQuery.data} loading={subscriptionQuery.isLoading} error={subscriptionQuery.error} locale={locale} labels={labels}/></TabsContent><TabsContent value="payments"><PaymentsPanel data={paymentsQuery.data} loading={paymentsQuery.isLoading} error={paymentsQuery.error} locale={locale} labels={labels}/></TabsContent></Tabs>
   </div>
 }
-function HeroMeta({ label, value }: { label: string; value: string }) { return <div className="min-w-0"><p className="text-[10px] font-semibold uppercase tracking-wide text-slate-400">{label}</p><p className="mt-1 truncate text-sm font-medium text-white">{value}</p></div> }
