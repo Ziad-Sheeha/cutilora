@@ -30,7 +30,6 @@ export function GeoLocationPage() {
  const [formOpen, setFormOpen] = useState(false)
  const [selected, setSelected] = useState<GeoRecord | null>(null)
  const [deleteTarget, setDeleteTarget] = useState<GeoRecord | null>(null)
- const [notice, setNotice] = useState("")
  const [actionError, setActionError] = useState("")
  const detail = useGeoDetail(config.endpoint, selected?.id)
  const isArabic = locale === "ar"
@@ -43,7 +42,7 @@ export function GeoLocationPage() {
  const schema = geoLocationSchema(kind, { nameRequired: t.geo.nameRequired, codeRequired: t.geo.codeRequired, parentRequired: t.geo.parentRequired })
 
  useEffect(() => { if (selected && detail.data) setFormOpen(true) }, [selected, detail.data])
- useEffect(() => { setPage(1); setSearch(""); setNotice(""); setActionError(""); setSelected(null); setFormOpen(false); setDeleteTarget(null) }, [kind])
+ useEffect(() => { setPage(1); setSearch(""); setActionError(""); setSelected(null); setFormOpen(false); setDeleteTarget(null) }, [kind])
 
  const initialValues: FormValues = {
   name_en: detail.data?.name_en ?? "",
@@ -60,9 +59,8 @@ export function GeoLocationPage() {
   setActionError("")
   const payload = { name_en: values.name_en.trim(), name_ar: values.name_ar.trim(), ...(kind === "countries" ? { code: values.code.trim() } : {}), ...(config.parentField ? { [config.parentField]: numericId(values.parentId) } : {}) }
   try {
-   if (selected) await mutations.update.mutateAsync({ id: selected.id, payload })
-   else await mutations.create.mutateAsync(payload)
-   setNotice(selected ? t.geo.updated : t.geo.created)
+   const result = selected ? await mutations.update.mutateAsync({ id: selected.id, payload }) : await mutations.create.mutateAsync(payload)
+   showToast("success", responseMessage(result, selected ? t.geo.updated : t.geo.created))
    setFormOpen(false); setSelected(null)
   } catch (error) { const message = error instanceof Error ? translateError(error.message) : t.geo.apiError; setActionError(message); showToast("error", message) }
  }
@@ -83,7 +81,6 @@ export function GeoLocationPage() {
    <Button onClick={startCreate}><Plus className="size-4" />{t.geo.add} {singular}</Button>
   </header>
   <nav aria-label={t.geo.module} className="flex flex-wrap gap-2 rounded-2xl border bg-card p-2">{kinds.map((item) => <NavLink key={item} to={`/super-admin/geo-location/${item}`} className={({ isActive }) => `rounded-xl px-3 py-2 text-sm font-medium transition-colors ${isActive ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted"}`}>{t.geo[geoConfigs[item].titleKey]}</NavLink>)}</nav>
-  {notice && <div role="status" className="rounded-xl border border-emerald-500/25 bg-emerald-500/5 px-4 py-3 text-sm text-emerald-700">{notice}</div>}
   {errorText && <div role="alert" className="flex items-center justify-between gap-3 rounded-xl border border-error/25 bg-error/5 px-4 py-3 text-sm text-error"><span>{translateError(errorText)}</span><button type="button" onClick={() => setActionError("")} aria-label={t.common.dismiss}>×</button></div>}
   <section className="overflow-hidden rounded-2xl border bg-card">
    <div className="flex flex-col gap-3 border-b p-4 sm:flex-row sm:items-center sm:justify-between"><div><h2 className="font-semibold">{title}</h2><p className="mt-1 text-xs text-muted-foreground">{list.data?.total ?? visibleRecords.length} · {t.geo.id}</p></div><div className="flex gap-2"><div className="relative min-w-0 flex-1 sm:w-72"><Search className="absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" /><Input value={search} onChange={(event) => setSearch(event.target.value)} placeholder={t.common.search} className="ps-9" /></div><Button variant="outline" size="icon" onClick={() => { void list.refetch(); if (config.parent) void parents.refetch() }} disabled={list.isFetching} aria-label={t.common.refresh}><RefreshCw className={`size-4 ${list.isFetching ? "animate-spin" : ""}`} /></Button></div></div>
