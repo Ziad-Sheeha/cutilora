@@ -1,3 +1,4 @@
+import { useEffect } from "react"
 import {
   Activity, ArrowUpRight, ArrowUpLeft, CalendarDays, Check, ChevronRight,
   CircleCheck, Clock3, Command, HeartPulse, LayoutDashboard, ShieldCheck,
@@ -86,6 +87,15 @@ export function LandingPage() {
   const { locale, t } = useI18n()
   const copy = content[locale === "ar" ? "ar" : "en"]
   const isArabic = locale === "ar"
+
+  useEffect(() => {
+    const previousTheme = document.documentElement.dataset.theme
+    document.documentElement.dataset.theme = "dark"
+    return () => {
+      if (previousTheme) document.documentElement.dataset.theme = previousTheme
+      else delete document.documentElement.dataset.theme
+    }
+  }, [])
 
   return (
     <main dir={isArabic ? "rtl" : "ltr"} className="landing-shell dark min-h-svh overflow-hidden bg-background text-foreground">
