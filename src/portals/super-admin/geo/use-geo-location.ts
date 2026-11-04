@@ -2,8 +2,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { geoLocationApi } from "./geo-location.api"
 import type { GeoPayload } from "./geo-location.types"
 export const geoKeys = { all: ["platform", "geo"] as const, list: (endpoint: string) => [...geoKeys.all, endpoint] as const, detail: (endpoint: string, id: string | number) => [...geoKeys.list(endpoint), id] as const }
-export function useGeoList(endpoint: string) {
- return useQuery({ queryKey: geoKeys.list(endpoint), queryFn: () => geoLocationApi.list(endpoint), enabled: Boolean(endpoint) })
+export function useGeoList(endpoint: string, page = 1, perPage = 100) {
+ return useQuery({ queryKey: [...geoKeys.list(endpoint), page, perPage], queryFn: () => geoLocationApi.list(endpoint, page, perPage), enabled: Boolean(endpoint) })
 }
 export function useGeoDetail(endpoint: string, id: string | number | undefined) {
  return useQuery({ queryKey: id === undefined ? [...geoKeys.list(endpoint), "none"] : geoKeys.detail(endpoint, id), queryFn: () => geoLocationApi.get(endpoint, id!), enabled: id !== undefined })
