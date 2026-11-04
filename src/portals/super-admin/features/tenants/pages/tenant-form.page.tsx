@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react"
 import { Link, useNavigate, useParams } from "react-router"
-import { ArrowLeft, ArrowRight, Building2, Check, ChevronRight, Landmark, MapPin, Settings2, ShieldCheck, Sparkles, UserRound, ClipboardCheck, Palette, Download } from "lucide-react"
+import { ArrowLeft, ArrowRight, Building2, Check, ChevronRight, Landmark, MapPin, Settings2, ShieldCheck, Sparkles, UserRound, ClipboardCheck, Download } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
@@ -40,7 +40,7 @@ export function TenantFormPage() {
   const saving = mutations.create.isPending || mutations.updateProfile.isPending
 
   useEffect(() => {
-    if (tenantQuery.data && isEdit) setValues(tenantToForm(tenantQuery.data))
+    if (tenantQuery.data && isEdit) { setValues(tenantToForm(tenantQuery.data)); setHighestUnlockedStep(5) }
   }, [tenantQuery.data, isEdit])
 
   const copy = useMemo(() => ar ? {
@@ -164,7 +164,6 @@ export function TenantFormPage() {
   if (isEdit && tenantQuery.isLoading) return <div className="space-y-5"><Skeleton className="h-28 w-full rounded-2xl"/><Skeleton className="h-[560px] w-full rounded-2xl"/></div>
   if (isEdit && (tenantQuery.error || !tenantQuery.data)) return <div className="space-y-4"><Link to={"/super-admin/tenants/" + encodeURIComponent(tenantId)} className="inline-flex items-center gap-2 text-sm font-semibold text-primary"><ArrowLeft className="size-4"/>{copy.back}</Link><div role="alert" className="rounded-2xl border border-destructive/20 bg-destructive/5 p-6 text-sm text-destructive">{tenantQuery.error instanceof Error ? tenantQuery.error.message : copy.loadError}</div></div>
 
-  const ActiveIcon = stepIcons[step]
   const sectionContent = [
     <TenantFormSection key="identity" title={copy.identity} description={copy.identityHint} icon={Building2}>
       <TenantFormField id="tenant-name" label={copy.name} value={values.name} onChange={(value) => updateTop("name", value)} required autoComplete="organization" />
