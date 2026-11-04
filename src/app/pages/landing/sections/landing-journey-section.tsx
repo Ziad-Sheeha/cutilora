@@ -1,5 +1,6 @@
 import { ArrowUpRight, BarChart3, CalendarCheck, UsersRound } from "lucide-react"
 import type { LandingCopy } from "../landing-content"
+import { LandingSectionHeading } from "./landing-section-heading"
 
 const steps = [
   { number: "01", icon: CalendarCheck, title: "journeyOneTitle", description: "journeyOneText" },
@@ -10,11 +11,7 @@ const steps = [
 export function LandingJourneySection({ copy }: { copy: LandingCopy }) {
   return (
     <section className="landing-journey-section" aria-labelledby="landing-journey-title">
-      <div className="landing-section-heading">
-        <div className="landing-eyebrow"><span className="landing-eyebrow-dot" />{copy.journeyEyebrow}</div>
-        <h2 id="landing-journey-title">{copy.journeyTitle}</h2>
-        <p>{copy.journeyIntro}</p>
-      </div>
+      <LandingSectionHeading id="landing-journey-title" eyebrow={copy.journeyEyebrow} title={copy.journeyTitle} description={copy.journeyIntro} />
       <div className="landing-journey-grid">
         {steps.map(({ number, icon: Icon, title, description }) => (
           <article className="landing-journey-card" key={number}>
