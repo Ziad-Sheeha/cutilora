@@ -94,8 +94,8 @@ export function TenantsPage() {
     <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
       <TenantMetricCard icon={Building2} label={labels.total} value={list.data ? list.data.totalTenants.toLocaleString(ar ? "ar-EG" : "en-US") : "—"} hint={ar ? "حسب نتائج الـ API" : "Reported by the API"} tone="violet"/>
       <TenantMetricCard icon={CheckCircle2} label={labels.active} value={String(activeCount)} hint={ar ? "من إجمالي المؤسسات" : "Across all organizations"} tone="emerald"/>
-      <TenantMetricCard icon={Clock3} label={labels.pending} value={String(pendingCount)} hint={ar ? "ضمن الصفحة الحالية" : "On the current page"} tone="amber"/>
-      <TenantMetricCard icon={CircleAlert} label={labels.paused} value={String(suspendedCount)} hint={ar ? "غير نشطة ضمن الصفحة" : "Inactive on this page"} tone="rose"/>
+      <TenantMetricCard icon={Clock3} label={labels.pending} value={String(pendingCount)} hint={ar ? "من إجمالي المؤسسات" : "Across all organizations"} tone="amber"/>
+      <TenantMetricCard icon={CircleAlert} label={labels.paused} value={String(suspendedCount)} hint={ar ? "من إجمالي المؤسسات" : "Across all organizations"} tone="rose"/>
     </section>
 
     <section className="overflow-hidden rounded-2xl border bg-card shadow-sm">
