@@ -80,7 +80,7 @@ export function GeoSearchSelect({ kind, value, onChange, placeholder, disabled, 
           ) : options.length === 0 ? (
             <p className="p-5 text-center text-sm text-muted-foreground">{t.common.noResults}</p>
           ) : options.map((option) => (
-            <button key={option.id} type="button" onClick={() => { onChange(option.id); setOpen(false) }} className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-start text-sm transition-colors hover:bg-muted focus-visible:bg-muted focus-visible:outline-none">
+            <Button key={option.id} type="button" variant="ghost" onClick={() => { onChange(option.id); setOpen(false) }} className="flex h-auto w-full justify-between rounded-lg px-3 py-2 text-start text-sm font-normal">
               <span className="min-w-0"><span className="block truncate font-medium">{geoRecordName(option, locale)}</span><span className="block truncate text-xs text-muted-foreground">{locale === "ar" ? option.nameEn : option.name_ar}</span></span>
               {option.id === value && <Check className="ms-2 size-4 shrink-0 text-primary" />}
             </button>
