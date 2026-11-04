@@ -36,6 +36,8 @@ export function GeoLocationPage() {
   const [deleteTarget, setDeleteTarget] = useState<GeoRecord | null>(null)
   const [actionError, setActionError] = useState("")
   const [notice, setNotice] = useState("")
+  const parentKind = config.parent
+  const parentField = config.parentField
   const list = useGeoList(config.endpoint, debouncedSearch, page, PAGE_SIZE)
   const detail = useGeoDetail(config.endpoint, selected?.id)
   const parentList = useGeoList(parentKind ? geoConfigs[parentKind].endpoint : "", "", 1, 100)
@@ -46,8 +48,6 @@ export function GeoLocationPage() {
   const busy = mutations.create.isPending || mutations.update.isPending || mutations.remove.isPending
   const title = t.geo[config.titleKey]
   const singular = t.geo[config.singularKey]
-  const parentKind = config.parent
-  const parentField = config.parentField
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
