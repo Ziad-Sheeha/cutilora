@@ -60,7 +60,7 @@ function rowsFrom(value: unknown): unknown[] {
   const data = object(root.data)
   if (Array.isArray(root.data)) return root.data
   if (Array.isArray(data?.data)) return data.data
-  if (Array.isArray(data?.items)) return data.items
+  if (Array.isArray(data?.items)) return data.items\n  if (Array.isArray(data?.logs)) return data.logs
   if (Array.isArray(data?.timeline)) return data.timeline
   if (Array.isArray(root.timeline)) return root.timeline
   if (Array.isArray(root.items)) return root.items
