@@ -225,7 +225,7 @@ function withQuery(
   }
 
   query.set("page", String(params.page ?? 1))
-  query.set("limit", String(params.perPage ?? DEFAULT_PAGE_SIZE))
+  query.set("per_page", String(params.perPage ?? DEFAULT_PAGE_SIZE))
 
   return `${endpoint}?${query.toString()}`
 }
