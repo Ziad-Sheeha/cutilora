@@ -1,7 +1,7 @@
 import * as Yup from "yup"
 
-const latinOnly = /^[\p{Script=Latin}\p{M}\d\s.,'’()&+\-/]*$/u
-const arabicOnly = /^[\p{Script=Arabic}\p{M}\d\s،؛؟.,'’()&+\-/ـ]*$/u
+const latinOnly = /^[\p{Script=Latin}\p{M}\d\s.,:'’()&+\x2d]*$/u
+const arabicOnly = /^[\p{Script=Arabic}\p{M}\d\s،؛؟.,:'’()&+ـ\x2d]*$/u
 
 /** Reusable schemas for language-specific text fields across all product forms. */
 export function englishTextSchema(message: string) {
