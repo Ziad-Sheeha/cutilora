@@ -113,7 +113,7 @@ function readList(
   )
 
   const perPage = Number(
-    meta?.per_page ?? meta?.perPage ?? meta?.limit ?? requestedPerPage,
+    meta?.per_page ?? requestedPerPage,
   )
 
   const page = Number(
@@ -225,7 +225,7 @@ function withQuery(
   }
 
   query.set("page", String(params.page ?? 1))
-  query.set("limit", String(params.perPage ?? DEFAULT_PAGE_SIZE))
+  query.set("per_page", String(params.perPage ?? DEFAULT_PAGE_SIZE))
 
   return `${endpoint}?${query.toString()}`
 }

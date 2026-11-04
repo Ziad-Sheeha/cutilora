@@ -98,6 +98,8 @@ export function GeoLocationPage() {
 
   const schema = geoLocationSchema(kind, {
     nameRequired: t.geo.nameRequired,
+    englishOnly: t.geo.englishOnly,
+    arabicOnly: t.geo.arabicOnly,
     codeRequired: t.geo.codeRequired,
     codeInvalid: t.geo.codeInvalid,
     parentRequired: t.geo.parentRequired,
