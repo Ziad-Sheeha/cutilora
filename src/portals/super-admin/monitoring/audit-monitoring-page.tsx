@@ -222,9 +222,13 @@ export function AuditMonitoringPage() {
     </header>
 
     <div className="flex flex-wrap items-center justify-between gap-3">
-      <div className="inline-flex rounded-xl border bg-card p-1">
-        {(["overview", "logs", "timeline"] as const).map((item) => <button key={item} type="button" onClick={() => setTab(item)} className={`rounded-lg px-4 py-2 text-sm font-semibold transition-colors ${tab === item ? "bg-primary text-primary-foreground shadow-sm" : "text-muted-foreground hover:bg-muted"}`}>{t[item]}</button>)}
-      </div>
+      <Tabs value={tab} onValueChange={(value) => setTab(value as typeof tab)}>
+        <TabsList>
+          <TabsTrigger value="overview">{t.overview}</TabsTrigger>
+          <TabsTrigger value="logs">{t.logs}</TabsTrigger>
+          <TabsTrigger value="timeline">{t.timeline}</TabsTrigger>
+        </TabsList>
+      </Tabs>
       <p className="flex items-center gap-2 text-xs text-muted-foreground"><Signal className="size-3.5" />{t.lastUpdated}</p>
     </div>
 
@@ -251,12 +255,21 @@ export function AuditMonitoringPage() {
         </div>
         <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-4">
           <div className="relative sm:col-span-2 xl:col-span-2"><Search className="absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" /><Input className="ps-9" placeholder={t.search} value={search} onChange={(e) => { setSearch(e.target.value); setPage(1) }} /></div>
-          <Select value={level} onChange={(e) => { setLevel(e.target.value); setPage(1) }}><option value="">{t.allLevels}</option><option value="info">Info</option><option value="warn">Warning</option><option value="error">Error</option><option value="fatal">Fatal</option></Select>
-          <Select value={category} onChange={(e) => { setCategory(e.target.value); setPage(1) }}><option value="">{t.allCategories}</option>{(stats?.byCategory ?? []).map((item) => <option key={item.name} value={item.name}>{item.name}</option>)}</Select>
+          <SelectMenu value={level || "__all__"} onValueChange={(value) => { setLevel(value === "__all__" ? "" : value); setPage(1) }}>
+            <SelectMenuTrigger aria-label={t.level}><SelectMenuValue placeholder={t.allLevels} /></SelectMenuTrigger>
+            <SelectMenuContent><SelectMenuItem value="__all__">{t.allLevels}</SelectMenuItem><SelectMenuItem value="info">Info</SelectMenuItem><SelectMenuItem value="warn">Warning</SelectMenuItem><SelectMenuItem value="error">Error</SelectMenuItem><SelectMenuItem value="fatal">Fatal</SelectMenuItem></SelectMenuContent>
+          </SelectMenu>
+          <SelectMenu value={category || "__all__"} onValueChange={(value) => { setCategory(value === "__all__" ? "" : value); setPage(1) }}>
+            <SelectMenuTrigger aria-label={t.category}><SelectMenuValue placeholder={t.allCategories} /></SelectMenuTrigger>
+            <SelectMenuContent><SelectMenuItem value="__all__">{t.allCategories}</SelectMenuItem>{(stats?.byCategory ?? []).map((item) => <SelectMenuItem key={item.name} value={item.name}>{item.name}</SelectMenuItem>)}</SelectMenuContent>
+          </SelectMenu>
           <Input placeholder={t.allModules} value={module} onChange={(e) => { setModule(e.target.value); setPage(1) }} />
-          <Select value={statusCode} onChange={(e) => { setStatusCode(e.target.value); setPage(1) }}><option value="">{t.allStatuses}</option>{["200", "201", "204", "301", "304", "400", "401", "403", "404", "405", "409", "422", "429", "500", "502", "503", "504"].map((status) => <option key={status} value={status}>{status}</option>)}</Select>
-          <label className="space-y-1 text-xs text-muted-foreground"><span>{t.from}</span><Input type="date" value={from} max={to || undefined} onChange={(e) => { setFrom(e.target.value); setPage(1) }} /></label>
-          <label className="space-y-1 text-xs text-muted-foreground"><span>{t.to}</span><Input type="date" value={to} min={from || undefined} onChange={(e) => { setTo(e.target.value); setPage(1) }} /></label>
+          <SelectMenu value={statusCode || "__all__"} onValueChange={(value) => { setStatusCode(value === "__all__" ? "" : value); setPage(1) }}>
+            <SelectMenuTrigger aria-label={t.status}><SelectMenuValue placeholder={t.allStatuses} /></SelectMenuTrigger>
+            <SelectMenuContent><SelectMenuItem value="__all__">{t.allStatuses}</SelectMenuItem>{["200", "201", "204", "301", "304", "400", "401", "403", "404", "405", "409", "422", "429", "500", "502", "503", "504"].map((status) => <SelectMenuItem key={status} value={status}>{status}</SelectMenuItem>)}</SelectMenuContent>
+          </SelectMenu>
+          <div className="space-y-1 text-xs text-muted-foreground"><span className="block">{t.from}</span><DatePicker value={from} onChange={(value) => { setFrom(value); setPage(1) }} placeholder={t.from} locale={locale} dir={direction} maxDate={to ? new Date(to + "T00:00:00") : undefined} /></div>
+          <div className="space-y-1 text-xs text-muted-foreground"><span className="block">{t.to}</span><DatePicker value={to} onChange={(value) => { setTo(value); setPage(1) }} placeholder={t.to} locale={locale} dir={direction} minDate={from ? new Date(from + "T00:00:00") : undefined} /></div>
         </div>
       </CardHeader>
       <CardContent className="p-3 sm:p-4">
