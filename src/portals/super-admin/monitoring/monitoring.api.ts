@@ -61,6 +61,8 @@ function rowsFrom(value: unknown): unknown[] {
   if (Array.isArray(root.data)) return root.data
   if (Array.isArray(data?.data)) return data.data
   if (Array.isArray(data?.items)) return data.items
+  if (Array.isArray(data?.timeline)) return data.timeline
+  if (Array.isArray(root.timeline)) return root.timeline
   if (Array.isArray(root.items)) return root.items
   if (Array.isArray(root.logs)) return root.logs
   return []
@@ -170,7 +172,7 @@ export const monitoringApi = {
     const items = rowsFrom(payload).map(normalizeLog)
     const meta = object(root.meta) ?? object(data?.meta) ?? object(root.pagination) ?? object(data?.pagination) ?? data ?? root
     const totalValue = Number(meta.total ?? meta.totalItems ?? meta.totalCount)
-    const totalKnown = Number.isFinite(totalValue) && meta.total !== undefined
+    const totalKnown = Number.isFinite(totalValue) && (meta.total !== undefined || meta.totalItems !== undefined || meta.totalCount !== undefined)
     const page = Number(meta.current_page ?? meta.page ?? params.page) || params.page
     const limit = Number(meta.per_page ?? meta.limit ?? params.limit) || params.limit
     return {
