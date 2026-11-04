@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, type ReactNode } from "react"
 import { Link, useParams } from "react-router"
 import { ArrowLeft, ArrowUpRight, Building2, CalendarClock, CheckCircle2, CreditCard, ExternalLink, Globe2, Mail, MapPin, Phone, ShieldCheck, WalletCards } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -23,7 +23,7 @@ function Badge({ value, positive = false }: { value: string; positive?: boolean 
 function Field({ label, value, icon: Icon }: { label: string; value: string | null | undefined; icon?: typeof Mail }) {
   return <div className="min-w-0"><p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{label}</p><div className="mt-1.5 flex min-w-0 items-center gap-2 text-sm font-medium">{Icon && <Icon className="size-4 shrink-0 text-muted-foreground"/>}<span className="break-words">{value || "—"}</span></div></div>
 }
-function Section({ title, description, children }: { title: string; description?: string; children: React.ReactNode }) {
+function Section({ title, description, children }: { title: string; description?: string; children: ReactNode }) {
   return <section className="overflow-hidden rounded-2xl border bg-card"><div className="border-b px-5 py-4"><h2 className="font-semibold">{title}</h2>{description && <p className="mt-1 text-xs text-muted-foreground">{description}</p>}</div><div className="p-5">{children}</div></section>
 }
 function ProfileOverview({ tenant, labels }: { tenant: Tenant; labels: Record<string, string> }) {
