@@ -39,6 +39,8 @@ export const router = createBrowserRouter([
       children: [
         { index: true, element: <SuperAdminOverviewPage /> },
         { path: "tenants", element: <TenantsPage /> },
+        { path: "tenants/new", element: <TenantFormPage /> },
+        { path: "tenants/:tenantId/edit", element: <TenantFormPage /> },
         { path: "tenants/:tenantId", element: <TenantDetailsPage /> },
         { path: "clinics", element: <SuperAdminModulePage moduleKey="clinics" /> },
         { path: "branches", element: <SuperAdminModulePage moduleKey="branches" /> },
