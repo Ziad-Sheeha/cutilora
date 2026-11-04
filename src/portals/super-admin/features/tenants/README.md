@@ -36,7 +36,7 @@ Create and edit share the dedicated page flow:
 - Shared UI primitives are used for inputs, textareas, buttons, checkboxes, cards and selects. Geographic selectors reuse the Geo Location feature and cascade country → governorate → city → district.
 - Form mapping is isolated in `types/tenant-form.types.ts`; reusable field and section presentation lives in `components/`.
 
-The visible request schema supplied for the tenant body does not show owner-specific fields. No guessed owner payload is sent; the remaining owner schema is required before adding owner fields to the form.
+The visible request schema supplied for the tenant body does not show owner-specific fields. The API validation response confirms that create requires an `owner` field, but does not reveal its shape. No guessed owner payload is sent; the owner request schema is required before adding owner fields to the form.
 
 ## Form UX, image handling, and PDF export
 
@@ -44,6 +44,14 @@ The visible request schema supplied for the tenant body does not show owner-spec
 - Business type, industry, timezone, organization language, currency, date format, and week start use the shared SelectMenu. Geographic fields use the shared searchable cascading selectors.
 - Logo and cover uploads accept PNG, JPEG, and WebP up to 5 MB. The browser reads each selected file as a base64 data URI for preview; newly selected images are sent in the existing `branding.logoUrl` and `branding.coverImageUrl` fields. Existing server image URLs are previewed but omitted from PATCH unless the user replaces or removes them.
 - After a successful create/update, a confirmation dialog offers a print-ready organization profile. The PDF is generated entirely in the browser using the print stylesheet; choose Save as PDF in the browser print destination. No PDF API or server endpoint is used.
+
+## Reusable international phone input
+
+- `src/components/ui/phone-number-field.tsx` is a shared phone field built from the existing Input and SelectMenu primitives.
+- Its country selector contains 245 regions from libphonenumber-js calling-code metadata, with flag emoji and international calling prefixes.
+- The tenant contact section shares one `contact.phoneCode` value across primary, alternate, and WhatsApp numbers.
+- The UI displays a leading local trunk zero (for example, `010...`); payload mapping removes that leading zero from each phone value and sends the calling code separately, including its `+` prefix.
+- Primary and alternate numbers are validated as different values. Entered phone numbers must contain 7–15 digits after removing the local leading zero.
 
 ## Boundaries and assumptions
 
