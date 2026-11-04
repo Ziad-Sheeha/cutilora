@@ -1,6 +1,6 @@
 import { Activity, LogOut } from "lucide-react"
 import { NavLink } from "react-router"
-import { adminNavigation, adminNavigationGroups } from "@/config/admin-navigation"
+import { adminNavigation, adminNavigationGroups } from "@/portals/clinic/config/navigation"
 import { BrandLogo } from "@/components/brand/brand-logo"
 import { Select } from "@/components/ui/select"
 import { setCurrentBranch } from "@/store"
