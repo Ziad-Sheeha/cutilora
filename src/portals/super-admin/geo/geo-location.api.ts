@@ -42,10 +42,11 @@ function readList(payload: unknown, requestedPage: number, requestedPerPage: num
   const rows = Array.isArray(data) ? data : Array.isArray(nested?.data) ? nested.data : Array.isArray(nested?.items) ? nested.items : Array.isArray(root.items) ? root.items : null
   if (!rows) throw new Error("UNEXPECTED_RESPONSE")
   const meta = (root.meta ?? nested?.meta ?? root.pagination ?? nested?.pagination) as Record<string, unknown> | undefined
-  const total = Number(meta?.total ?? meta?.totalItems ?? meta?.totalCount ?? rows.length)
+  const total = Number(meta?.total ?? meta?.totalItems ?? meta?.totalCount ?? ((requestedPage - 1) * requestedPerPage + rows.length))
   const perPage = Number(meta?.per_page ?? meta?.perPage ?? meta?.limit ?? requestedPerPage)
   const page = Number(meta?.current_page ?? meta?.currentPage ?? meta?.page ?? requestedPage)
-  const totalPages = Number(meta?.last_page ?? meta?.totalPages ?? Math.max(1, Math.ceil(total / Math.max(perPage, 1))))
+  const inferredTotalPages = rows.length >= requestedPerPage ? requestedPage + 1 : requestedPage
+  const totalPages = Number(meta?.last_page ?? meta?.totalPages ?? Math.max(1, Math.ceil(total / Math.max(perPage, 1)), inferredTotalPages))
   return {
     items: rows.map(normalizeRecord),
     pagination: {
