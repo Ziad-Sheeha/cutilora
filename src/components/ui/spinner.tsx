@@ -1,4 +1,5 @@
-import { LoaderCircle } from "lucide-react"\nimport type { SVGProps } from "react"
+import { LoaderCircle } from "lucide-react"
+import type { SVGProps } from "react"
 import { cn } from "@/lib/utils"
 
 export interface SpinnerProps extends SVGProps<SVGSVGElement> {
