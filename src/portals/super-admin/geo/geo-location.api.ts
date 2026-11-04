@@ -25,6 +25,22 @@ function asObject(value: unknown): Record<string, unknown> | undefined {
     : undefined
 }
 
+function normalizeRelation(value: unknown): GeoRelation | null {
+  const relation = asObject(value)
+  if (!relation) return null
+  const nameEn = relation.name_en ?? relation.nameEn
+  const nameAr = relation.name_ar ?? relation.nameAr
+  if (typeof nameEn !== "string" || typeof nameAr !== "string") return null
+  const country = normalizeRelation(relation.country)
+  return {
+    ...(typeof relation.id === "string" || typeof relation.id === "number" ? { id: String(relation.id) } : {}),
+    nameEn,
+    name_ar: nameAr,
+    ...(typeof relation.code === "string" ? { code: relation.code } : {}),
+    ...(country ? { country } : {}),
+  }
+}
+
 function normalizeRecord(value: unknown): GeoRecord {
   const root = asObject(value)
   const nested = asObject(root?.data)
@@ -113,7 +129,7 @@ function readList(
   )
 
   const perPage = Number(
-    meta?.per_page ?? meta?.perPage ?? meta?.limit ?? requestedPerPage,
+    meta?.per_page ?? meta?.perPage ?? requestedPerPage,
   )
 
   const page = Number(
@@ -225,7 +241,7 @@ function withQuery(
   }
 
   query.set("page", String(params.page ?? 1))
-  query.set("limit", String(params.perPage ?? DEFAULT_PAGE_SIZE))
+  query.set("per_page", String(params.perPage ?? DEFAULT_PAGE_SIZE))
 
   return `${endpoint}?${query.toString()}`
 }
