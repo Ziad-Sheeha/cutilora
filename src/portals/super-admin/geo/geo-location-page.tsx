@@ -8,7 +8,7 @@ import { Select } from "@/components/ui/select"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useI18n } from "@/i18n/i18n-provider"
-import { geoConfigs, geoRecordName, type GeoKind, type GeoRecord } from "./geo-location.types"
+import { geoConfigs, geoRecordName, type GeoKind, type GeoRecord } from "./geo-location.types"\nimport { pushToast, store } from "@/store"
 import { geoLocationSchema } from "./geo-location.schema"
 import { useGeoDetail, useGeoList, useGeoMutations } from "./use-geo-location"
 
@@ -61,7 +61,7 @@ export function GeoLocationPage() {
    else await mutations.create.mutateAsync(payload)
    setNotice(selected ? t.geo.updated : t.geo.created)
    setFormOpen(false); setSelected(null)
-  } catch (error) { setActionError(error instanceof Error ? translateError(error.message) : t.geo.apiError) }
+  } catch (error) { const message = error instanceof Error ? translateError(error.message) : t.geo.apiError; setActionError(message); showToast("error", message) }
  }
  async function confirmDelete() {
   if (!deleteTarget) return
@@ -69,7 +69,7 @@ export function GeoLocationPage() {
   try { await mutations.remove.mutateAsync(deleteTarget.id); setDeleteTarget(null); setNotice(t.geo.deleted) }
   catch (error) { setActionError(error instanceof Error ? translateError(error.message) : t.geo.apiError) }
  }
- function startEdit(record: GeoRecord) { setActionError(""); setSelected(record) }
+ function startEdit(record: GeoRecord) { setActionError(""); setSelected(record) }\n function showToast(kind: "success" | "error", title: string) { store.dispatch(pushToast({ id: crypto.randomUUID(), kind, title })) }\n function responseMessage(value: unknown, fallback: string) { if (value && typeof value === "object") { const root = value as Record<string, unknown>; const nested = root.data && typeof root.data === "object" ? root.data as Record<string, unknown> : undefined; if (typeof root.message === "string") return root.message; if (typeof nested?.message === "string") return nested.message } return fallback }
  function startCreate() { setActionError(""); setSelected(null); setFormOpen(true) }
 
  return <div className="space-y-6" dir={isArabic ? "rtl" : "ltr"}>
