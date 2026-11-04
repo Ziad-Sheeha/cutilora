@@ -78,11 +78,11 @@ export function TenantImageUpload({
             </div>
           </div>
         ) : (
-          <button type="button" onClick={() => inputRef.current?.click()} disabled={reading} className="flex min-h-32 w-full flex-col items-center justify-center rounded-xl px-4 py-5 text-center outline-none transition hover:bg-muted/60 focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-60">
+          <Button type="button" variant="ghost" onClick={() => inputRef.current?.click()} disabled={reading} className="flex h-auto min-h-32 w-full flex-col items-center justify-center rounded-xl px-4 py-5 text-center hover:bg-muted/60">
             <span className="flex size-11 items-center justify-center rounded-xl bg-primary/10 text-primary"><UploadCloud className="size-5"/></span>
             <span className="mt-3 text-sm font-semibold">{reading ? "..." : uploadLabel}</span>
             <span className="mt-1 text-xs text-muted-foreground">{hint}</span>
-          </button>
+          </Button>
         )}
         <Input ref={inputRef} id={id} type="file" accept="image/png,image/jpeg,image/webp" className="sr-only" onChange={(event) => void handleFile(event.target.files?.[0])} />
       </div>
