@@ -1,7 +1,7 @@
 import { Link } from "react-router"
 import { ArrowLeft, CalendarDays, ShieldCheck, Users } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
-import { LoginForm } from "@/portals/shared/auth/login-form"
+import { LoginForm } from "@/shared/components/auth/login-form"
 import { BrandLogo } from "@/components/brand/brand-logo"
 import { useI18n } from "@/i18n/i18n-provider"
 import darkLogo from "@/assets/1-logo-horizontal/cutilora-logo-horizontal-reversed-for-dark-bg.png"

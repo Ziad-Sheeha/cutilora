@@ -3,8 +3,8 @@ import ReactDOM from "react-dom/client"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { RouterProvider } from "react-router/dom"
 import { router } from "@/app/router"
-import { AppProviders } from "@/components/providers/app-providers"
-import { AppErrorBoundary } from "@/components/ui/error-boundary"
+import { AppProviders } from "@/app/providers/app-providers"
+import { AppErrorBoundary } from "@/app/providers/app-error-boundary"
 import "@/index.css"
 
 const queryClient = new QueryClient({
