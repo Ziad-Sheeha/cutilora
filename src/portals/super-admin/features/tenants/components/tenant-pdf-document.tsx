@@ -1,4 +1,6 @@
 import type { TenantFormValues } from "../types/tenant-form.types"
+import { useGeoDetail } from "@/portals/super-admin/features/geo-location/hooks/use-geo-location"
+import { geoConfigs, geoRecordName } from "@/portals/super-admin/features/geo-location/types/geo-location.types"
 
 export function TenantPdfDocument({ values, tenantId, slug, locale }: {
   values: TenantFormValues
@@ -21,7 +23,7 @@ export function TenantPdfDocument({ values, tenantId, slug, locale }: {
       ["WhatsApp", values.contact.whatsapp], ["Website", values.contact.website],
     ] },
     { title: ar ? "العنوان والموقع" : "Address & location", rows: [
-      ["Address", values.address.addressLine1], ["Additional address", values.address.addressLine2],
+      ["Country", country.data ? geoRecordName(country.data, locale) : ""], ["Governorate", governorate.data ? geoRecordName(governorate.data, locale) : ""], ["City", city.data ? geoRecordName(city.data, locale) : ""], ["District", district.data ? geoRecordName(district.data, locale) : ""], ["Address", values.address.addressLine1], ["Additional address", values.address.addressLine2],
       ["Building", values.address.building], ["Floor", values.address.floor], ["Unit", values.address.unit],
       ["Landmark", values.address.landmark], ["Postal code", values.address.postalCode],
       ["Latitude", values.address.latitude], ["Longitude", values.address.longitude],
