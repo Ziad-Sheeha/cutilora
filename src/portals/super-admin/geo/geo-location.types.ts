@@ -29,6 +29,7 @@ export interface GeoPagination {
   perPage: number
   total: number
   totalPages: number
+  totalKnown: boolean
 }
 
 export interface GeoListResult {
