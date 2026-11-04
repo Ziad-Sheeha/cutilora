@@ -48,7 +48,7 @@ export const landingContent = {
     contactEyebrow: "LET'S START A CONVERSATION", contactTitle: "Tell us what your clinic needs.", contactIntro: "Share a little about your organization and what you want to improve. Our team can follow up with the right next step.",
     contactName: "Your name", contactEmail: "Work email", contactOrganization: "Clinic or organization", contactMessage: "What would you like to improve?", contactSubmit: "Prepare inquiry",
     contactPrivacy: "Your details are used only to prepare this inquiry in your email app. Nothing is submitted to a server from this preview.",
-    contactNotConfigured: "The contact email is not configured yet. Please use the clinic login for development access.",
+    contactNotConfigured: "The inquiry form is not connected yet. Configure VITE_CONTACT_EMAIL to enable email handoff.",
     contactPrepared: "Your email draft is ready in your email application.", contactRequired: "Please complete your name, work email and message.",
     contactFallback: "Contact channel setup pending", contactFallbackText: "The inquiry form is ready for integration. Add VITE_CONTACT_EMAIL to the frontend environment to enable email handoff."
   },
@@ -101,7 +101,7 @@ export const landingContent = {
     contactEyebrow: "لنبدأ حوارًا", contactTitle: "احكيلنا عيادتك محتاجة إيه.", contactIntro: "شاركنا نبذة عن مؤسستك وما الذي تريد تطويره، وسنساعدك في تحديد الخطوة التالية المناسبة.",
     contactName: "اسمك", contactEmail: "البريد الإلكتروني للعمل", contactOrganization: "العيادة أو المؤسسة", contactMessage: "ما الذي ترغب في تحسينه؟", contactSubmit: "تجهيز رسالة التواصل",
     contactPrivacy: "تُستخدم بياناتك فقط لتجهيز الرسالة في تطبيق البريد الإلكتروني. لا يتم إرسال أي شيء إلى خادم من هذه المعاينة.",
-    contactNotConfigured: "لم يتم إعداد بريد التواصل بعد. يمكنك استخدام تسجيل دخول العيادة للوصول التطويري.",
+    contactNotConfigured: "نموذج التواصل غير متصل بعد. أضف VITE_CONTACT_EMAIL لتفعيل تجهيز الرسالة عبر البريد الإلكتروني.",
     contactPrepared: "تم تجهيز مسودة الرسالة في تطبيق البريد الإلكتروني.", contactRequired: "يرجى استكمال الاسم والبريد الإلكتروني والرسالة.",
     contactFallback: "إعداد قناة التواصل قيد الانتظار", contactFallbackText: "نموذج التواصل جاهز للربط. أضف VITE_CONTACT_EMAIL إلى إعدادات بيئة الواجهة لتفعيل إرسال الرسالة عبر البريد الإلكتروني."
   },
