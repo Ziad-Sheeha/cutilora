@@ -38,6 +38,13 @@ Create and edit share the dedicated page flow:
 
 The visible request schema supplied for the tenant body does not show owner-specific fields. No guessed owner payload is sent; the remaining owner schema is required before adding owner fields to the form.
 
+## Form UX, image handling, and PDF export
+
+- Required identity fields are visibly marked and validated before the user can unlock the next step. The final review step allows jumping back to any completed section before submission.
+- Business type, industry, timezone, organization language, currency, date format, and week start use the shared SelectMenu. Geographic fields use the shared searchable cascading selectors.
+- Logo and cover uploads accept PNG, JPEG, and WebP up to 5 MB. The browser reads each selected file as a base64 data URI for preview; newly selected images are sent in the existing `branding.logoUrl` and `branding.coverImageUrl` fields. Existing server image URLs are previewed but omitted from PATCH unless the user replaces or removes them.
+- After a successful create/update, a confirmation dialog offers a print-ready organization profile. The PDF is generated entirely in the browser using the print stylesheet; choose Save as PDF in the browser print destination. No PDF API or server endpoint is used.
+
 ## Boundaries and assumptions
 
 - The API normalizer supports the supplied Mongo-style `_id` and camelCase fields, while accepting `id` as a compatibility fallback.
