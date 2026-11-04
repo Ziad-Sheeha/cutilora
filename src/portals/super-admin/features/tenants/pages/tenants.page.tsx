@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react"
 import { Link, useNavigate } from "react-router"
-import { Building2, CheckCircle2, CircleAlert, Clock3, Plus, RefreshCw, Search, Users2, type LucideIcon } from "lucide-react"
+import { Building2, CheckCircle2, CircleAlert, Clock3, Plus, RefreshCw, Search, Users2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { DataTable, type DataTableColumn } from "@/components/ui/data-table"
@@ -11,6 +11,8 @@ import { useI18n } from "@/i18n/i18n-provider"
 import { pushToast, store } from "@/store"
 import { useTenantMutations, useTenants } from "../hooks/use-tenants"
 import type { Tenant, TenantPayload } from "../types/tenant.types"
+import { TenantMetricCard } from "../components/tenant-metric-card"
+import { TenantStatusBadge } from "../components/tenant-status-badge"
 
 const PAGE_SIZE = 10
 function titleCase(value: string) { return value.replace(/[_-]/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase()) }
@@ -18,11 +20,6 @@ function dateLabel(value: string | null, locale: string) {
   if (!value) return "—"
   const date = new Date(value)
   return Number.isNaN(date.getTime()) ? "—" : new Intl.DateTimeFormat(locale === "ar" ? "ar-EG" : "en-GB", { day: "2-digit", month: "short", year: "numeric" }).format(date)
-}
-function statusClass(status: string) {
-  if (status === "active") return "border-emerald-500/25 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
-  if (status === "suspended" || status === "inactive") return "border-rose-500/25 bg-rose-500/10 text-rose-700 dark:text-rose-300"
-  return "border-amber-500/25 bg-amber-500/10 text-amber-700 dark:text-amber-300"
 }
 export function TenantsPage() {
   const { locale } = useI18n()
@@ -56,7 +53,7 @@ export function TenantsPage() {
     { id: "tenant", header: ar ? "المؤسسة" : "Organization", cell: (tenant) => <div className="flex min-w-[210px] items-center gap-3"><span className="flex size-10 shrink-0 items-center justify-center rounded-xl border bg-primary/[0.06] text-primary">{tenant.branding.logoUrl ? <img src={tenant.branding.logoUrl} alt="" className="size-full rounded-xl object-cover"/> : <Building2 className="size-5"/>}</span><div className="min-w-0"><Link to={"/super-admin/tenants/" + encodeURIComponent(tenant.id)} className="block truncate font-semibold text-foreground hover:text-primary">{tenant.displayName || tenant.name || "—"}</Link><p className="mt-0.5 truncate text-xs text-muted-foreground">{tenant.slug || "—"}</p></div></div> },
     { id: "business", header: ar ? "نوع النشاط" : "Business type", cell: (tenant) => <div><p className="text-sm font-medium">{titleCase(tenant.businessType)}</p><p className="mt-0.5 text-xs text-muted-foreground">{titleCase(tenant.industry || "—")}</p></div> },
     { id: "plan", header: ar ? "الخطة" : "Plan", cell: (tenant) => <span className="rounded-lg border bg-muted/50 px-2.5 py-1 text-xs font-semibold">{titleCase(tenant.plan || "unassigned")}</span> },
-    { id: "status", header: ar ? "الحالة" : "Status", cell: (tenant) => <span className={"inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-semibold " + statusClass(tenant.status)}><span className="size-1.5 rounded-full bg-current"/>{titleCase(tenant.status)}</span> },
+    { id: "status", header: ar ? "الحالة" : "Status", cell: (tenant) => <TenantStatusBadge status={tenant.status}/> },
     { id: "contact", header: ar ? "التواصل" : "Contact", cell: (tenant) => <div className="min-w-[160px]"><p className="truncate text-sm">{tenant.contact.email || "—"}</p><p className="mt-0.5 text-xs text-muted-foreground">{tenant.contact.phone || "—"}</p></div> },
     { id: "created", header: ar ? "تاريخ الإنشاء" : "Created", cell: (tenant) => <span className="whitespace-nowrap text-xs tabular-nums text-muted-foreground">{dateLabel(tenant.createdAt, locale)}</span> },
     { id: "actions", header: ar ? "الإجراءات" : "Actions", headerClassName: "text-end", cell: (tenant) => <div className="flex justify-end"><Link to={"/super-admin/tenants/" + encodeURIComponent(tenant.id)} className="rounded-lg border px-3 py-1.5 text-xs font-semibold transition hover:border-primary/40 hover:bg-primary/5">{ar ? "عرض الملف" : "View profile"}</Link></div> },
@@ -94,10 +91,10 @@ export function TenantsPage() {
     </header>
 
     <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-      <Metric icon={Building2} label={labels.total} value={list.data?.totalKnown ? list.data.total.toLocaleString(ar ? "ar-EG" : "en-US") : "—"} hint={ar ? "حسب نتائج الـ API" : "Reported by the API"} tone="violet"/>
-      <Metric icon={CheckCircle2} label={labels.active} value={String(activeCount)} hint={ar ? "ضمن الصفحة الحالية" : "On the current page"} tone="emerald"/>
-      <Metric icon={Clock3} label={labels.pending} value={String(pendingCount)} hint={ar ? "ضمن الصفحة الحالية" : "On the current page"} tone="amber"/>
-      <Metric icon={CircleAlert} label={labels.paused} value={String(suspendedCount)} hint={ar ? "غير نشطة ضمن الصفحة" : "Inactive on this page"} tone="rose"/>
+      <TenantMetricCard icon={Building2} label={labels.total} value={list.data?.totalKnown ? list.data.total.toLocaleString(ar ? "ar-EG" : "en-US") : "—"} hint={ar ? "حسب نتائج الـ API" : "Reported by the API"} tone="violet"/>
+      <TenantMetricCard icon={CheckCircle2} label={labels.active} value={String(activeCount)} hint={ar ? "ضمن الصفحة الحالية" : "On the current page"} tone="emerald"/>
+      <TenantMetricCard icon={Clock3} label={labels.pending} value={String(pendingCount)} hint={ar ? "ضمن الصفحة الحالية" : "On the current page"} tone="amber"/>
+      <TenantMetricCard icon={CircleAlert} label={labels.paused} value={String(suspendedCount)} hint={ar ? "غير نشطة ضمن الصفحة" : "Inactive on this page"} tone="rose"/>
     </section>
 
     <section className="overflow-hidden rounded-2xl border bg-card shadow-sm">
@@ -125,10 +122,6 @@ export function TenantsPage() {
       </DialogContent>
     </Dialog>
   </div>
-}
-function Metric({ icon: Icon, label, value, hint, tone }: { icon: LucideIcon; label: string; value: string; hint: string; tone: "violet" | "emerald" | "amber" | "rose" }) {
-  const tones = { violet: "bg-violet-500/10 text-violet-600", emerald: "bg-emerald-500/10 text-emerald-600", amber: "bg-amber-500/10 text-amber-600", rose: "bg-rose-500/10 text-rose-600" }
-  return <div className="rounded-2xl border bg-card p-4 shadow-sm"><div className="flex items-center justify-between"><span className="text-xs font-medium text-muted-foreground">{label}</span><span className={"flex size-9 items-center justify-center rounded-xl " + tones[tone]}><Icon className="size-[18px]"/></span></div><p className="mt-3 text-2xl font-semibold tracking-tight tabular-nums">{value}</p><p className="mt-1 text-[11px] text-muted-foreground">{hint}</p></div>
 }
 function FormField({ label, value, onChange, required = false, type = "text" }: { label: string; value: string; onChange: (value: string) => void; required?: boolean; type?: string }) {
   return <div><label className="mb-1.5 block text-sm font-medium">{label}</label><Input type={type} required={required} value={value} onChange={(event) => onChange(event.target.value)}/></div>
