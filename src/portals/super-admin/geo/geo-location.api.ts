@@ -42,9 +42,9 @@ function readList(payload: unknown, requestedPage: number, requestedPerPage: num
   const rows = Array.isArray(data) ? data : Array.isArray(nested?.data) ? nested.data : Array.isArray(nested?.items) ? nested.items : Array.isArray(root.items) ? root.items : null
   if (!rows) throw new Error("UNEXPECTED_RESPONSE")
   const meta = (root.meta ?? nested?.meta ?? root.pagination ?? nested?.pagination) as Record<string, unknown> | undefined
-  const total = Number(meta?.total ?? meta?.totalItems ?? rows.length)
+  const total = Number(meta?.total ?? meta?.totalItems ?? meta?.totalCount ?? rows.length)
   const perPage = Number(meta?.per_page ?? meta?.perPage ?? meta?.limit ?? requestedPerPage)
-  const page = Number(meta?.current_page ?? meta?.page ?? requestedPage)
+  const page = Number(meta?.current_page ?? meta?.currentPage ?? meta?.page ?? requestedPage)
   const totalPages = Number(meta?.last_page ?? meta?.totalPages ?? Math.max(1, Math.ceil(total / Math.max(perPage, 1))))
   return {
     items: rows.map(normalizeRecord),
@@ -92,7 +92,7 @@ function withQuery(endpoint: string, params: { search?: string; page?: number; p
   const query = new URLSearchParams()
   if (params.search?.trim()) query.set("search", params.search.trim())
   query.set("page", String(params.page ?? 1))
-  query.set("per_page", String(params.perPage ?? DEFAULT_PAGE_SIZE))
+  query.set("limit", String(params.perPage ?? DEFAULT_PAGE_SIZE))
   return `${endpoint}?${query.toString()}`
 }
 
