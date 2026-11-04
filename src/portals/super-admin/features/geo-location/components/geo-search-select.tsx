@@ -43,7 +43,7 @@ export function GeoSearchSelect({ kind, value, onChange, placeholder, disabled, 
   useEffect(() => {
     setLoadedOptions([])
     setPage(1)
-  }, [debouncedSearch])
+  }, [debouncedSearch, parentId])
 
   useEffect(() => {
     if (!query.data || query.isPlaceholderData) return
