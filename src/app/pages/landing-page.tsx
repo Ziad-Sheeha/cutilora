@@ -4,7 +4,7 @@ import { Link } from "react-router"
 import { BrandLogo } from "@/components/brand/brand-logo"
 import { LanguageSwitch } from "@/i18n/language-switch"
 import { useI18n } from "@/i18n/i18n-provider"
-export function App(){
+export function LandingPage(){
  const [theme,setTheme]=useState<"light"|"dark">("light");const {t,locale}=useI18n();const copy=t.landing
  useEffect(()=>{document.documentElement.dataset.theme=theme},[theme])
  const toggleTheme=useCallback(()=>setTheme(current=>current==="light"?"dark":"light"),[])
