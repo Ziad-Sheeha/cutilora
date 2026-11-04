@@ -34,7 +34,7 @@ import {
   type GeoPayload,
   type GeoRecord,
   type GeoRelation,
-} from "./geo-location.types"
+} from "../types/geo-location.types"
 import { geoLocationSchema } from "../schemas/geo-location.schema"
 import { GeoSearchSelect } from "../components/geo-search-select"
 import { useGeoDetail, useGeoList, useGeoMutations } from "../hooks/use-geo-location"
