@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { useI18n } from "@/i18n/i18n-provider"
 import { geoRecordName, type GeoId, type GeoKind, type GeoRecord } from "../types/geo-location.types"
-import { geoConfigs } from "./geo-location.types"
+import { geoConfigs } from "../types/geo-location.types"
 import { useGeoDetail, useGeoList } from "../hooks/use-geo-location"
 
 interface GeoSearchSelectProps {
