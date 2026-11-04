@@ -1,5 +1,5 @@
 import { appEnv } from "@/config/env"
-import { getSuperAdminToken } from "@/portals/super-admin/auth/super-admin-auth"
+import { expireSuperAdminSession, getSuperAdminToken } from "@/portals/super-admin/auth/super-admin-auth"
 
 const baseUrl = appEnv.apiBaseUrl.replace(/\/$/, "")
 
@@ -133,6 +133,7 @@ async function request(path: string): Promise<unknown> {
   } catch {
     throw new Error("NETWORK_ERROR")
   }
+  if (response.status === 401) expireSuperAdminSession()
   const payload: unknown = await response.json().catch(() => null)
   const body = object(payload)
   if (!response.ok || body?.success === false) {
