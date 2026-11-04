@@ -244,6 +244,8 @@ function withQuery(
     search?: string
     page?: number
     perPage?: number
+    parentField?: string
+    parentId?: string
   },
 ): string {
   const query = new URLSearchParams()
@@ -254,6 +256,7 @@ function withQuery(
 
   query.set("page", String(params.page ?? 1))
   query.set("per_page", String(params.perPage ?? DEFAULT_PAGE_SIZE))
+  if (params.parentField && params.parentId) query.set(params.parentField, params.parentId)
 
   return `${endpoint}?${query.toString()}`
 }
@@ -265,6 +268,8 @@ export const geoLocationApi = {
       search?: string
       page?: number
       perPage?: number
+      parentField?: string
+      parentId?: string
     } = {},
   ): Promise<GeoListResult> => {
     const page = params.page ?? 1
