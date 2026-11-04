@@ -1,4 +1,9 @@
 import { configureStore, createSlice, type PayloadAction } from "@reduxjs/toolkit"
+import platformAuthReducer from "./slices/platform-auth.slice"
+import tenantAuthReducer from "./slices/tenant-auth.slice"
+import tenantContextReducer from "./slices/tenant-context.slice"
+import clinicContextReducer from "./slices/clinic-context.slice"
+import branchContextReducer from "./slices/branch-context.slice"
 
 export type ToastKind = "success" | "error" | "info" | "warning"
 export type ToastMessage = { id: string; title: string; description?: string; kind: ToastKind }
@@ -16,6 +21,16 @@ const uiSlice = createSlice({
   },
 })
 export const { beginLoading, endLoading, pushToast, dismissToast, setCurrentBranch } = uiSlice.actions
-export const store = configureStore({ reducer: { ui: uiSlice.reducer } })
+
+export const store = configureStore({
+  reducer: {
+    ui: uiSlice.reducer,
+    platformAuth: platformAuthReducer,
+    tenantAuth: tenantAuthReducer,
+    tenantContext: tenantContextReducer,
+    clinicContext: clinicContextReducer,
+    branchContext: branchContextReducer,
+  },
+})
 export type RootState = ReturnType<typeof store.getState>
 export type AppDispatch = typeof store.dispatch
