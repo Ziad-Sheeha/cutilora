@@ -10,6 +10,17 @@ export function TenantReviewPanel({ values, labels, onEdit, ar }: {
   onEdit: (step: number) => void
   ar: boolean
 }) {
+  const localizedLabels: Record<string, string> = ar ? {
+    "Organization name": "اسم المؤسسة", "Display name": "الاسم الظاهر", "Legal name": "الاسم القانوني",
+    "Business type": "نوع النشاط", "Industry": "المجال", "Description": "الوصف",
+    "Email": "البريد الإلكتروني", "Phone": "رقم الهاتف", "Alternate phone": "رقم بديل", "WhatsApp": "واتساب", "Website": "الموقع الإلكتروني",
+    "Address": "العنوان", "Additional address": "تفاصيل إضافية", "Building": "المبنى", "Floor": "الدور", "Unit": "الوحدة",
+    "Landmark": "علامة مميزة", "Postal code": "الرمز البريدي", "Latitude": "خط العرض", "Longitude": "خط الطول",
+    "Tax number": "الرقم الضريبي", "VAT number": "رقم ضريبة القيمة المضافة", "Commercial registration": "السجل التجاري",
+    "Brand color": "لون العلامة", "Logo": "الشعار", "Cover image": "صورة الغلاف",
+    "Timezone": "المنطقة الزمنية", "Organization language": "لغة المؤسسة", "Currency": "العملة",
+    "Date format": "تنسيق التاريخ", "Week starts on": "بداية الأسبوع", "Supported languages": "اللغات المدعومة",
+  } : {}
   const groups: Group[] = [
     { title: labels.identity, icon: Building2, step: 0, rows: [
       ["Organization name", values.name], ["Display name", values.displayName], ["Legal name", values.legalName],
@@ -55,7 +66,7 @@ export function TenantReviewPanel({ values, labels, onEdit, ar }: {
               <Button type="button" size="sm" variant="outline" onClick={() => onEdit(group.step)}>{labels.edit}<ArrowUpRight className="size-3.5"/></Button>
             </header>
             <div className="grid gap-x-6 gap-y-3 p-4 sm:grid-cols-2">
-              {rows.length ? rows.map(([label, value]) => <div key={label} className="min-w-0"><p className="text-[11px] font-medium text-muted-foreground">{label}</p><p className="mt-1 break-words text-sm font-medium">{value}</p></div>) : <p className="text-sm text-muted-foreground">{labels.empty}</p>}
+              {rows.length ? rows.map(([label, value]) => <div key={label} className="min-w-0"><p className="text-[11px] font-medium text-muted-foreground">{localizedLabels[label] ?? label}</p><p className="mt-1 break-words text-sm font-medium">{value}</p></div>) : <p className="text-sm text-muted-foreground">{labels.empty}</p>}
             </div>
           </section>
         )
