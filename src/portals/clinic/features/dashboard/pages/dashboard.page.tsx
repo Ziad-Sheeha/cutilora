@@ -1,6 +1,6 @@
 import { ArrowDownRight, ArrowUpRight, CalendarCheck, CircleDollarSign, Clock3, Users } from "lucide-react"
 import { AppointmentsTable } from "@/portals/clinic/features/dashboard/components/appointments-table"
-import { StatCard } from "@/components/shared/stat-card"
+import { StatCard } from "@/shared/components/stat-card"
 import { useI18n } from "@/i18n/i18n-provider"
 export function DashboardPage(){
  const {t}=useI18n();const d=t.dashboard
