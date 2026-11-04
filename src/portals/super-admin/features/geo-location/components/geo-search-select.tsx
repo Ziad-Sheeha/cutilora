@@ -48,7 +48,7 @@ export function GeoSearchSelect({ kind, value, onChange, placeholder, disabled, 
     if (!query.data || query.isPlaceholderData) return
     setLoadedOptions((current) => {
       const merged = page === 1 ? query.data.items : [...current, ...query.data.items]
-      return Array.from(new Map(merged.map((item) => [item.id, item])).values())
+      return Array.from(new Map<string, GeoRecord>(merged.map((item) => [item.id, item])).values())
     })
   }, [query.data, query.isPlaceholderData, page])
 
