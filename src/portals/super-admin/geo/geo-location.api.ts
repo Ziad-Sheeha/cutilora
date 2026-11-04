@@ -124,17 +124,13 @@ function readList(
       ? root
       : undefined)
 
+  const rawTotal = meta?.total ?? meta?.totalItems ?? meta?.totalCount
+  const parsedTotal = rawTotal === undefined ? Number.NaN : Number(rawTotal)
   const totalKnown =
-    meta?.total !== undefined ||
-    meta?.totalItems !== undefined ||
-    meta?.totalCount !== undefined
-
-  const total = Number(
-    meta?.total ??
-      meta?.totalItems ??
-      meta?.totalCount ??
-      (requestedPage - 1) * requestedPerPage + rows.length,
-  )
+    Number.isFinite(parsedTotal) && parsedTotal >= 0
+  const total = totalKnown
+    ? parsedTotal
+    : (requestedPage - 1) * requestedPerPage + rows.length
 
   const perPage = Number(
     meta?.per_page ?? requestedPerPage,
@@ -153,6 +149,10 @@ function readList(
   const hasNext =
     meta?.has_more_pages === true ||
     meta?.hasMore === true ||
+    meta?.has_next === true ||
+    meta?.hasNext === true ||
+    meta?.next_page_url != null ||
+    meta?.nextPageUrl != null ||
     (explicitTotalPages !== undefined
       ? page < totalPages
       : totalKnown
