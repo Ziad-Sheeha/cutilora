@@ -1,8 +1,9 @@
-import { Building2, Globe2, Mail, MapPin, Phone, ShieldCheck, SlidersHorizontal } from "lucide-react"
+import { Building2, Globe2, Mail, MapPin, Phone, ShieldCheck, SlidersHorizontal, type LucideIcon } from "lucide-react"
+import type { ReactNode } from "react"
 import type { Tenant } from "../types/tenant.types"
 
 type Labels = Record<string, string>
-function Field({ label, value, icon: Icon }: { label: string; value?: string | null; icon?: typeof Mail }) {
+function Field({ label, value, icon: Icon }: { label: string; value?: string | null; icon?: LucideIcon }) {
   return <div className="min-w-0 rounded-xl bg-muted/35 p-3.5">
     <p className="text-[11px] font-medium text-muted-foreground">{label}</p>
     <div className="mt-1.5 flex min-w-0 items-start gap-2 text-sm font-semibold">
@@ -11,7 +12,7 @@ function Field({ label, value, icon: Icon }: { label: string; value?: string | n
     </div>
   </div>
 }
-function Section({ title, subtitle, icon: Icon, children }: { title: string; subtitle?: string; icon: typeof Building2; children: React.ReactNode }) {
+function Section({ title, subtitle, icon: Icon, children }: { title: string; subtitle?: string; icon: LucideIcon; children: ReactNode }) {
   return <section className="min-w-0 overflow-hidden rounded-2xl border bg-card shadow-sm">
     <div className="flex items-center gap-3 border-b px-4 py-4 sm:px-5">
       <span className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary"><Icon className="size-[18px]"/></span>
