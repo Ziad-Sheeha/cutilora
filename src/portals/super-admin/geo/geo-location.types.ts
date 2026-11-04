@@ -19,6 +19,9 @@ export interface GeoRecord {
   country_id?: GeoId | null
   governorate_id?: GeoId | null
   city_id?: GeoId | null
+  governorate?: GeoRelation | null
+  city?: GeoRelation | null
+  country?: GeoRelation | null
   created_at?: string
   updated_at?: string
 }
