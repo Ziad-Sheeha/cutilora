@@ -8,7 +8,8 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select } from "@/components/ui/select"
 import { useAppDispatch } from "@/store/hooks"
 import { pushToast } from "@/store"
-import { useI18n } from "@/i18n/i18n-provider"\nimport { isArabicText, isEnglishText } from "@/shared/validation/language-validation"
+import { useI18n } from "@/i18n/i18n-provider"
+import { isArabicText, isEnglishText } from "@/shared/validation/language-validation"
 
 type Row = { id: string; name: string; subtitle: string; status: string; date: string; value: string }
 const row=(id:string,name:string,subtitle:string,status:string,date:string,value:string):Row=>({id,name,subtitle,status,date,value})
@@ -39,7 +40,10 @@ export function ClinicModulePage(){
  const dispatch=useAppDispatch()
  const filtered=useMemo(()=>rows.filter(item=>[item.id,item.name,item.subtitle,item.status,item.date,item.value].join(" ").toLowerCase().includes(query.toLowerCase())&&(filter===moduleText.filters[0]||item.status.toLowerCase()===(Object.entries(t.clinic.statuses).find(([,translated])=>translated===filter)?.[0]??filter).toLowerCase())),[rows,query,filter,moduleText.filters,t.clinic.statuses])
  const openCreate=()=>{setSelected(null);setForm({});setModal("create")}
- const save=()=>{const name=form[moduleText.fields[0]]?.trim();if(!name){dispatch(pushToast({id:crypto.randomUUID(),kind:"warning",title:ui.required,description:`${moduleText.fields[0]} ${ui.requiredSuffix}`}));return}\n  const neutralField=/email|phone|date|time|price|currency|duration|minutes|number|count|session|gender|language|validity|amount|invoice|id/i\n  const invalidField=Object.entries(form).find(([field,value])=>value.trim()&&!neutralField.test(field)&&!(locale==="ar"?isArabicText(value):isEnglishText(value)))\n  if(invalidField){dispatch(pushToast({id:crypto.randomUUID(),kind:"error",title:locale==="ar"?"لغة الحقل غير صحيحة":"Invalid field language",description:locale==="ar"?"استخدم الحروف العربية فقط في الحقول النصية عند اختيار العربية.":"Use English letters only in text fields when English is selected."}));return}
+ const save=()=>{const name=form[moduleText.fields[0]]?.trim();if(!name){dispatch(pushToast({id:crypto.randomUUID(),kind:"warning",title:ui.required,description:`${moduleText.fields[0]} ${ui.requiredSuffix}`}));return}
+  const neutralField=/email|phone|date|time|price|currency|duration|minutes|number|count|session|gender|language|validity|amount|invoice|id/i
+  const invalidField=Object.entries(form).find(([field,value])=>value.trim()&&!neutralField.test(field)&&!(locale==="ar"?isArabicText(value):isEnglishText(value)))
+  if(invalidField){dispatch(pushToast({id:crypto.randomUUID(),kind:"error",title:locale==="ar"?"لغة الحقل غير صحيحة":"Invalid field language",description:locale==="ar"?"استخدم الحروف العربية فقط في الحقول النصية عند اختيار العربية.":"Use English letters only in text fields when English is selected."}));return}
   if(modal==="edit"&&selected){setRows(old=>old.map(item=>item.id===selected.id?{...item,name,subtitle:Object.entries(form).slice(1).map(([,v])=>v).filter(Boolean).join(" · ")||item.subtitle}:item));dispatch(pushToast({id:crypto.randomUUID(),kind:"success",title:ui.changesSaved,description:ui.localPreview}))}
   else{setRows(old=>[{id:`D-${Date.now()}`,name,subtitle:Object.entries(form).slice(1).map(([,v])=>v).filter(Boolean).join(" · ")||ui.newRecord,status:"Draft",date:ui.justNow,value:"—"},...old]);dispatch(pushToast({id:crypto.randomUUID(),kind:"success",title:`${ui.createdToast} ${moduleText.singular}`,description:ui.addedLocal}))}setModal(null)}
  const action=(kind:"edit"|"view",item:Row)=>{setSelected(item);setForm({[moduleText.fields[0]]:item.name});setModal(kind)}
