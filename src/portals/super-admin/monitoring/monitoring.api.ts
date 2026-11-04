@@ -25,7 +25,7 @@ export interface MonitoringStats {
   timeline: Array<{ date: string; count: number; errors: number }>
 }
 
-export interface MonitoringListResult {
+export interface MonitoringTimelinePoint {\n  date: string\n  count: number\n  errors: number\n}\n\nexport interface MonitoringListResult {
   items: MonitoringLog[]
   page: number
   limit: number
