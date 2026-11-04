@@ -1,146 +1,160 @@
 # Frontend Architecture
 
-This document is the source of truth for where frontend code belongs. The project is organized by **application layer → portal → feature → responsibility**. Do not create new top-level folders for one-off features.
+This is the source of truth for frontend ownership. Organize code by **application boundary → domain/portal → feature → responsibility**.
 
-## Source tree
+## Target source tree
 
 ```text
 src/
 ├── app/
-│   ├── pages/                 # Public landing, not-found and route-level fallback pages
-│   ├── providers/             # App-wide providers and error boundary
-│   ├── router.tsx             # Route definitions only
-│   └── ...
-├── portals/
-│   ├── clinic/
-│   │   ├── auth/              # Clinic authentication and guards
-│   │   ├── config/            # Clinic-only navigation/configuration
-│   │   ├── layout/            # Clinic shell, header and sidebar
-│   │   └── features/
-│   │       ├── clinic/
-│   │       │   ├── api/
-│   │       │   ├── pages/
-│   │       │   └── types/
-│   │       └── dashboard/
-│   │           ├── components/
-│   │           └── pages/
+│   ├── pages/
+│   ├── providers/
+│   │   ├── app-providers.tsx
+│   │   └── query-provider.tsx
+│   └── router.tsx
+│
+├── platform/
 │   └── super-admin/
 │       ├── auth/
 │       ├── layout/
 │       ├── pages/
 │       └── features/
-│           ├── geo-location/
-│           │   ├── api/
-│           │   ├── components/
-│           │   ├── hooks/
-│           │   ├── pages/
-│           │   ├── schemas/
-│           │   └── types/
-│           └── monitoring/
-│               ├── api/
-│               ├── components/
-│               └── pages/
-├── components/
-│   ├── brand/                 # Brand-specific reusable components
-│   └── ui/                    # Design-system primitives only
-├── config/                    # Environment and app-wide configuration
-├── i18n/                      # The single source of truth for locales/provider
-├── lib/                       # Technical infrastructure (HTTP, utilities)
+│           ├── tenants/
+│           ├── clinics/          # All clinics across the SaaS platform
+│           ├── branches/
+│           ├── users/
+│           ├── access-control/
+│           ├── monitoring/
+│           ├── audit/
+│           └── settings/
+│
+├── tenant/
+│   ├── auth/                     # Separate tenant identity/session
+│   ├── context/                  # Active tenant, clinic and branch
+│   ├── authorization/            # Tenant roles, permissions and policies
+│   ├── features/
+│   │   ├── clinics/              # Clinics owned by the active tenant
+│   │   └── branches/
+│   └── clinic-workspace/         # Operations within the selected clinic
+│       ├── dashboard/
+│       ├── appointments/
+│       ├── patients/
+│       ├── medical-records/
+│       ├── encounters/
+│       ├── services/
+│       ├── packages/
+│       ├── sales/
+│       ├── cash-management/
+│       └── employees/
+│
 ├── shared/
-│   ├── components/             # Cross-portal business-agnostic components
+│   ├── auth/session/             # Portal-neutral session utilities only
+│   ├── api/
+│   ├── components/
+│   ├── hooks/
 │   ├── types/
-│   ├── validation/
-│   └── ...
-├── store/                     # Cross-feature client state only
-└── index.css
+│   └── utils/
+│
+├── components/
+│   ├── brand/
+│   └── ui/                       # shadcn/Radix design primitives
+├── config/
+├── i18n/
+├── lib/
+├── store/
+│   ├── index.ts
+│   ├── root-reducer.ts
+│   └── slices/
+│       ├── platform-auth.slice.ts
+│       ├── tenant-auth.slice.ts
+│       ├── tenant-context.slice.ts
+│       ├── clinic-context.slice.ts
+│       ├── branch-context.slice.ts
+│       └── ui.slice.ts
+└── assets/
 ```
 
-## Ownership rules
+## Domain model
 
-| Concern | Put it here |
+```text
+Platform
+└── Tenant
+    ├── Clinic A
+    │   ├── Branch 1
+    │   └── Branch 2
+    └── Clinic B
+        └── Branch 1
+```
+
+- **Platform clinics** are managed globally by Super Admin.
+- **Tenant clinics** are only the clinics owned by the authenticated tenant.
+- **Clinic workspace** is the operational workspace for one selected clinic; it is not another ownership level.
+- A branch belongs to a clinic. A clinic belongs to a tenant.
+- Never trust frontend context for isolation. Laravel must authorize tenant, clinic and branch scope on every request.
+
+## State ownership
+
+| State | Owner |
 |---|---|
-| Route composition and app providers | `app/` |
-| Clinic-only code | `portals/clinic/` |
-| Platform administration code | `portals/super-admin/` |
-| Feature-specific HTTP calls | `portals/<portal>/features/<feature>/api/` |
-| React Query orchestration | Feature `hooks/` |
-| Feature UI | Feature `components/` |
-| Route-level feature composition | Feature `pages/*.page.tsx` |
-| Yup/Zod validation | Feature `schemas/*.schema.ts` |
-| Feature domain/view-model types | Feature `types/*.types.ts` |
-| Cross-portal generic components | `shared/components/` |
-| shadcn/Radix design primitives | `components/ui/` |
-| Cross-cutting API client and utilities | `lib/` |
-| Global locale dictionaries/provider | `i18n/` |
-| Global client-only state | `store/` |
+| Platform authentication | Redux Toolkit `platformAuth` slice |
+| Tenant authentication | Redux Toolkit `tenantAuth` slice |
+| Active tenant / clinic / branch selection | Redux Toolkit context slices |
+| Loading indicators and toasts | Redux Toolkit `ui` slice |
+| API data, caching and invalidation | TanStack Query |
+| Theme, locale provider and simple dependency injection | React Context |
+| Local component interaction | React state |
 
-## Naming conventions
+Do not copy API entities such as patients, appointments or clinic records into Redux. TanStack Query owns server state. Platform and tenant sessions must never share token storage or logout behavior.
 
-- Pages: `*.page.tsx`
-- Hooks: `use-*.ts`
-- API modules: `*.api.ts`
-- Schemas: `*.schema.ts`
-- Domain/type modules: `*.types.ts` (a local `types/index.ts` is acceptable for a small type barrel)
-- Components: descriptive kebab-case file names, one primary component per file.
-- Tests: colocate as `*.test.ts(x)` or `*.spec.ts(x)` beside the unit under test.
+## Authentication and forced logout
 
-## Dependency direction
+- Platform and tenant have independent guards, token storage, login/logout services and session state.
+- A valid JWT `exp` claim is checked on protected-route entry and scheduled for expiry logout.
+- Any authenticated platform API response with HTTP 401 clears the platform session and redirects to the platform login screen.
+- A tenant HTTP 401 must clear only the tenant session once the real tenant authentication contract is integrated.
+- Do not treat 403 as an expired session; it means authenticated but forbidden.
+- Do not infer token format, login endpoint, refresh behavior or current-user response. Confirm the Laravel contract first.
+- The current Clinic Portal login is preview-only. Tenant route protection must not be switched on until the backend login contract is supplied and implemented.
 
-1. `app` may compose portals and shared infrastructure.
-2. A portal may depend on shared infrastructure and its own features.
-3. A feature may depend on shared infrastructure and other explicitly public feature contracts; avoid feature-to-feature implementation imports.
-4. `shared`, `components/ui`, `lib`, and `config` must never import from a portal or feature.
-5. UI primitives must not know about API endpoints, Redux slices, portal navigation, or business rules.
+## Feature ownership and dependency direction
 
-## Feature implementation pattern
+1. `app/` composes providers and routes; it does not own business logic.
+2. `platform/` owns platform-wide administration.
+3. `tenant/` owns tenant and clinic operations.
+4. A feature owns its API module, hooks, schemas, types, components and pages.
+5. `shared/`, `components/ui/`, `lib/` and `config/` must never import from a portal/domain feature.
+6. UI primitives must not know about API endpoints, auth tokens, Redux slices or business rules.
 
-For a normal CRUD feature:
+## Feature structure
 
-- `api/<feature>.api.ts`: typed HTTP calls and response mapping only.
-- `types/`: API DTOs and domain/view types, kept distinct when their shapes differ.
-- `schemas/`: validation rules.
-- `hooks/`: React Query keys, queries, mutations, invalidation and feature orchestration.
-- `components/`: focused reusable feature UI.
-- `dialogs/<name>/`: separate create/edit/view/confirm dialogs when the flows have independent responsibilities.
-- `pages/<feature>.page.tsx`: compose the screen; keep API details and large form/dialog markup out of the page.
+Create only folders that a feature uses:
 
-A small feature does not need every folder. Create only the responsibilities it actually uses; do not create empty placeholder files or directories.
+```text
+feature-name/
+├── api/
+├── components/
+├── hooks/
+├── pages/
+├── schemas/
+└── types/
+```
 
-## State and API rules
+- API modules contain typed HTTP calls and response mapping only.
+- Hooks own TanStack Query keys, queries, mutations and invalidation.
+- Pages compose screens; reusable form/dialog markup belongs in components.
+- Preserve backend response envelopes, pagination keys, enum values and identifiers.
 
-- TanStack Query owns remote/server state. Redux Toolkit is for cross-feature client state only.
-- API modules do not import React hooks or components.
-- Keep one documented HTTP client strategy. Do not introduce another Axios instance/interceptor stack without an explicit requirement.
-- Preserve backend contracts exactly; do not rename pagination keys, response envelopes, enum values or identifiers in the frontend without a mapper.
-- Mutation hooks own cache invalidation. Components own user interaction and present loading/error/success states.
-- Do not put secrets or tenant authorization assumptions in the frontend; Laravel is authoritative.
+## Migration note
 
-## Localization and RTL
+The current working UI still has legacy implementation paths under `src/portals/clinic` and `src/portals/super-admin`. New platform/tenant foundations and authentication boundaries are being established here first; move existing feature modules in small batches, updating all imports and validating after each batch. Do not leave duplicated live implementations.
 
-- `src/i18n/` is the only locale source of truth.
-- English and Arabic dictionaries must have matching key shapes.
-- All static user-facing copy, validation messages, loading/empty/error states, tooltips and accessible labels must be translated.
-- API-provided/user-generated content is not translated automatically.
-- Layouts must use logical CSS properties and respect the provider's `dir` value.
+## Validation
 
-## Component and dialog rules
-
-- `components/ui/` contains generic design-system primitives, not business components.
-- Use the existing shared primitives before creating a new native control or one-off visual pattern.
-- Feature dialogs live in the feature that owns the workflow. A page may own open/close state and selected entity, but dialog form markup belongs in the dialog component.
-- Keep table action columns at the end and avoid leaking internal backend identifiers into user-facing tables.
-
-## Memoization
-
-Use `useMemo`, `useCallback`, and `memo` only when referential stability or measured computation cost matters. Do not memoize every variable or callback mechanically.
-
-## Migration and validation policy
-
-This branch establishes the structure for the current screens. Continue moving future portal modules feature-by-feature, preserving routes and API contracts. After each structural batch run:
+After every migration batch run:
 
 ```bash
 npm run typecheck
 npm run build
 ```
 
-Then smoke-test public landing, Clinic login/dashboard/module routes, Super Admin login, Geo Location CRUD, Monitoring tabs/filters/detail dialog, Arabic RTL and English LTR. No large reorganization is complete until these checks pass.
+Smoke-test landing, clinic preview/login, clinic workspace routes, platform login, platform forced logout, Geo Location CRUD, Monitoring filters/details, Arabic RTL and English LTR.
