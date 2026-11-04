@@ -28,7 +28,7 @@ export function GeoSearchSelect({ kind, value, onChange, placeholder, disabled, 
   const config = geoConfigs[kind]
   const query = useGeoList(config.endpoint, debouncedSearch, page, 10, config.parentField, parentId)
   const selectedQuery = useGeoDetail(config.endpoint, value || undefined)
-  const options = loadedOptions.length ? loadedOptions : query.data?.items ?? []
+  const options = loadedOptions.length ? loadedOptions : query.isPlaceholderData ? [] : query.data?.items ?? []
   const selected = selectedQuery.data
   const selectedLabel = selected ? geoRecordName(selected, locale) : ""
 
@@ -75,7 +75,7 @@ export function GeoSearchSelect({ kind, value, onChange, placeholder, disabled, 
           <Input autoFocus value={search} onChange={(event) => setSearch(event.target.value)} placeholder={t.common.searchPlaceholder} className="ps-9" />
         </div>
         <div className="mt-2 max-h-60 overflow-y-auto">
-          {query.isLoading ? (
+          {query.isLoading || (query.isFetching && query.isPlaceholderData) ? (
             <div className="flex items-center justify-center gap-2 p-5 text-sm text-muted-foreground"><LoaderCircle className="size-4 animate-spin" />{t.common.loading}</div>
           ) : options.length === 0 ? (
             <p className="p-5 text-center text-sm text-muted-foreground">{t.common.noResults}</p>
