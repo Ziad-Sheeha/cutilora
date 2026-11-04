@@ -24,7 +24,7 @@ function normalizeTenant(value: unknown): Tenant {
   const preferences = object(row.preferences) ?? {}
   const supportedLanguages = asArray(preferences.supportedLanguages).filter((item): item is string => typeof item === "string")
   const tenantContact: TenantContact = {
-    email: nullableText(contact.email), phone: nullableText(contact.phone), alternatePhone: nullableText(contact.alternatePhone),
+    email: nullableText(contact.email), phoneCode: text(contact.phoneCode, "+20"), phone: nullableText(contact.phone), alternatePhone: nullableText(contact.alternatePhone),
     whatsapp: nullableText(contact.whatsapp), website: nullableText(contact.website),
   }
   const tenantAddress: TenantAddress = {
