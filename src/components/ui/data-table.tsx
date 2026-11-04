@@ -9,6 +9,7 @@ import {
 } from "lucide-react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useI18n } from "@/i18n/i18n-provider"
+import { SelectMenu, SelectMenuContent, SelectMenuItem, SelectMenuTrigger, SelectMenuValue } from "@/components/ui/select-menu"
 
 export interface DataTableColumn<T> {
   id: string
@@ -209,17 +210,13 @@ export function DataTable<T>({
       {pagination && onPageChange && onPerPageChange && (
         <footer className="mt-2 flex flex-col gap-3 border-t border-border/60 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-muted-foreground">
-            <label className="flex items-center gap-2">
+            <div className="flex items-center gap-2">
               <span>{isArabic ? "عدد الصفوف" : "Rows per page"}</span>
-              <select
-                value={pagination.perPage}
-                onChange={(event) => onPerPageChange(Number(event.target.value))}
-                className="h-9 rounded-xl border border-border/70 bg-background px-3 text-sm font-semibold text-foreground outline-none transition focus:ring-2 focus:ring-primary/20"
-                aria-label={isArabic ? "عدد الصفوف في الصفحة" : "Rows per page"}
-              >
-                {[10, 25, 50, 100].map((size) => <option key={size} value={size}>{size}</option>)}
-              </select>
-            </label>
+              <SelectMenu value={String(pagination.perPage)} onValueChange={(value) => onPerPageChange(Number(value))}>
+                <SelectMenuTrigger className="h-9 w-[88px] rounded-lg" aria-label={isArabic ? "عدد الصفوف في الصفحة" : "Rows per page"}><SelectMenuValue /></SelectMenuTrigger>
+                <SelectMenuContent align="end">{[10, 25, 50, 100].map((size) => <SelectMenuItem key={size} value={String(size)}>{size}</SelectMenuItem>)}</SelectMenuContent>
+              </SelectMenu>
+            </div>
             <span className="tabular-nums">
               {isArabic ? "عرض" : "Showing"} {firstItem}–{lastItem}
               {pagination.totalKnown ? ` ${isArabic ? "من" : "of"} ${pagination.total}` : ""}
