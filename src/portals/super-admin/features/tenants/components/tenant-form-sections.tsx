@@ -55,7 +55,7 @@ export function TenantLocationSection({ values, copy, update, updateLocation }: 
   </TenantFormSection>
 }
 
-export function TenantLegalBrandingSection({ values, copy, ar, update }: SharedProps) {
+export function TenantLegalBrandingSection({ values, copy, update }: SharedProps) {
   return <TenantFormSection title={copy.legal} description={copy.legalHint} icon={ShieldCheck}>
     <TenantFormField id="tenant-tax" label={copy.taxNumber} value={values.legal.taxNumber} onChange={(value) => update("legal", "taxNumber", value)}/>
     <TenantFormField id="tenant-vat" label={copy.vatNumber} value={values.legal.vatNumber} onChange={(value) => update("legal", "vatNumber", value)}/>
