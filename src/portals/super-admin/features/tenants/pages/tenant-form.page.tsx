@@ -150,7 +150,15 @@ export function TenantFormPage() {
     setStep((current) => Math.min(steps.length - 1, current + 1))
   }
 
-  function downloadTenantPdf() {\n    const previousTitle = document.title\n    document.title = "Cutilora - " + (savedTenant?.name || values.name) + " - Tenant Profile"\n    const restoreTitle = () => { document.title = previousTitle; window.removeEventListener("afterprint", restoreTitle) }\n    window.addEventListener("afterprint", restoreTitle)\n    window.print()\n  }\n\n  async function submit(event: FormEvent<HTMLFormElement>) {
+  function downloadTenantPdf() {
+    const previousTitle = document.title
+    document.title = "Cutilora - " + (savedTenant?.name || values.name) + " - Tenant Profile"
+    const restoreTitle = () => { document.title = previousTitle; window.removeEventListener("afterprint", restoreTitle) }
+    window.addEventListener("afterprint", restoreTitle)
+    window.print()
+  }
+
+  async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     const invalidStep = steps.slice(0, 5).findIndex((_, index) => validateStep(index).length > 0)
     if (invalidStep >= 0) { setStep(invalidStep); store.dispatch(pushToast({ id: crypto.randomUUID(), kind: "error", title: validateStep(invalidStep)[0] })); return }
