@@ -11,7 +11,8 @@ import { DataTable, type DataTableColumn } from "@/components/ui/data-table"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
 import { Select } from "@/components/ui/select"
-import { Spinner } from "@/components/ui/spinner"\nimport { Skeleton } from "@/components/ui/skeleton"
+import { Spinner } from "@/components/ui/spinner"
+import { Skeleton } from "@/components/ui/skeleton"
 import { useI18n } from "@/i18n/i18n-provider"
 import { monitoringApi, type MonitoringLog, type MonitoringStats } from "./monitoring.api"
 import { MonitoringTimeline, type TimelineEvent } from "./monitoring-timeline"
@@ -76,6 +77,7 @@ function levelClass(level: string) {
 function StatCard({ title, value, icon: Icon, note, tone = "primary", loading = false }: {
   title: string; value: string | number; icon: typeof Activity; note: string; tone?: string; loading?: boolean
 }) {
+  const toneClass = tone === "error" ? "bg-error/10 text-error" : tone === "warning" ? "bg-warning/10 text-warning" : "bg-primary/10 text-primary"
   return <Card className="relative overflow-hidden">
     <CardContent className="flex items-start justify-between gap-3 p-5">
       <div className="min-w-0">
@@ -128,7 +130,8 @@ export function AuditMonitoringPage() {
   const [statusCode, setStatusCode] = useState("")
   const [from, setFrom] = useState("")
   const [to, setTo] = useState("")
-  const [page, setPage] = useState(1)\n  const [limit, setLimit] = useState(DEFAULT_LIMIT)
+  const [page, setPage] = useState(1)
+  const [limit, setLimit] = useState(DEFAULT_LIMIT)
   const [selected, setSelected] = useState<MonitoringLog | null>(null)
   const fromIso = toIso(from)
   const toIsoValue = toIso(to, true)
