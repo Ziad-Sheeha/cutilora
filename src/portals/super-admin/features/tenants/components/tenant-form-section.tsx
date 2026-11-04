@@ -1,7 +1,7 @@
-import type { ReactNode } from "react"
+import type { ComponentType, ReactNode } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 
-export function TenantFormSection({ title, description, icon: Icon, children }: { title: string; description: string; icon: React.ComponentType<{ className?: string }>; children: ReactNode }) {
+export function TenantFormSection({ title, description, icon: Icon, children }: { title: string; description: string; icon: ComponentType<{ className?: string }>; children: ReactNode }) {
   return (
     <Card className="overflow-hidden">
       <CardHeader className="flex-row items-start gap-3 border-b bg-muted/20 px-5 py-4 sm:px-6">
