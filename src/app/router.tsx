@@ -1,9 +1,9 @@
 import { createBrowserRouter, Navigate } from "react-router"
-import { App } from "@/app/pages/landing-page"
+import { LandingPage } from "@/app/pages/landing-page"
 import { ClinicLayout } from "@/portals/clinic/layout/clinic-layout"
 import { DashboardPage } from "@/portals/clinic/features/dashboard/pages/dashboard.page"
 import { ClinicModulePage } from "@/portals/clinic/features/clinic/pages/clinic-module.page"
-import { AdminPlaceholderPage } from "@/app/pages/admin-placeholder.page"
+import { ClinicPlaceholderPage } from "@/portals/clinic/pages/clinic-placeholder.page"
 import { NotFoundPage } from "@/app/pages/not-found.page"
 import { ClinicLoginPage } from "@/portals/clinic/auth/login-page"
 import { SuperAdminLoginPage } from "@/portals/super-admin/auth/login-page"
@@ -15,7 +15,7 @@ import { AuditMonitoringPage } from "@/portals/super-admin/features/monitoring/p
 import { adminNavigation } from "@/portals/clinic/config/navigation"
 
 export const router = createBrowserRouter([
-  { path: "/", element: <App /> },
+  { path: "/", element: <LandingPage /> },
   { path: "/clinic/login", element: <ClinicLoginPage /> },
   { path: "/super-admin/login", element: <SuperAdminLoginPage /> },
   {
