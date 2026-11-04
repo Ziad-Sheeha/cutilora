@@ -7,7 +7,7 @@ import { BrandLogo } from "@/components/brand/brand-logo"
 import { useI18n } from "@/i18n/i18n-provider"
 type Theme="light"|"dark"
 function getInitialTheme():Theme{if(typeof window==="undefined")return "light";return window.localStorage.getItem("cutilora-theme")==="dark"?"dark":"light"}
-export function AdminLayout(){
+export function ClinicLayout(){
  const [mobileMenuOpen,setMobileMenuOpen]=useState(false);const [sidebarCollapsed,setSidebarCollapsed]=useState(false);const [theme,setTheme]=useState<Theme>(getInitialTheme);const {t,locale}=useI18n()
  useEffect(()=>{document.documentElement.dataset.theme=theme;window.localStorage.setItem("cutilora-theme",theme)},[theme])
  const toggleTheme=useCallback(()=>setTheme(current=>current==="light"?"dark":"light"),[])
