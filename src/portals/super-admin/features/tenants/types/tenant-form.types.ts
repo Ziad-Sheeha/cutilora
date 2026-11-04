@@ -19,7 +19,7 @@ export interface TenantFormValues {
 }
 
 export const emptyTenantForm: TenantFormValues = {
-  name: "", displayName: "", legalName: "", businessType: "single_clinic", description: "", industry: "aesthetic_medicine",
+  name: "", owner: { name: "", email: "", password: "", passwordConfirmation: "" }, displayName: "", legalName: "", businessType: "single_clinic", description: "", industry: "aesthetic_medicine",
   contact: { email: "", phoneCode: "+20", phone: "", alternatePhone: "", whatsapp: "", website: "" },
   address: { countryId: "", governorateId: "", cityId: "", districtId: "", addressLine1: "", addressLine2: "", building: "", floor: "", unit: "", landmark: "", postalCode: "", latitude: "", longitude: "" },
   legal: { taxNumber: "", vatNumber: "", commercialRegistrationNumber: "" },
@@ -29,7 +29,7 @@ export const emptyTenantForm: TenantFormValues = {
 
 export function tenantToForm(tenant: Tenant): TenantFormValues {
   return {
-    name: tenant.name, displayName: tenant.displayName, legalName: tenant.legalName, businessType: tenant.businessType,
+    name: tenant.name, owner: { name: "", email: "", password: "", passwordConfirmation: "" }, displayName: tenant.displayName, legalName: tenant.legalName, businessType: tenant.businessType,
     description: tenant.description, industry: tenant.industry,
     contact: { email: tenant.contact.email ?? "", phoneCode: tenant.contact.phoneCode || "+20", phone: tenant.contact.phone ? "0" + tenant.contact.phone.replace(/^0+/, "") : "", alternatePhone: tenant.contact.alternatePhone ? "0" + tenant.contact.alternatePhone.replace(/^0+/, "") : "", whatsapp: tenant.contact.whatsapp ? "0" + tenant.contact.whatsapp.replace(/^0+/, "") : "", website: tenant.contact.website ?? "" },
     address: { countryId: tenant.address.countryId ?? "", governorateId: tenant.address.governorateId ?? "", cityId: tenant.address.cityId ?? "", districtId: tenant.address.districtId ?? "", addressLine1: tenant.address.addressLine1, addressLine2: tenant.address.addressLine2, building: tenant.address.building, floor: tenant.address.floor, unit: tenant.address.unit, landmark: tenant.address.landmark ?? "", postalCode: tenant.address.postalCode, latitude: tenant.address.latitude === null ? "" : String(tenant.address.latitude), longitude: tenant.address.longitude === null ? "" : String(tenant.address.longitude) },
@@ -44,7 +44,7 @@ export function formToPayload(values: TenantFormValues): TenantPayload {
   const numericOrNull = (value: string) => value.trim() === "" ? null : Number(value)
   const apiPhone = (value: string) => clean(value).replace(/\D/g, "").replace(/^0/, "")
   return {
-    name: clean(values.name), displayName: clean(values.displayName), legalName: clean(values.legalName),
+    name: clean(values.name), owner: { name: clean(values.owner.name), email: clean(values.owner.email), password: values.owner.password }, displayName: clean(values.displayName), legalName: clean(values.legalName),
     businessType: values.businessType, description: clean(values.description), industry: clean(values.industry),
     contact: { email: clean(values.contact.email), phoneCode: values.contact.phoneCode, phone: apiPhone(values.contact.phone), alternatePhone: apiPhone(values.contact.alternatePhone), whatsapp: apiPhone(values.contact.whatsapp), website: clean(values.contact.website) },
     address: { countryId: values.address.countryId, governorateId: values.address.governorateId, cityId: values.address.cityId, districtId: values.address.districtId, addressLine1: clean(values.address.addressLine1), addressLine2: clean(values.address.addressLine2), building: clean(values.address.building), floor: clean(values.address.floor), unit: clean(values.address.unit), landmark: clean(values.address.landmark), postalCode: clean(values.address.postalCode), latitude: numericOrNull(values.address.latitude), longitude: numericOrNull(values.address.longitude) },
