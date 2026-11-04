@@ -58,7 +58,7 @@ export function TenantFormPage() {
     required: "مطلوب", optional: "اختياري", loading: "جارٍ تحميل بيانات المؤسسة...", loadError: "تعذر تحميل بيانات المؤسسة.",
     successCreate: "تم إنشاء المؤسسة بنجاح", successUpdate: "تم تحديث بيانات المؤسسة", error: "تعذر حفظ بيانات المؤسسة",
     stepOf: "الخطوة", review: "راجع البيانات ثم احفظ", choose: "اختر", noOwner: "بيانات المالك غير موجودة ضمن مخطط الطلب المرسل؛ لم تتم إضافة حقول غير مؤكدة.",
-    invalidCoordinates: "يجب أن تكون الإحداثيات أرقامًا صحيحة."
+    invalidCoordinates: "الإحداثيات يجب أن تكون أرقامًا ضمن النطاق الصحيح.", invalidEmail: "أدخل بريدًا إلكترونيًا صحيحًا.", invalidUrl: "أدخل رابطًا صحيحًا يبدأ بـ https:// أو http://."
   } : {
     back: "Back to tenants", createTitle: "Create a tenant", editTitle: "Edit tenant profile",
     createDescription: "Build the organization profile through focused steps. Review each section before saving.",
@@ -83,7 +83,7 @@ export function TenantFormPage() {
     successCreate: "Tenant created successfully", successUpdate: "Tenant profile updated", error: "Could not save tenant profile",
     stepOf: "Step", review: "Review your information, then save", choose: "Choose",
     noOwner: "Owner fields are not present in the supplied request schema, so no unverified fields have been added.",
-    invalidCoordinates: "Coordinates must be valid numbers."
+    invalidCoordinates: "Coordinates must be valid numbers within the supported range.", invalidEmail: "Enter a valid email address.", invalidUrl: "Enter a valid URL starting with https:// or http://."
   }, [ar])
 
   const stepLabels = ar
@@ -119,9 +119,25 @@ export function TenantFormPage() {
       setStep(4)
       return
     }
+    const email = values.contact.email.trim()
+    if (email && !/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)) {
+      store.dispatch(pushToast({ id: crypto.randomUUID(), kind: "error", title: copy.invalidEmail }))
+      setStep(1)
+      return
+    }
+    const urls = [values.contact.website, values.branding.logoUrl, values.branding.coverImageUrl]
+    const invalidUrl = urls.some((value) => {
+      if (!value.trim()) return false
+      try { const url = new URL(value); return url.protocol !== "http:" && url.protocol !== "https:" } catch { return true }
+    })
+    if (invalidUrl) {
+      store.dispatch(pushToast({ id: crypto.randomUUID(), kind: "error", title: copy.invalidUrl }))
+      setStep(values.contact.website.trim() && !/^https?:\\/\\//i.test(values.contact.website) ? 1 : 3)
+      return
+    }
     const latitude = values.address.latitude.trim()
     const longitude = values.address.longitude.trim()
-    if ((latitude && !Number.isFinite(Number(latitude))) || (longitude && !Number.isFinite(Number(longitude)))) {
+    if ((latitude && (!Number.isFinite(Number(latitude)) || Number(latitude) < -90 || Number(latitude) > 90)) || (longitude && (!Number.isFinite(Number(longitude)) || Number(longitude) < -180 || Number(longitude) > 180))) {
       store.dispatch(pushToast({ id: crypto.randomUUID(), kind: "error", title: copy.invalidCoordinates }))
       setStep(2)
       return
