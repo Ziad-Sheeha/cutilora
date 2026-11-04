@@ -10,11 +10,11 @@ export const geoKeys = {
   detail: (endpoint: string, id: GeoId) => [...geoKeys.all, endpoint, "detail", id] as const,
 }
 
-export function useGeoList(endpoint: string, search = "", page = 1, perPage = 10) {
+export function useGeoList(endpoint: string, search = "", page = 1, perPage = 10, parentField?: string, parentId?: string) {
   return useQuery({
-    queryKey: geoKeys.list(endpoint, search, page, perPage),
-    queryFn: () => geoLocationApi.list(endpoint, { search, page, perPage }),
-    enabled: Boolean(endpoint),
+    queryKey: [...geoKeys.list(endpoint, search, page, perPage), parentField, parentId],
+    queryFn: () => geoLocationApi.list(endpoint, { search, page, perPage, parentField, parentId }),
+    enabled: Boolean(endpoint) && (!parentField || Boolean(parentId)),
     staleTime: STALE_TIME,
     placeholderData: keepPreviousData,
   })
