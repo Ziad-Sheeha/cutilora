@@ -35,7 +35,7 @@ export function LandingContactSection({ copy }: { copy: LandingCopy }) {
         <div className="landing-eyebrow"><span className="landing-eyebrow-dot" />{copy.contactEyebrow}</div>
         <h2 id="landing-contact-title">{copy.contactTitle}</h2>
         <p>{copy.contactIntro}</p>
-        <div className="landing-contact-promise"><span><MessageSquareText size={18} /></span><div><strong>{copy.contactFallback}</strong><small>{copy.contactFallbackText}</small></div></div>
+        {!contactEmail && <div className="landing-contact-promise"><span><MessageSquareText size={18} /></span><div><strong>{copy.contactFallback}</strong><small>{copy.contactFallbackText}</small></div></div>}
       </div>
       <form className="landing-contact-form" onSubmit={handleSubmit}>
         <div className="landing-contact-form-heading"><span><Mail size={17} /></span><strong>{copy.contactEyebrow}</strong></div>
