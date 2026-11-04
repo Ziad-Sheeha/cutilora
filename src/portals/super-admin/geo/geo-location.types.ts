@@ -16,7 +16,7 @@ export interface GeoRecord {
 }
 
 export interface GeoPayload {
-  nameEn: string
+  name_en: string
   name_ar: string
   code?: string
   country_id?: GeoId
