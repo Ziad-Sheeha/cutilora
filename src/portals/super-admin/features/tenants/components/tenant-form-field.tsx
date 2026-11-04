@@ -1,4 +1,4 @@
-import type { ReactNode } from "react"
+import type { InputHTMLAttributes, ReactNode } from "react"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
@@ -8,7 +8,7 @@ interface TenantFormFieldProps {
   label: string
   value: string
   onChange: (value: string) => void
-  type?: string
+  type?: InputHTMLAttributes<HTMLInputElement>["type"]
   placeholder?: string
   required?: boolean
   disabled?: boolean
