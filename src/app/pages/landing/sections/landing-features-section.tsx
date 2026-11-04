@@ -1,14 +1,11 @@
 import { Activity, CalendarDays, LayoutDashboard, Users, Workflow } from "lucide-react"
 import type { LandingCopy } from "../landing-content"
+import { LandingSectionHeading } from "./landing-section-heading"
 
 export function LandingFeaturesSection({ copy }: { copy: LandingCopy }) {
   return (
     <section className="landing-feature-section" id="why-cutilora">
-            <div className="landing-section-heading">
-              <div className="landing-eyebrow"><span className="landing-eyebrow-dot" />{copy.sectionEyebrow}</div>
-              <h2>{copy.sectionTitle}</h2>
-              <p>{copy.sectionIntro}</p>
-            </div>
+            <LandingSectionHeading eyebrow={copy.sectionEyebrow} title={copy.sectionTitle} description={copy.sectionIntro} />
             <div className="landing-feature-grid">
               <article className="landing-feature-card feature-card-main">
                 <div className="landing-feature-icon"><Workflow size={21} /></div>
