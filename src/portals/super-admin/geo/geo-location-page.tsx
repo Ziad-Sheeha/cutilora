@@ -10,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useI18n } from "@/i18n/i18n-provider"
 import { geoConfigs, geoRecordName, type GeoId, type GeoKind, type GeoRecord } from "./geo-location.types"
 import { GeoSearchSelect } from "./geo-search-select"
-import { useGeoDetail, useGeoList, useGeoMutations } from "./use-geo-location"
+import { useGeoList, useGeoMutations } from "./use-geo-location"
 
 interface GeoFormValues {
   name_en: string
@@ -21,15 +21,6 @@ interface GeoFormValues {
 
 const kinds: GeoKind[] = ["countries", "governorates", "cities", "districts"]
 const PAGE_SIZE = 10
-
-function ParentName({ kind, id, locale }: { kind: GeoKind; id?: GeoId; locale: string }) {
-  const config = geoConfigs[kind]
-  const query = useGeoDetail(config.endpoint, id)
-  if (!id) return <span className="text-muted-foreground">—</span>
-  if (query.isLoading) return <span className="inline-block h-4 w-24 animate-pulse rounded bg-muted" />
-  if (!query.data) return <span className="text-muted-foreground">—</span>
-  return <span className="font-medium">{geoRecordName(query.data, locale)}</span>
-}
 
 export function GeoLocationPage() {
   const { kind: rawKind = "countries" } = useParams<{ kind: GeoKind }>()
@@ -46,7 +37,8 @@ export function GeoLocationPage() {
   const [actionError, setActionError] = useState("")
   const [notice, setNotice] = useState("")
   const list = useGeoList(config.endpoint, debouncedSearch, page, PAGE_SIZE)
-  const detail = useGeoDetail(config.endpoint, selected?.id)
+  const parentList = useGeoList(parentKind ? geoConfigs[parentKind].endpoint : "", "", 1, 100)
+  const parentNames = useMemo(() => new Map((parentList.data?.items ?? []).map((item) => [item.id, geoRecordName(item, locale)])), [parentList.data, locale])
   const mutations = useGeoMutations(config.endpoint)
   const records = list.data?.items ?? []
   const pagination = list.data?.pagination
@@ -83,10 +75,10 @@ export function GeoLocationPage() {
   }), [kind, isArabic, parentKind])
 
   const initialValues: GeoFormValues = {
-    name_en: detail.data?.nameEn ?? selected?.nameEn ?? "",
-    name_ar: detail.data?.name_ar ?? selected?.name_ar ?? "",
-    code: detail.data?.code ?? selected?.code ?? "",
-    parentId: parentField && detail.data?.[parentField] ? String(detail.data[parentField]) : "",
+    name_en: selected?.nameEn ?? "",
+    name_ar: selected?.name_ar ?? "",
+    code: selected?.code ?? "",
+    parentId: parentField && selected?.[parentField] ? String(selected[parentField]) : "",
   }
 
   function openCreate() {
@@ -194,7 +186,7 @@ export function GeoLocationPage() {
                   <TableCell><span className="font-semibold">{record.name_ar}</span></TableCell>
                   <TableCell><span className="font-medium text-foreground/85" dir="ltr">{record.nameEn}</span></TableCell>
                   {kind === "countries" && <TableCell><span className="inline-flex rounded-lg border bg-muted/50 px-2.5 py-1 font-mono text-xs font-semibold tracking-wider">{record.code || "—"}</span></TableCell>}
-                  {parentKind && <TableCell><ParentName kind={parentKind} id={parentField ? record[parentField] ?? undefined : undefined} locale={locale} /></TableCell>}
+                  {parentKind && <TableCell><span className="font-medium">{parentField && record[parentField] ? parentNames.get(String(record[parentField])) ?? "—" : "—"}</span></TableCell>}
                   <TableCell><div className="flex justify-end gap-1 opacity-80 transition-opacity group-hover:opacity-100">
                     <Button type="button" variant="ghost" size="icon" className="size-9 rounded-lg hover:bg-primary/10 hover:text-primary" onClick={() => openEdit(record)} aria-label={t.common.edit}><Pencil className="size-4" /></Button>
                     <Button type="button" variant="ghost" size="icon" className="size-9 rounded-lg text-error hover:bg-error/10 hover:text-error" onClick={() => setDeleteTarget(record)} aria-label={t.common.delete}><Trash2 className="size-4" /></Button>
@@ -218,7 +210,7 @@ export function GeoLocationPage() {
       <Dialog open={formOpen} onOpenChange={(open) => { if (!busy) { setFormOpen(open); if (!open) setSelected(null) } }}>
         <DialogContent className="sm:max-w-xl">
           <DialogHeader><DialogTitle>{selected ? (isArabic ? "تعديل" : "Edit") : (isArabic ? "إضافة" : "Add")} {singular}</DialogTitle><DialogDescription>{isArabic ? "أدخل الاسم بالعربية والإنجليزية واربط السجل بمستواه الجغرافي الصحيح." : "Enter both localized names and select the correct parent geographic record."}</DialogDescription></DialogHeader>
-          {selected && detail.isLoading ? <div className="flex justify-center p-10"><LoaderCircle className="size-5 animate-spin" /></div> : (
+          {(
             <Formik key={`${kind}-${selected?.id ?? "new"}-${formOpen}`} initialValues={initialValues} enableReinitialize validationSchema={validationSchema} onSubmit={submit}>
               {({ errors, touched, isSubmitting, values, setFieldValue }) => (
                 <Form className="space-y-4">
