@@ -34,9 +34,8 @@ export function PhoneNumberField({
 }: PhoneNumberFieldProps) {
   const [open, setOpen] = useState(false)
   const [search, setSearch] = useState("")
-  const selected = phoneCountries.find((country) => country.iso === "EG" && country.dial === phoneCode)
-    ?? phoneCountries.find((country) => country.dial === phoneCode)
-    ?? phoneCountries.find((country) => country.iso === "EG")!
+  const [selectedIso, setSelectedIso] = useState(() => phoneCountries.find((country) => country.iso === "EG" && country.dial === phoneCode)?.iso ?? phoneCountries.find((country) => country.dial === phoneCode)?.iso ?? "EG")
+  const selected = phoneCountries.find((country) => country.iso === selectedIso && country.dial === phoneCode) ?? phoneCountries.find((country) => country.dial === phoneCode) ?? phoneCountries.find((country) => country.iso === "EG")!
 
   const filteredCountries = useMemo(() => {
     const query = search.trim().toLocaleLowerCase()
@@ -67,7 +66,7 @@ export function PhoneNumberField({
             <div className="mt-2 max-h-64 overflow-y-auto overscroll-contain">
               {filteredCountries.length ? filteredCountries.map((country) => {
                 const active = country.iso === selected.iso
-                return <button type="button" key={country.iso} onClick={() => { onPhoneCodeChange(country.dial); setOpen(false); setSearch("") }} className={cn("flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-start text-sm transition-colors hover:bg-muted", active && "bg-primary/10 text-primary")}>
+                return <button type="button" key={country.iso} onClick={() => { setSelectedIso(country.iso); onPhoneCodeChange(country.dial); setOpen(false); setSearch("") }} className={cn("flex w-full items-center gap-2 rounded-lg px-2.5 py-2 text-start text-sm transition-colors hover:bg-muted", active && "bg-primary/10 text-primary")}>
                   <span className="w-6 text-base" aria-hidden="true">{countryFlag(country.iso)}</span>
                   <span className="min-w-0 flex-1 truncate">{country.name}</span>
                   <span className="font-mono text-xs text-muted-foreground">{country.dial}</span>
