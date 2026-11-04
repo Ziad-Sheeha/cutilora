@@ -1,5 +1,11 @@
 import type { ReactNode } from "react"
-import { FileSpreadsheet, FileText, LoaderCircle } from "lucide-react"
+import {
+  ChevronFirst,
+  ChevronLast,
+  ChevronLeft,
+  ChevronRight,
+  LoaderCircle,
+} from "lucide-react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { useI18n } from "@/i18n/i18n-provider"
 
@@ -19,6 +25,15 @@ interface DataTableProps<T> {
   emptyState: ReactNode
   loadingLabel: string
   tableClassName?: string
+  pagination?: {
+    page: number
+    perPage: number
+    total: number
+    totalKnown: boolean
+    hasNext: boolean
+  }
+  onPageChange?: (page: number) => void
+  onPerPageChange?: (perPage: number) => void
 }
 
 type TimestampFields = {
@@ -46,7 +61,7 @@ function timestampOf<T>(row: T, snake: "created_at" | "updated_at", camel: "crea
   return record[snake] ?? record[camel] ?? null
 }
 
-/** Shared table presentation with consistent metadata and disabled export affordances until API support exists. */
+/** Shared table presentation. Data fetching and pagination state remain owned by each page. */
 export function DataTable<T>({
   columns,
   data,
@@ -55,24 +70,33 @@ export function DataTable<T>({
   emptyState,
   loadingLabel,
   tableClassName,
+  pagination,
+  onPageChange,
+  onPerPageChange,
 }: DataTableProps<T>) {
   const { locale } = useI18n()
+  const isArabic = locale === "ar"
   const hasCreatedAt = data.some((row) => Boolean(timestampOf(row, "created_at", "createdAt")))
   const hasUpdatedAt = data.some((row) => Boolean(timestampOf(row, "updated_at", "updatedAt")))
+
+  // System metadata is inserted before the actions column, which must always remain last.
+  const actionColumns = columns.filter((column) => column.id === "actions")
+  const regularColumns = columns.filter((column) => column.id !== "actions")
   const displayColumns: DataTableColumn<T>[] = [
-    ...columns,
+    ...regularColumns,
     ...(hasCreatedAt ? [{
       id: "created-at",
-      header: locale === "ar" ? "تاريخ الإنشاء" : "Created at",
+      header: isArabic ? "تاريخ الإنشاء" : "Created at",
       cell: (row: T) => <time className="whitespace-nowrap text-xs font-medium tabular-nums text-muted-foreground">{formatTimestamp(timestampOf(row, "created_at", "createdAt"), locale)}</time>,
       headerClassName: "whitespace-nowrap",
     }] : []),
     ...(hasUpdatedAt ? [{
       id: "updated-at",
-      header: locale === "ar" ? "آخر تحديث" : "Updated at",
+      header: isArabic ? "آخر تحديث" : "Updated at",
       cell: (row: T) => <time className="whitespace-nowrap text-xs font-medium tabular-nums text-muted-foreground">{formatTimestamp(timestampOf(row, "updated_at", "updatedAt"), locale)}</time>,
       headerClassName: "whitespace-nowrap",
     }] : []),
+    ...actionColumns,
   ]
 
   if (isLoading) {
@@ -81,41 +105,82 @@ export function DataTable<T>({
 
   if (data.length === 0) return <>{emptyState}</>
 
+  const firstItem = pagination ? (pagination.page - 1) * pagination.perPage + 1 : 1
+  const lastItem = firstItem + data.length - 1
+  const pageCount = pagination?.totalKnown
+    ? Math.max(1, Math.ceil(pagination.total / pagination.perPage))
+    : undefined
+  const buttonClass = "inline-flex size-9 items-center justify-center rounded-lg border border-border bg-card text-foreground transition-colors hover:bg-muted disabled:pointer-events-none disabled:opacity-40"
+
   return (
     <div className="w-full">
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/70 bg-muted/15 px-4 py-3">
-        <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-          {locale === "ar" ? "إجراءات البيانات" : "Data actions"}
-        </span>
-        <div className="flex items-center gap-2">
-          <button type="button" disabled title={locale === "ar" ? "سيتاح بعد ربط خدمة التصدير" : "Available when the export API is connected"} className="inline-flex h-9 cursor-not-allowed items-center gap-2 rounded-xl border border-border bg-card px-3 text-xs font-semibold text-muted-foreground opacity-60">
-            <FileText className="size-4" /> PDF
-          </button>
-          <button type="button" disabled title={locale === "ar" ? "سيتاح بعد ربط خدمة التصدير" : "Available when the export API is connected"} className="inline-flex h-9 cursor-not-allowed items-center gap-2 rounded-xl border border-border bg-card px-3 text-xs font-semibold text-muted-foreground opacity-60">
-            <FileSpreadsheet className="size-4" /> Excel
-          </button>
-        </div>
-      </div>
       <div className="overflow-x-auto">
         <Table className={tableClassName}>
           <TableHeader>
-            <TableRow className="border-b border-border/70 bg-muted/35 hover:bg-muted/35">
+            <TableRow className="border-b border-border/70 bg-muted/30 hover:bg-muted/30">
               {displayColumns.map((column) => (
-                <TableHead key={column.id} className={`h-12 whitespace-nowrap px-5 text-[11px] font-bold uppercase tracking-[0.08em] text-muted-foreground ${column.headerClassName ?? ""}`}>{column.header}</TableHead>
+                <TableHead key={column.id} className={`h-12 whitespace-nowrap px-5 text-[11px] font-semibold tracking-wide text-muted-foreground ${column.headerClassName ?? ""}`}>{column.header}</TableHead>
               ))}
             </TableRow>
           </TableHeader>
           <TableBody>
             {data.map((row) => (
-              <TableRow key={getRowId(row)} className="border-b border-border/50 transition-colors hover:bg-primary/[0.035]">
+              <TableRow key={getRowId(row)} className="border-b border-border/50 transition-colors hover:bg-muted/35">
                 {displayColumns.map((column) => (
-                  <TableCell key={column.id} className={`px-5 py-4 align-middle ${column.cellClassName ?? ""}`}>{column.cell(row)}</TableCell>
+                  <TableCell key={column.id} className={`px-5 py-3.5 align-middle ${column.cellClassName ?? ""}`}>{column.cell(row)}</TableCell>
                 ))}
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </div>
+
+      {pagination && onPageChange && onPerPageChange && (
+        <footer className="flex flex-col gap-3 border-t border-border/70 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-muted-foreground">
+            <label className="flex items-center gap-2">
+              <span>{isArabic ? "عدد الصفوف" : "Rows per page"}</span>
+              <select
+                value={pagination.perPage}
+                onChange={(event) => onPerPageChange(Number(event.target.value))}
+                className="h-9 rounded-lg border border-border bg-card px-2 text-sm font-medium text-foreground outline-none focus:ring-2 focus:ring-primary/20"
+                aria-label={isArabic ? "عدد الصفوف في الصفحة" : "Rows per page"}
+              >
+                {[10, 25, 50, 100].map((size) => <option key={size} value={size}>{size}</option>)}
+              </select>
+            </label>
+            <span className="tabular-nums">
+              {isArabic ? "عرض" : "Showing"} {firstItem}–{lastItem}
+              {pagination.totalKnown ? ` ${isArabic ? "من" : "of"} ${pagination.total}` : ""}
+            </span>
+          </div>
+
+          <div className="flex items-center justify-between gap-3 sm:justify-end">
+            <span className="text-xs font-medium text-muted-foreground">
+              {isArabic ? "صفحة" : "Page"} {pagination.page}
+              {pageCount ? ` ${isArabic ? "من" : "of"} ${pageCount}` : ""}
+            </span>
+            <div className="flex items-center gap-1">
+              {pagination.totalKnown && (
+                <button type="button" className={buttonClass} onClick={() => onPageChange(1)} disabled={pagination.page <= 1} aria-label={isArabic ? "أول صفحة" : "First page"}>
+                  {isArabic ? <ChevronLast className="size-4" /> : <ChevronFirst className="size-4" />}
+                </button>
+              )}
+              <button type="button" className={buttonClass} onClick={() => onPageChange(Math.max(1, pagination.page - 1))} disabled={pagination.page <= 1} aria-label={isArabic ? "الصفحة السابقة" : "Previous page"}>
+                {isArabic ? <ChevronRight className="size-4" /> : <ChevronLeft className="size-4" />}
+              </button>
+              <button type="button" className={buttonClass} onClick={() => onPageChange(pagination.page + 1)} disabled={!pagination.hasNext} aria-label={isArabic ? "الصفحة التالية" : "Next page"}>
+                {isArabic ? <ChevronLeft className="size-4" /> : <ChevronRight className="size-4" />}
+              </button>
+              {pagination.totalKnown && (
+                <button type="button" className={buttonClass} onClick={() => onPageChange(pageCount ?? 1)} disabled={pagination.page >= (pageCount ?? 1)} aria-label={isArabic ? "آخر صفحة" : "Last page"}>
+                  {isArabic ? <ChevronFirst className="size-4" /> : <ChevronLast className="size-4" />}
+                </button>
+              )}
+            </div>
+          </div>
+        </footer>
+      )}
     </div>
   )
 }
