@@ -20,6 +20,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   let response: Response
   try {
     const token = getSuperAdminToken()
+    if (!token) throw new Error("Your Super Admin session has expired. Please sign in again.")
     response = await fetch(base + path, {
       ...init,
       headers: {
@@ -48,7 +49,8 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return payload as T
 }
 function normalizeList(payload: unknown): GeoListResult {
-  const root = object(payload)
+  const normalized = unwrap(payload)
+  const root = object(normalized)
   const nested = object(root?.data)
   const candidates = [normalized, root?.data, nested?.data, nested?.items, root?.items]
   const rows = candidates.find(Array.isArray) as unknown[] | undefined
