@@ -217,7 +217,7 @@ export function AuditMonitoringPage() {
       </div>
       <div className="flex flex-wrap items-center gap-2">
         <span className="inline-flex items-center gap-2 rounded-xl border bg-card px-3 py-2 text-xs font-medium text-muted-foreground"><span className="size-2 animate-pulse rounded-full bg-success" />{t.live}</span>
-        <Button variant="outline" onClick={refresh} disabled={viewQuery.isFetching || statsQuery.isFetching || logsQuery.isFetching}><RefreshCw className="size-4" />{viewQuery.isFetching || statsQuery.isFetching ? t.refreshing : t.refresh}</Button>
+        <Button variant="outline" onClick={refresh} disabled={viewQuery.isFetching || statsQuery.isFetching || logsQuery.isFetching}>{!(viewQuery.isFetching || statsQuery.isFetching || logsQuery.isFetching) && <RefreshCw className="size-4" />}{viewQuery.isFetching || statsQuery.isFetching || logsQuery.isFetching ? t.refreshing : t.refresh}</Button>
       </div>
     </header>
 
