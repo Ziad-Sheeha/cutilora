@@ -434,6 +434,19 @@ export function TenantDomainWorkspacePage({ feature, clinicId, clinics = [], bra
       field.name,
       field.type === "number" ? Number(values[field.name]) : ["true", "false"].includes(values[field.name]) ? values[field.name] === "true" : values[field.name],
     ]))
+    if (feature.key === "integrations" && endpoint.path.endsWith("/webhooks")) {
+      try {
+        if (new URL(String(payload.url)).protocol !== "https:") throw new Error("https")
+      } catch {
+        setFormError(ar ? "يجب أن يبدأ رابط Webhook بعنوان HTTPS صالح." : "Webhook URL must be a valid HTTPS URL.")
+        return
+      }
+      payload.events = String(payload.events ?? "").split(/[\n,]/).map(value => value.trim()).filter(Boolean)
+      if (!(payload.events as string[]).length) {
+        setFormError(ar ? "اختر حدثاً واحداً على الأقل للاشتراك به." : "Subscribe to at least one webhook event.")
+        return
+      }
+    }
     if (feature.key === "invitations") {
       if (values.scope === "clinic") payload.clinicIds = invitationClinicIds
       if (values.scope === "branch") payload.branchIds = invitationBranchIds
