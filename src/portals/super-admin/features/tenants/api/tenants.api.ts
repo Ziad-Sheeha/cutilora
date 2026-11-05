@@ -1,6 +1,6 @@
 import { appEnv } from "@/config/env"
 import { expireSuperAdminSession, getSuperAdminToken } from "@/portals/super-admin/auth/super-admin-auth"
-import type { Tenant, TenantAddress, TenantBranding, TenantContact, TenantLegal, TenantListResult, TenantPayment, TenantPayload, TenantPreferences, TenantSubscription } from "../types/tenant.types"
+import type { Tenant, TenantAddress, TenantBranding, TenantContact, TenantClinic, TenantLegal, TenantListResult, TenantPayment, TenantPayload, TenantPreferences, TenantSubscription } from "../types/tenant.types"
 
 const baseUrl = appEnv.apiBaseUrl.replace(/\/$/, "")
 type ObjectValue = Record<string, unknown>
@@ -12,6 +12,28 @@ function nullableText(value: unknown): string | null { return typeof value === "
 function numberOrNull(value: unknown): number | null { return typeof value === "number" && Number.isFinite(value) ? value : null }
 function asArray(value: unknown): unknown[] { return Array.isArray(value) ? value : [] }
 
+function normalizeClinic(value: unknown): TenantClinic | null {
+  const row = object(value)
+  if (!row) return null
+  const id = row._id ?? row.id
+  if (typeof id !== "string" && typeof id !== "number") return null
+  const branding = object(row.branding) ?? {}
+  return {
+    id: String(id),
+    name: text(row.name),
+    slug: text(row.slug),
+    code: text(row.code),
+    status: text(row.status, "unknown"),
+    clinicType: text(row.clinicType, "other"),
+    description: text(row.description),
+    specialties: asArray(row.specialties).filter((item): item is string => typeof item === "string"),
+    branding: {
+      logoUrl: text(branding.logoUrl),
+      coverImageUrl: text(branding.coverImageUrl),
+      primaryColor: text(branding.primaryColor, "#2563eb"),
+    },
+  }
+}
 function normalizeTenant(value: unknown): Tenant {
   const row = object(value)
   if (!row) throw new Error("UNEXPECTED_RESPONSE")
@@ -50,7 +72,7 @@ function normalizeTenant(value: unknown): Tenant {
     id: String(id), name: text(row.name), slug: text(row.slug), displayName: text(row.displayName), legalName: text(row.legalName),
     businessType: text(row.businessType, "single_clinic"), description: text(row.description), industry: text(row.industry),
     status: text(row.status, "pending"), plan: text(row.plan), contact: tenantContact, address: tenantAddress,
-    legal: tenantLegal, branding: tenantBranding, preferences: tenantPreferences,
+    legal: tenantLegal, branding: tenantBranding,\n    clinics: asArray(row.clinics).map(normalizeClinic).filter((clinic): clinic is TenantClinic => clinic !== null),\n    preferences: tenantPreferences,
     createdAt: nullableText(row.createdAt ?? row.created_at), updatedAt: nullableText(row.updatedAt ?? row.updated_at),
   }
 }
