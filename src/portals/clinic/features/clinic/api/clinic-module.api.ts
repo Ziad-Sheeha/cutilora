@@ -37,6 +37,14 @@ const configs: Partial<Record<ClinicModuleKey, ModuleConfig>> = {
     { name: "currency", label: "Currency", required: true },
     { name: "validityDays", label: "Validity (days)", type: "number", required: true },
   ] },
+  team: { path: "/employees", create: true, update: true, fields: [
+    { name: "recordType", label: "Member type", required: true },
+    { name: "firstName", label: "First name", required: true },
+    { name: "lastName", label: "Last name", required: true },
+    { name: "email", label: "Work email", type: "email" },
+    { name: "phone", label: "Phone", type: "tel" },
+    { name: "jobTitle", label: "Job title" },
+  ] },
   billing: { path: "/sales", create: true, fields: [
     { name: "patientId", label: "Patient ID", required: true },
     { name: "branchId", label: "Branch ID", required: true },
