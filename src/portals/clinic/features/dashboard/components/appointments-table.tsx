@@ -5,6 +5,7 @@ import { ArrowUpRight, CalendarDays } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { DataTable, type DataTableColumn } from "@/components/ui/data-table"
 import { useI18n } from "@/i18n/i18n-provider"
+import { useAppSelector } from "@/store/hooks"
 import { fetchClinicModuleRecords, type ClinicRecord } from "@/portals/clinic/features/clinic/api/clinic-module.api"
 
 function relatedName(value: unknown) {
@@ -29,10 +30,11 @@ function rowId(record: ClinicRecord, index: number) {
 export const AppointmentsTable = function AppointmentsTable() {
   const { t, locale } = useI18n()
   const d = t.dashboard
+  const branchId = useAppSelector((state) => state.ui.currentBranchId)
   const [page, setPage] = useState(1)
   const [perPage, setPerPage] = useState(5)
   const query = useQuery({
-    queryKey: ["clinic-module", "appointments"],
+    queryKey: ["clinic-module", "appointments", branchId],
     queryFn: () => fetchClinicModuleRecords("appointments"),
     staleTime: 30_000,
   })
