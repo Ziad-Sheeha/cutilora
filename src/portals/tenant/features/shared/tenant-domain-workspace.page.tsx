@@ -143,6 +143,19 @@ function resolvePath(path: string, row?: Row) {
   })
 }
 function operationLabel(endpoint: TenantFeatureEndpoint, ar: boolean) {
+  const localized: Record<string, [string, string]> = {
+    "Create invitation": ["Send invitation", "إرسال دعوة"], "Revoke invitation": ["Revoke invitation", "إلغاء الدعوة"],
+    "Update membership status and role": ["Update membership", "تعديل العضوية"], "Assign clinic and branch scopes": ["Assign access scope", "تحديد نطاق الوصول"],
+    "Create role": ["Create role", "إنشاء دور"], "Update role": ["Update role", "تحديث الدور"], "Replace role grants": ["Save permissions", "حفظ الصلاحيات"],
+    "Update organization defaults": ["Save policies", "حفظ السياسات"], "Preview selected rollout": ["Preview changes", "معاينة التغييرات"],
+    "Apply confirmed rollout": ["Apply changes", "تطبيق التغييرات"], "Create template": ["Create template", "إنشاء قالب"],
+    "Update template": ["Update template", "تحديث القالب"], "Submit plan change request": ["Request plan change", "طلب تغيير الخطة"],
+    "Connect provider": ["Connect provider", "ربط مزود الخدمة"], "Update integration": ["Update integration", "تحديث التكامل"],
+    "Register webhook": ["Register webhook", "تسجيل Webhook"], "Generate export": ["Generate report", "إنشاء تقرير"],
+    "Export filtered audit events": ["Export audit log", "تصدير سجل التدقيق"], "Update clinic profile": ["Save clinic profile", "حفظ ملف العيادة"],
+    "Update clinic settings and overrides": ["Save clinic settings", "حفظ إعدادات العيادة"],
+  }
+  if (localized[endpoint.purpose]) return localized[endpoint.purpose][ar ? 1 : 0]
   const p = endpoint.purpose.toLowerCase()
   if (p.includes("resend")) return ar ? "إعادة الإرسال" : "Resend"
   if (p.includes("revoke")) return ar ? "إلغاء" : "Revoke"
@@ -444,6 +457,7 @@ export function TenantDomainWorkspacePage({ feature, clinicId, clinics = [], bra
                 en: "الإنجليزية", ar: "العربية", EGP: "جنيه مصري", SAR: "ريال سعودي", AED: "درهم إماراتي", USD: "دولار أمريكي",
                 whatsapp: "واتساب", sms: "رسائل SMS", email: "البريد الإلكتروني", calendar: "التقويم", payment: "الدفع",
                 true: "مفعل", false: "معطل", starter: "المبتدئة", growth: "النمو", enterprise: "المؤسسات", monthly: "شهري", yearly: "سنوي",
+                aesthetic: "طب تجميلي", dermatology: "جلدية", beauty_center: "مركز تجميل", xlsx: "Excel", csv: "CSV", pdf: "PDF",
               } as Record<string, string>)[option.value] ?? option.label : option.label}</SelectItem>)}</SelectContent></Select>
               : field.type === "textarea" ? <Textarea id={`tenant-op-${feature.key}-${field.name}`} value={values[field.name] ?? ""} onChange={event => setValues(current => ({ ...current, [field.name]: event.target.value }))}/>
               : <Input id={`tenant-op-${feature.key}-${field.name}`} type={field.type ?? "text"} value={values[field.name] ?? ""} onChange={event => setValues(current => ({ ...current, [field.name]: event.target.value }))}/>}
