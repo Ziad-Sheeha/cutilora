@@ -65,7 +65,7 @@ export function TenantOrganizationPage() {
   const countriesQuery = useQuery({ queryKey: ["tenant-geo", "countries"], queryFn: () => getTenantGeo("countries"), staleTime: 300_000 })
   const citiesQuery = useQuery({
     queryKey: ["tenant-geo", "cities", values.countryId],
-    queryFn: () => getTenantGeo("cities", { countryId: values.countryId }),
+    queryFn: () => getTenantGeo("cities", { country_id: values.countryId }),
     enabled: Boolean(values.countryId),
     staleTime: 300_000,
   })
