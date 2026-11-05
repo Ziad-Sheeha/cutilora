@@ -151,6 +151,7 @@ export const tenantFeatureRegistry: TenantFeatureDefinition[] = [
     endpoints: [
       { method: "GET", path: "/api/v1/tenant/subscription", purpose: "Current subscription" },
       { method: "GET", path: "/api/v1/tenant/subscription/usage", purpose: "Entitlement usage" },
+      { method: "GET", path: "/api/v1/tenant/billing-profile", purpose: "Billing profile" },
       { method: "GET", path: "/api/v1/tenant/invoices", purpose: "Cutilora invoices" },
       { method: "GET", path: "/api/v1/tenant/invoices/{id}", purpose: "Invoice details" },
       { method: "GET", path: "/api/v1/tenant/invoices/{id}/download", purpose: "Download invoice" },
