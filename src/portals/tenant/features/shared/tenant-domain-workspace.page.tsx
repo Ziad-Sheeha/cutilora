@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react"
 import { useQueries, useMutation, useQueryClient } from "@tanstack/react-query"
-import { Activity, Check, Eye, LoaderCircle, Plus, RefreshCw, RotateCw, Send, ShieldCheck, Trash2, XCircle } from "lucide-react"
+import { Activity, Check, Eye, LoaderCircle, Plus, RefreshCw, RotateCw, Search, Send, ShieldCheck, Trash2, XCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { DataTable, type DataTableColumn } from "@/components/ui/data-table"
@@ -117,6 +117,7 @@ export function TenantDomainWorkspacePage({ feature, clinicId }: { feature: Tena
   const ar = locale === "ar"
   const client = useQueryClient()
   const [values, setValues] = useState<Record<string, string>>({})
+  const [search, setSearch] = useState("")
   const [formError, setFormError] = useState("")
   const [success, setSuccess] = useState("")
   const [confirm, setConfirm] = useState<{ endpoint: TenantFeatureEndpoint; row?: Row } | null>(null)
@@ -128,9 +129,9 @@ export function TenantDomainWorkspacePage({ feature, clinicId }: { feature: Tena
   const writeEndpoints = feature.endpoints.filter(endpoint => endpoint.method !== "GET")
   const resourcesQuery = useQueries({
     queries: getEndpoints.map(endpoint => ({
-      queryKey: ["tenant-domain", feature.key, endpoint.path],
+      queryKey: ["tenant-domain", feature.key, endpoint.path, search],
       queryFn: async () => {
-        const response = await tenantApi.get(apiPath(endpoint.path), { params: { per_page: 100 } })
+        const response = await tenantApi.get(apiPath(endpoint.path), { params: { per_page: 100, search: search.trim() || undefined } })
         const data = unwrap(response.data)
         const isSummaryResource = /summary|subscription|configuration|preferences/.test(endpoint.path)
         const record = data && typeof data === "object" && !Array.isArray(data) ? data as Record<string, unknown> : null
@@ -260,10 +261,11 @@ export function TenantDomainWorkspacePage({ feature, clinicId }: { feature: Tena
     <div className="space-y-6">
       <TenantPageHeading eyebrow={feature.eyebrow[ar ? "ar" : "en"]} title={feature.title[ar ? "ar" : "en"]} description={feature.description[ar ? "ar" : "en"]} />
       {(formError || success) && <div role={formError ? "alert" : "status"} className={formError ? "rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive" : "rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800"}>{formError || success}</div>}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-sm text-muted-foreground">{ar ? "البيانات مرتبطة بالمؤسسة النشطة." : "Data is scoped to the active organization."}</p>
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="relative w-full sm:max-w-sm"><Search className="absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"/><Input value={search} onChange={event => setSearch(event.target.value)} placeholder={ar ? "ابحث في البيانات..." : "Search workspace data..."} className="ps-9"/></div>
         <Button variant="outline" onClick={() => void client.invalidateQueries({ queryKey: ["tenant-domain", feature.key] })} disabled={busy}><RefreshCw className={`me-2 size-4 ${busy ? "animate-spin" : ""}`}/>{ar ? "تحديث البيانات" : "Refresh data"}</Button>
       </div>
+      {feature.key === "clinic-workspace" && !clinicId && <Card><CardContent className="p-8 text-center text-sm text-muted-foreground">{ar ? "اختر عيادة من محدد السياق بالأعلى لعرض مساحة إدارتها." : "Choose a clinic from the context selector above to open its management workspace."}</CardContent></Card>}
       {hasError && <p role="alert" className="text-sm text-destructive">{hasError instanceof Error ? hasError.message : (ar ? "تعذر تحميل بعض البيانات." : "Some data could not be loaded.")}</p>}
       {resources.map((resource, index) => {
         const rows = resource.rows
