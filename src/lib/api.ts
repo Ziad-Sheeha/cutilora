@@ -1,7 +1,7 @@
 import axios, { AxiosError, type AxiosRequestConfig } from "axios"
 import { appEnv } from "@/config/env"
 import { beginLoading, endLoading, pushToast, store } from "@/store"
-import { getClinicToken } from "@/portals/clinic/auth/clinic-auth"
+import { expireClinicSession, getClinicToken } from "@/portals/clinic/auth/clinic-auth"
 export type ApiError = { message: string; code?: string; status?: number; errors?: Record<string, string[]>; requestId?: string }
 export function normalizeApiError(error: unknown): ApiError {
  if (axios.isAxiosError(error)) {
