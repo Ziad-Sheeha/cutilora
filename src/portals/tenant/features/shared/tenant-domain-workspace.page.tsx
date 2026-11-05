@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from "react"
+import { useEffect, useRef, useState, type FormEvent } from "react"
 import { useQueries, useMutation, useQueryClient } from "@tanstack/react-query"
 import { Activity, Check, Copy, Eye, LoaderCircle, Plus, RefreshCw, RotateCw, Search, Send, ShieldCheck, Trash2, XCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -183,6 +183,7 @@ export function TenantDomainWorkspacePage({ feature, clinicId, clinics = [], bra
   const [formError, setFormError] = useState("")
   const [oneTimeCredential, setOneTimeCredential] = useState("")
   const [success, setSuccess] = useState("")
+  const downloadWindow = useRef<Window | null>(null)
   const [confirm, setConfirm] = useState<{ endpoint: TenantFeatureEndpoint; row?: Row } | null>(null)
   const [details, setDetails] = useState<{ title: string; data: unknown } | null>(null)
   const [selectedOperation, setSelectedOperation] = useState<SelectedOperation | null>(null)
@@ -269,11 +270,17 @@ export function TenantDomainWorkspacePage({ feature, clinicId, clinics = [], bra
       await client.invalidateQueries({ queryKey: ["tenant-domain", feature.key] })
       const result = unwrap(data) as { url?: string; downloadUrl?: string; exportUrl?: string; secret?: string; apiKey?: string; token?: string; credential?: string; credentials?: { apiKey?: string; webhookSecret?: string; signingSecret?: string } } | undefined
       const url = result?.url ?? result?.downloadUrl ?? result?.exportUrl
-      if (url && /download|export/i.test(variables.endpoint.purpose)) window.open(url, "_blank", "noopener,noreferrer")
+      if (url && /download|export/i.test(variables.endpoint.purpose)) {
+        if (downloadWindow.current && !downloadWindow.current.closed) downloadWindow.current.location.assign(url)
+        else window.open(url, "_blank", "noopener,noreferrer")
+        downloadWindow.current = null
+      }
       const issuedCredential = result?.secret ?? result?.apiKey ?? result?.token ?? result?.credential ?? result?.credentials?.apiKey ?? result?.credentials?.webhookSecret ?? result?.credentials?.signingSecret
       if (issuedCredential && /connect|rotate|register/i.test(variables.endpoint.purpose)) setOneTimeCredential(issuedCredential)
     },
     onError: error => {
+      if (downloadWindow.current && !downloadWindow.current.closed) downloadWindow.current.close()
+      downloadWindow.current = null
       setSuccess("")
       setFormError(error instanceof Error ? error.message : (ar ? "تعذر تنفيذ العملية." : "The operation could not be completed."))
     },
@@ -340,6 +347,11 @@ export function TenantDomainWorkspacePage({ feature, clinicId, clinics = [], bra
   async function submitForm(event: FormEvent<HTMLFormElement>, endpoint: TenantFeatureEndpoint, row?: Row) {
     event.preventDefault()
     setFormError("")
+    if (/download|export/i.test(endpoint.purpose)) {
+      downloadWindow.current?.close()
+      downloadWindow.current = window.open("about:blank", "_blank")
+      if (downloadWindow.current) downloadWindow.current.opener = null
+    }
     const activeFields = fieldsFor(endpoint)
     if (feature.key === "roles" && /permissions/i.test(endpoint.path)) {
       const permissions = permissionText.split(/[\n,]/).map(value => value.trim()).filter(Boolean)
@@ -463,12 +475,15 @@ export function TenantDomainWorkspacePage({ feature, clinicId, clinics = [], bra
               /> : !isSummary && !resourcesQuery[index]?.isLoading ? <p className="rounded-xl border border-dashed py-8 text-center text-sm text-muted-foreground">{ar ? "لا توجد سجلات حالياً." : "No records yet."}</p> : null}
               {matchingReadActions.length > 0 && rows.length > 0 && <div className="mt-3 flex flex-wrap gap-2">{rows.slice(0, 8).flatMap(row => matchingReadActions.map(endpoint => <Button key={endpoint.path + rowId(row)} size="sm" variant="outline" onClick={() => {
                 if (/download/i.test(endpoint.purpose)) {
+                  const popup = window.open("about:blank", "_blank")
+                  if (popup) popup.opener = null
                   void tenantApi.get(apiPath(resolvePath(endpoint.path, row))).then(response => {
                     const result = unwrap(response.data) as { url?: string; downloadUrl?: string }
                     const url = result?.url ?? result?.downloadUrl
-                    if (url) window.open(url, "_blank", "noopener,noreferrer")
-                    else setFormError(ar ? "رابط التنزيل غير متاح." : "The download link is unavailable.")
-                  }).catch(error => setFormError(error instanceof Error ? error.message : (ar ? "تعذر التنزيل." : "Unable to download.")))
+                    if (url && popup) popup.location.assign(url)
+                    else if (url) window.open(url, "_blank", "noopener,noreferrer")
+                    else { popup?.close(); setFormError(ar ? "رابط التنزيل غير متاح." : "The download link is unavailable.") }
+                  }).catch(error => { popup?.close(); setFormError(error instanceof Error ? error.message : (ar ? "تعذر التنزيل." : "Unable to download.")) })
                 } else void openDetails(endpoint, row)
               }}><Eye className="me-2 size-3.5"/>{/download/i.test(endpoint.purpose) ? (ar ? "تنزيل" : "Download") : (ar ? "تفاصيل" : "Details")} · {String(row.name ?? row.email ?? rowId(row)).slice(0, 20)}</Button>))}</div>}
               {matchingRowActions.length > 0 && rows.length > 0 && <div className="mt-4 flex flex-wrap gap-2">{rows.slice(0, 12).flatMap(row => matchingRowActions.map(endpoint => <Button key={endpoint.path + rowId(row)} size="sm" variant={endpoint.method === "DELETE" || /revoke|disconnect/i.test(endpoint.purpose) ? "destructive" : "outline"} disabled={!rowId(row) && !row.membershipId && !row.userId || operation.isPending} onClick={() => {
