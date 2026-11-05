@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react"
-import { AlertCircle, CheckCircle2, ClipboardCheck } from "lucide-react"
+import { CheckCircle2, ClipboardCheck } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Field, FieldError } from "@/components/ui/field"
@@ -19,7 +19,6 @@ export function TenantFeatureForm({ feature }: Props) {
   const [values, setValues] = useState<Record<string, string>>({})
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [validated, setValidated] = useState(false)
-  const [serverError, setServerError] = useState<string | null>(null)
 
   if (!feature.fields?.length || !feature.schemaKey) return null
 
@@ -99,7 +98,6 @@ export function TenantFeatureForm({ feature }: Props) {
       return
     }
     setErrors({})
-    setServerError(null)
     setValidated(true)
   }
 
@@ -180,7 +178,6 @@ export function TenantFeatureForm({ feature }: Props) {
               {errors[field.name] && <FieldError id={`tenant-feature-${field.name}-error`}>{errors[field.name]}</FieldError>}
             </Field>
           ))}
-          {serverError && <div role="alert" className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800 sm:col-span-2"><AlertCircle className="mt-0.5 size-4 shrink-0" />{serverError}</div>}
           <div className="flex flex-wrap items-center gap-3 sm:col-span-2">
             <Button type="submit">{ar ? "التحقق من المسودة" : "Validate draft"}</Button>
             {validated && (
