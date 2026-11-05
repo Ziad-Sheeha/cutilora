@@ -54,7 +54,11 @@ export function LandingPage() {
               <span>{copy.platformAdmin}</span>
               <ArrowUpRight size={15} />
             </Link>
-            <Link to="/clinic/login" className="landing-login landing-login-clinic">
+            <Link to="/tenant/login" className="landing-login landing-login-clinic">
+              <span>{isArabic ? "بوابة المؤسسة" : "Tenant portal"}</span>
+              <ArrowUpRight size={15} />
+            </Link>
+            <Link to="/clinic/login" className="landing-login">
               <span>{copy.clinic}</span>
               <ArrowUpRight size={15} />
             </Link>

@@ -13,10 +13,17 @@ import { SuperAdminModulePage, SuperAdminOverviewPage } from "@/portals/super-ad
 import { GeoLocationPage } from "@/portals/super-admin/features/geo-location/pages/geo-location.page"
 import { AuditMonitoringPage } from "@/portals/super-admin/features/monitoring/pages/audit-monitoring.page"
 import { adminNavigation } from "@/portals/clinic/config/navigation"
+import { TenantGuard } from "@/portals/tenant/auth/tenant-guard"
+import { TenantLoginPage } from "@/portals/tenant/auth/tenant-login-page"
+import { TenantLayout } from "@/portals/tenant/layout/tenant-layout"
 
 const TenantsPage = lazy(() => import("@/portals/super-admin/features/tenants/pages/tenants.page").then((module) => ({ default: module.TenantsPage })))
 const TenantDetailsPage = lazy(() => import("@/portals/super-admin/features/tenants/pages/tenant-details.page").then((module) => ({ default: module.TenantDetailsPage })))
 const TenantFormPage = lazy(() => import("@/portals/super-admin/features/tenants/pages/tenant-form.page").then((module) => ({ default: module.TenantFormPage })))
+const TenantOverviewPage = lazy(() => import("@/portals/tenant/pages/tenant-overview.page").then((module) => ({ default: module.TenantOverviewPage })))
+const TenantClinicsPage = lazy(() => import("@/portals/tenant/pages/tenant-clinics.page").then((module) => ({ default: module.TenantClinicsPage })))
+const TenantBranchesPage = lazy(() => import("@/portals/tenant/pages/tenant-branches.page").then((module) => ({ default: module.TenantBranchesPage })))
+const TenantOrganizationPage = lazy(() => import("@/portals/tenant/pages/tenant-organization.page").then((module) => ({ default: module.TenantOrganizationPage })))
 
 function TenantRouteFallback() {
   return <div role="status" aria-live="polite" className="flex min-h-[240px] items-center justify-center text-sm text-muted-foreground">Loading tenant module…</div>
@@ -29,6 +36,7 @@ function TenantRoute({ children }: { children: ReactNode }) {
 export const router = createBrowserRouter([
   { path: "/", element: <LandingPage /> },
   { path: "/clinic/login", element: <ClinicLoginPage /> },
+  { path: "/tenant/login", element: <TenantLoginPage /> },
   { path: "/super-admin/login", element: <SuperAdminLoginPage /> },
   {
     path: "/clinic",
@@ -60,6 +68,19 @@ export const router = createBrowserRouter([
         { path: "settings", element: <SuperAdminModulePage moduleKey="settings" /> },
         { path: "geo-location", element: <Navigate to="/super-admin/geo-location/countries" replace /> },
         { path: "geo-location/:kind", element: <GeoLocationPage /> },
+      ],
+    }],
+  },
+  {
+    path: "/tenant",
+    element: <TenantGuard />,
+    children: [{
+      element: <TenantLayout />,
+      children: [
+        { index: true, element: <TenantRoute><TenantOverviewPage /></TenantRoute> },
+        { path: "clinics", element: <TenantRoute><TenantClinicsPage /></TenantRoute> },
+        { path: "branches", element: <TenantRoute><TenantBranchesPage /></TenantRoute> },
+        { path: "organization", element: <TenantRoute><TenantOrganizationPage /></TenantRoute> },
       ],
     }],
   },
