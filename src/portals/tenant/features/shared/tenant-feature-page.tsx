@@ -24,7 +24,20 @@ import type { TenantOutletContext } from "../../layout/tenant-layout"
 
 const PAGE_SIZE = 10
 const hiddenKeys = new Set(["id", "_id", "tenantId", "tenant_id", "createdAt", "updatedAt", "created_at", "updated_at"])
-function humanize(value: string) {
+function humanize(value: string, ar = false) {
+  if (ar) {
+    const labels: Record<string, string> = {
+      name: "الاسم", displayName: "الاسم الظاهر", legalName: "الاسم القانوني",
+      email: "البريد الإلكتروني", phone: "رقم الهاتف", status: "الحالة",
+      role: "الدور", scope: "نطاق الوصول", clinic: "العيادة", branch: "الفرع",
+      title: "العنوان", description: "الوصف", category: "التصنيف",
+      amount: "القيمة", currency: "العملة", createdAt: "تاريخ الإنشاء",
+      updatedAt: "آخر تحديث", expiresAt: "تاريخ الانتهاء", expiryDate: "تاريخ الانتهاء",
+      invoiceNumber: "رقم الفاتورة", code: "الكود", timezone: "المنطقة الزمنية",
+      locale: "اللغة", provider: "مزود الخدمة", lastActivityAt: "آخر نشاط",
+    }
+    if (labels[value]) return labels[value]
+  }
   return value.replace(/([a-z0-9])([A-Z])/g, "$1 $2").replace(/[_-]/g, " ").replace(/^./, (letter) => letter.toUpperCase())
 }
 function displayValue(value: unknown) {
@@ -127,10 +140,10 @@ export function TenantFeaturePage() {
     })
     return keys.map((field) => ({
       id: field,
-      header: humanize(field),
+      header: humanize(field, ar),
       cell: (record) => <span className="block max-w-[260px] truncate text-sm" title={displayValue(record[field])}>{displayValue(record[field])}</span>,
     }))
-  }, [records])
+  }, [records, ar])
 
   if (key === "documents") return <TenantDocumentsPage />
 
