@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useAppDispatch } from "@/store/hooks"
+import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { pushToast } from "@/store"
 import { useI18n } from "@/i18n/i18n-provider"
 import { isArabicText, isEnglishText } from "@/shared/validation/language-validation"
@@ -52,6 +52,7 @@ export function ClinicModulePage() {
   const moduleText = t.clinic.modules[slug as keyof typeof t.clinic.modules] ?? t.clinic.modules.patients
   const ui = t.clinic.ui
   const dispatch = useAppDispatch()
+  const branchId = useAppSelector((state) => state.ui.currentBranchId)
   const queryClient = useQueryClient()
   const [search, setSearch] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
@@ -64,7 +65,7 @@ export function ClinicModulePage() {
   const [formError, setFormError] = useState("")
 
   const recordsQuery = useQuery({
-    queryKey: ["clinic-module", key],
+    queryKey: ["clinic-module", key, branchId],
     queryFn: () => fetchClinicModuleRecords(key),
     enabled: Boolean(config),
     staleTime: 30_000,
