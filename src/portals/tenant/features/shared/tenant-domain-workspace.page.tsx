@@ -456,6 +456,10 @@ export function TenantDomainWorkspacePage({ feature, clinicId, clinics = [], bra
       if (values.scope === "clinic") payload.clinicIds = invitationClinicIds
       if (values.scope === "branch") payload.branchIds = invitationBranchIds
     }
+    if (feature.key === "users" && endpoint.path.includes("/memberships/") && String(row?.role ?? "").toLowerCase() === "tenant_owner" && String(payload.status ?? "").toLowerCase() === "suspended") {
+      setFormError(ar ? "لا يمكن إيقاف عضوية مالك المؤسسة من هذه الشاشة. يجب الحفاظ على مالك نشط واحد على الأقل." : "A Tenant Owner membership cannot be suspended here. At least one active owner must be preserved.")
+      return
+    }
     if (feature.key === "integrations" && endpoint.path.includes("/integrations")) {
       const apiKey = payload.apiKey
       delete payload.apiKey
