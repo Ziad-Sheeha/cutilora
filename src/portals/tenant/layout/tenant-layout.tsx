@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react"
 import { Outlet, useNavigate } from "react-router"
+import { Button } from "@/components/ui/button"
 import { useI18n } from "@/i18n/i18n-provider"
 import { getBranches, getClinics, getTenantContext } from "../api/tenant-api"
 import { clearTenantSession, getTenantSession, updateTenantContext } from "../auth/tenant-session"
@@ -14,11 +15,16 @@ export type TenantOutletContext = {
   refresh: () => Promise<void>
 }
 
+const SIDEBAR_STORAGE_KEY = "cutilora:tenant-sidebar-collapsed"
+
 export function TenantLayout() {
   const [context, setContext] = useState<TenantContext | null>(null)
   const [clinics, setClinics] = useState<Clinic[]>([])
   const [branches, setBranches] = useState<Branch[]>([])
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(
+    () => window.localStorage.getItem(SIDEBAR_STORAGE_KEY) === "true",
+  )
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
   const navigate = useNavigate()
@@ -36,6 +42,10 @@ export function TenantLayout() {
     setClinics(nextClinics)
     setBranches(nextBranches)
   }, [])
+
+  useEffect(() => {
+    window.localStorage.setItem(SIDEBAR_STORAGE_KEY, String(sidebarCollapsed))
+  }, [sidebarCollapsed])
 
   useEffect(() => {
     let active = true
@@ -81,17 +91,20 @@ export function TenantLayout() {
   return (
     <div
       dir={ar ? "rtl" : "ltr"}
-      className="min-h-svh bg-[#f7f7fb] text-foreground lg:grid lg:grid-cols-[268px_minmax(0,1fr)]"
+      className={`min-h-svh bg-[#f7f7fb] text-foreground lg:grid ${sidebarCollapsed ? "lg:grid-cols-[80px_minmax(0,1fr)]" : "lg:grid-cols-[268px_minmax(0,1fr)]"}`}
     >
-      <div className="hidden lg:block">
-        <TenantSidebar />
+      <div className="sticky top-0 hidden h-svh lg:block">
+        <TenantSidebar
+          collapsed={sidebarCollapsed}
+          onToggleCollapse={() => setSidebarCollapsed((current) => !current)}
+        />
       </div>
 
       {mobileOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
-          <button
-            type="button"
-            className="absolute inset-0 bg-black/40"
+          <Button
+            variant="ghost"
+            className="absolute inset-0 h-full w-full rounded-none bg-black/40 hover:bg-black/40"
             onClick={() => setMobileOpen(false)}
             aria-label={ar ? "إغلاق القائمة" : "Close navigation"}
           />
@@ -115,15 +128,16 @@ export function TenantLayout() {
           {error && (
             <div role="alert" className="mb-5 flex items-center justify-between rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
               <span>{error}</span>
-              <button
-                type="button"
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={() => {
                   clearTenantSession()
                   navigate("/tenant/login", { replace: true })
                 }}
               >
                 {ar ? "تسجيل الدخول" : "Sign in"}
-              </button>
+              </Button>
             </div>
           )}
 
