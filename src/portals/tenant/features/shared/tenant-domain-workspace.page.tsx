@@ -13,6 +13,7 @@ import { tenantApi } from "../../api/tenant-api"
 import { TenantPageHeading } from "../../components/tenant-page-heading"
 import { ConfirmDialog } from "@/shared/components/dialogs/confirm-dialog"
 import type { TenantFeatureDefinition, TenantFeatureEndpoint, TenantFeatureField } from "./tenant-feature.types"
+import { getTenantFieldErrors, validateTenantFeatureForm, type TenantFeatureSchemaKey } from "./tenant-feature-schemas"
 
 type Row = Record<string, unknown> & { id?: string; _id?: string; uuid?: string }
 type Resource = { endpoint: TenantFeatureEndpoint; rows: Row[]; summary: Record<string, unknown> | null }
@@ -234,6 +235,19 @@ export function TenantDomainWorkspacePage({ feature, clinicId }: { feature: Tena
       const branchIds = String(values.branchIds ?? "").split(",").map(value => value.trim()).filter(Boolean)
       await operation.mutateAsync({ endpoint, row, payload: { clinicIds, branchIds } })
       return
+    }
+    const customPayload = (feature.key === "subscription" && endpoint.path.endsWith("/change-request")) ||
+      (feature.key === "integrations" && endpoint.path.endsWith("/webhooks")) ||
+      (feature.key === "governance" && endpoint.path.endsWith("/exports")) ||
+      (feature.key === "insights" && endpoint.path.endsWith("/exports")) ||
+      (feature.key === "users" && (endpoint.path.includes("/memberships/") || /scopes/i.test(endpoint.path)))
+    if (feature.schemaKey && !customPayload) {
+      const validation = validateTenantFeatureForm(feature.schemaKey as TenantFeatureSchemaKey, values)
+      if (!validation.success) {
+        const fieldErrors = getTenantFieldErrors(validation.error, ar ? "ar" : "en")
+        setFormError(Object.values(fieldErrors)[0] ?? (ar ? "راجع البيانات المدخلة." : "Review the entered values."))
+        return
+      }
     }
     const missing = activeFields.find(field => field.required && !String(values[field.name] ?? "").trim())
     if (missing) { setFormError(ar ? "أكمل كل الحقول المطلوبة." : "Complete all required fields."); return }
