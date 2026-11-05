@@ -1,7 +1,7 @@
 export type TenantFeatureField = {
   name: string
   label: string
-  type?: "text" | "email" | "tel" | "number" | "date" | "url" | "textarea" | "select"
+  type?: "text" | "email" | "tel" | "password" | "number" | "date" | "url" | "textarea" | "select"
   required?: boolean
   placeholder?: string
   options?: { label: string; value: string }[]
