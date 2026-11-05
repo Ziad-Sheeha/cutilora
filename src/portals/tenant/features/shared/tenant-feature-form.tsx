@@ -26,6 +26,15 @@ export function TenantFeatureForm({ feature }: Props) {
     if (!ar) return fallback
     const labels: Record<string, string> = {
       email: "البريد الإلكتروني",
+      displayName: "الاسم التجاري",
+      legalName: "الاسم القانوني",
+      businessType: "نوع المؤسسة",
+      contactEmail: "البريد الإلكتروني الأساسي",
+      contactPhone: "رقم الهاتف الأساسي",
+      website: "الموقع الإلكتروني",
+      countryId: "معرف الدولة",
+      cityId: "معرف المدينة",
+      addressLine1: "العنوان المسجل",
       role: "الدور",
       scope: "نطاق الصلاحية",
       expiresAt: "تاريخ انتهاء الدعوة",
@@ -51,6 +60,9 @@ export function TenantFeatureForm({ feature }: Props) {
   function optionLabel(value: string, fallback: string) {
     if (!ar) return fallback
     const labels: Record<string, string> = {
+      single_clinic: "عيادة واحدة",
+      clinic_group: "مجموعة عيادات",
+      beauty_center: "مركز تجميل",
       tenant_admin: "مسؤول المؤسسة",
       organization_manager: "مدير المؤسسة",
       read_only_analyst: "محلل للقراءة فقط",
