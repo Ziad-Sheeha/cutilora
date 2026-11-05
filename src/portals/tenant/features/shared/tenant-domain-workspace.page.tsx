@@ -289,6 +289,9 @@ export function TenantDomainWorkspacePage({ feature, clinicId, clinics = [], bra
   const fields = feature.fields ?? []
   const rootWriteEndpoints = writeEndpoints.filter(endpoint => (!endpoint.path.includes("{") || (feature.key === "clinic-workspace" && endpoint.path.includes("{clinicId}"))) && ["POST", "PATCH", "PUT"].includes(endpoint.method) && !(feature.key === "configuration" && endpoint.path.endsWith("/apply")))
   function fieldsFor(endpoint: TenantFeatureEndpoint): TenantFeatureField[] {
+    if (feature.key === "integrations" && /rotate/i.test(endpoint.purpose)) {
+      return [{ name: "apiKey", label: "New provider API key (optional)", type: "password" }]
+    }
     if (feature.key === "integrations" && endpoint.path.includes("/integrations")) {
       return [
         ...fields,
@@ -310,7 +313,7 @@ export function TenantDomainWorkspacePage({ feature, clinicId, clinics = [], bra
       { name: "billingCycle", label: "Billing cycle", type: "select", required: true, options: [{ label: "Monthly", value: "monthly" }, { label: "Yearly", value: "yearly" }] },
       { name: "reason", label: "Reason", type: "textarea" },
     ]
-    if (feature.key === "integrations" && endpoint.path.endsWith("/webhooks")) return [
+    if (feature.key === "integrations" && (endpoint.path.endsWith("/webhooks") || /rotate/i.test(endpoint.purpose))) return [
       { name: "name", label: "Webhook name", type: "text", required: true },
       { name: "url", label: "HTTPS endpoint URL", type: "url", required: true },
       { name: "events", label: "Subscribed events", type: "textarea", required: true },
@@ -487,7 +490,7 @@ export function TenantDomainWorkspacePage({ feature, clinicId, clinics = [], bra
                 } else void openDetails(endpoint, row)
               }}><Eye className="me-2 size-3.5"/>{/download/i.test(endpoint.purpose) ? (ar ? "تنزيل" : "Download") : (ar ? "تفاصيل" : "Details")} · {String(row.name ?? row.email ?? rowId(row)).slice(0, 20)}</Button>))}</div>}
               {matchingRowActions.length > 0 && rows.length > 0 && <div className="mt-4 flex flex-wrap gap-2">{rows.slice(0, 12).flatMap(row => matchingRowActions.map(endpoint => <Button key={endpoint.path + rowId(row)} size="sm" variant={endpoint.method === "DELETE" || /revoke|disconnect/i.test(endpoint.purpose) ? "destructive" : "outline"} disabled={!rowId(row) && !row.membershipId && !row.userId || operation.isPending} onClick={() => {
-                if (endpoint.method === "PATCH" || endpoint.method === "PUT" || (endpoint.method === "POST" && endpoint.path.endsWith("/exports"))) {
+                if (endpoint.method === "PATCH" || endpoint.method === "PUT" || (endpoint.method === "POST" && (endpoint.path.endsWith("/exports") || /rotate/i.test(endpoint.purpose)))) {
                   setSelectedOperation({ endpoint, row })
                   setValues(Object.fromEntries(Object.entries(row).filter(([key, value]) => typeof value === "string" || typeof value === "number").map(([key, value]) => [key, String(value)])))
                   setPermissionText(Array.isArray(row.permissions) ? row.permissions.map(String).join(", ") : "")
