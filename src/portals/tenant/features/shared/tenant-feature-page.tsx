@@ -1,10 +1,13 @@
+import { useEffect, useState } from "react"
 import { useParams } from "react-router"
-import { ArrowUpRight, CheckCircle2, Code2, LockKeyhole, ServerCog } from "lucide-react"
+import { AlertCircle, ArrowUpRight, CheckCircle2, Code2, LoaderCircle, LockKeyhole, RefreshCw, ServerCog } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { useI18n } from "@/i18n/i18n-provider"
 import { TenantPageHeading } from "../../components/tenant-page-heading"
 import { getTenantFeature } from "./tenant-feature-registry"
 import { TenantFeatureForm } from "./tenant-feature-form"
+import { fetchTenantFeatureRecords, getTenantFeatureListEndpoint, type TenantFeatureRecord } from "./tenant-feature-api"
+import { Button } from "@/components/ui/button"
 
 const methodStyles: Record<string, string> = {
   GET: "bg-sky-50 text-sky-700",
@@ -111,6 +114,43 @@ export function TenantFeaturePage() {
           </CardContent>
         </Card>
       </section>
+
+      {listEndpoint && (
+        <Card className="border-white bg-white">
+          <CardContent className="p-6">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h3 className="font-semibold">{ar ? "البيانات الفعلية" : "Live records"}</h3>
+                <p className="mt-1 text-xs text-muted-foreground" dir="ltr">{listEndpoint.path}</p>
+              </div>
+              <Button type="button" size="sm" variant="outline" disabled={loading} onClick={() => setReloadKey((value) => value + 1)}>
+                <RefreshCw className={`me-2 size-4 ${loading ? "animate-spin" : ""}`} />
+                {ar ? "تحديث" : "Refresh"}
+              </Button>
+            </div>
+            {loading ? (
+              <div role="status" className="flex items-center gap-2 py-8 text-sm text-muted-foreground"><LoaderCircle className="size-4 animate-spin" />{ar ? "جاري تحميل البيانات..." : "Loading records..."}</div>
+            ) : loadError ? (
+              <div role="alert" className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800"><AlertCircle className="mt-0.5 size-4 shrink-0" /><span>{loadError}</span></div>
+            ) : records.length === 0 ? (
+              <p className="py-8 text-center text-sm text-muted-foreground">{ar ? "لا توجد سجلات لعرضها حالياً." : "No records found."}</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full min-w-[560px] text-sm">
+                  <thead><tr className="border-b text-start text-xs text-muted-foreground"><th className="px-3 py-3 text-start">{ar ? "السجل" : "Record"}</th><th className="px-3 py-3 text-start">{ar ? "الحالة" : "Status"}</th><th className="px-3 py-3 text-start">{ar ? "تاريخ الإنشاء" : "Created at"}</th></tr></thead>
+                  <tbody>{records.map((record, index) => {
+                    const id = String(record.id ?? record._id ?? index)
+                    const label = String(record.name ?? record.displayName ?? record.email ?? record.title ?? id)
+                    const status = String(record.status ?? "—")
+                    const createdAt = record.createdAt ? new Date(String(record.createdAt)).toLocaleString(ar ? "ar-EG" : "en-US") : "—"
+                    return <tr key={id} className="border-b last:border-0"><td className="px-3 py-3 font-medium">{label}</td><td className="px-3 py-3 text-muted-foreground">{status}</td><td className="px-3 py-3 text-xs text-muted-foreground">{createdAt}</td></tr>
+                  })}</tbody>
+                </table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       <TenantFeatureForm feature={feature} />
 
