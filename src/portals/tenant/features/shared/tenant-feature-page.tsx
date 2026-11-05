@@ -147,8 +147,8 @@ export function TenantFeaturePage() {
   }, [records, ar])
 
   if (key === "documents") return <TenantDocumentsPage />
-  if (feature && ["users", "invitations", "roles", "configuration", "catalog", "finance", "subscription", "integrations", "insights", "governance", "settings/preferences", "settings/notifications", "settings/security"].includes(key)) {
-    return <TenantDomainWorkspacePage feature={feature} />
+  if (feature && ["users", "invitations", "roles", "configuration", "catalog", "finance", "subscription", "integrations", "insights", "governance", "settings/preferences", "settings/notifications", "settings/security", "clinic-workspace"].includes(key)) {
+    return <TenantDomainWorkspacePage feature={feature} clinicId={clinicId} />
   }
 
   if (!feature) {
