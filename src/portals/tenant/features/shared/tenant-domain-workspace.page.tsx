@@ -263,7 +263,13 @@ export function TenantDomainWorkspacePage({ feature, clinicId, clinics = [], bra
       const contact = profile?.contact && typeof profile.contact === "object" ? profile.contact as Record<string, unknown> : {}
       source = { ...(profile ?? {}), ...(settings ?? {}), email: contact.email ?? profile?.email, phone: contact.phone ?? profile?.phone }
     } else if (feature.key === "settings/preferences" || feature.key === "settings/notifications") {
-      source = preferenceResource?.summary ?? null
+      const preference = preferenceResource?.summary
+      const nested = preference?.preferences && typeof preference.preferences === "object" ? preference.preferences as Record<string, unknown> : preference?.settings && typeof preference.settings === "object" ? preference.settings as Record<string, unknown> : {}
+      const merged = { ...(preference ?? {}), ...nested }
+      const aliases: Record<string, string> = feature.key === "settings/notifications"
+        ? { email_enabled: "emailEnabled", in_app_enabled: "inAppEnabled", security_alerts: "securityAlerts", billing_alerts: "billingAlerts", membership_alerts: "membershipAlerts" }
+        : { default_locale: "locale", default_currency: "currency", organization_timezone: "timezone" }
+      source = { ...merged, ...Object.fromEntries(Object.entries(aliases).filter(([key]) => merged[key] !== undefined).map(([key, alias]) => [alias, merged[key]])) }
     } else if (feature.key === "configuration") {
       source = resources.find(resource => resource.endpoint.path.endsWith("/configuration"))?.summary ?? null
     } else if (feature.key === "subscription") {
