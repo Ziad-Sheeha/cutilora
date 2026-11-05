@@ -46,3 +46,27 @@ export async function createBranchHoliday(branchId: string, payload: Omit<Branch
   const response = await tenantApi.post("/tenant/branches/" + encodeURIComponent(branchId) + "/holidays", payload)
   return unwrap<BranchHoliday>(response.data)
 }
+
+export type BranchSettings = { timezone?: string; status?: string; managerId?: string; [key: string]: unknown }
+export type BranchActivity = { id?: string; _id?: string; action?: string; actor?: string; module?: string; createdAt?: string; description?: string; [key: string]: unknown }
+export type TenantDirectoryUser = { id?: string; _id?: string; name?: string; email?: string; status?: string }
+export async function getBranchSettings(branchId: string) {
+  const response = await tenantApi.get("/tenant/branches/" + encodeURIComponent(branchId) + "/settings")
+  return unwrap<BranchSettings>(response.data)
+}
+export async function updateBranchSettings(branchId: string, payload: Partial<BranchSettings>) {
+  const response = await tenantApi.patch("/tenant/branches/" + encodeURIComponent(branchId) + "/settings", payload)
+  return unwrap<BranchSettings>(response.data)
+}
+export async function getBranchActivity(branchId: string) {
+  const response = await tenantApi.get("/tenant/branches/" + encodeURIComponent(branchId) + "/activity")
+  return rows<BranchActivity>(response.data)
+}
+export async function getTenantDirectoryUsers() {
+  const response = await tenantApi.get("/tenant/users", { params: { per_page: 100 } })
+  return rows<TenantDirectoryUser>(response.data)
+}
+export async function assignBranchManager(branchId: string, managerId: string) {
+  const response = await tenantApi.patch("/tenant/branches/" + encodeURIComponent(branchId) + "/manager", { managerId })
+  return unwrap<unknown>(response.data)
+}
