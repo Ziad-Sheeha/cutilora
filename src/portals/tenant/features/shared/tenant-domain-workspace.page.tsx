@@ -2,6 +2,7 @@ import { useState, type FormEvent } from "react"
 import { useQueries, useMutation, useQueryClient } from "@tanstack/react-query"
 import { Activity, Check, Eye, LoaderCircle, Plus, RefreshCw, RotateCw, Search, Send, ShieldCheck, Trash2, XCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Card, CardContent } from "@/components/ui/card"
 import { DataTable, type DataTableColumn } from "@/components/ui/data-table"
 import { Input } from "@/components/ui/input"
@@ -270,6 +271,8 @@ export function TenantDomainWorkspacePage({ feature, clinicId }: { feature: Tena
 
   const readActions = feature.endpoints.filter(endpoint => endpoint.method === "GET" && endpoint.path.includes("{"))
   const rowActions = writeEndpoints.filter(endpoint => endpoint.path.includes("{"))
+  const permissionRows = resources.find(resource => resource.endpoint.path.endsWith("/permissions"))?.rows ?? []
+  const selectedPermissions = permissionText.split(",").map(value => value.trim()).filter(Boolean)
 
   return (
     <div className="space-y-6">
@@ -364,7 +367,15 @@ export function TenantDomainWorkspacePage({ feature, clinicId }: { feature: Tena
       {selectedOperation && <Card><CardContent className="p-5">
         <div className="mb-4 flex items-center justify-between gap-3"><div><h2 className="font-semibold">{operationLabel(selectedOperation.endpoint, ar)}</h2><p className="mt-1 text-xs text-muted-foreground">{String(selectedOperation.row.name ?? selectedOperation.row.email ?? rowId(selectedOperation.row))}</p></div><Button variant="ghost" size="sm" onClick={() => setSelectedOperation(null)}><XCircle className="me-2 size-4"/>{ar ? "إغلاق" : "Close"}</Button></div>
         <form onSubmit={event => void submitForm(event, selectedOperation.endpoint, selectedOperation.row)} className="grid gap-4 sm:grid-cols-2">
-          {feature.key === "roles" && /permissions/i.test(selectedOperation.endpoint.path) ? <div className="sm:col-span-2"><Label>{ar ? "الصلاحيات (افصل بينها بفواصل)" : "Permissions (comma separated)"}</Label><Textarea value={permissionText} onChange={event => setPermissionText(event.target.value)} rows={5}/></div> :
+          {feature.key === "roles" && /permissions/i.test(selectedOperation.endpoint.path) ? <div className="sm:col-span-2"><Label>{ar ? "صلاحيات الدور" : "Role permissions"}</Label>{permissionRows.length ? <div className="mt-2 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">{permissionRows.map(permission => {
+              const code = String(permission.key ?? permission.code ?? permission.name ?? permission.id ?? permission._id ?? "")
+              const title = String(permission.label ?? permission.name ?? permission.description ?? code)
+              return code ? <label key={code} className="flex items-start gap-2 rounded-lg border p-3 text-sm"><Checkbox checked={selectedPermissions.includes(code)} onChange={event => setPermissionText(current => {
+                const selected = current.split(",").map(value => value.trim()).filter(Boolean)
+                const next = event.target.checked ? [...new Set([...selected, code])] : selected.filter(value => value !== code)
+                return next.join(", ")
+              })}/><span><span className="font-medium">{title}</span>{title !== code && <span className="mt-1 block text-xs text-muted-foreground">{code}</span>}</span></label> : null
+            })}</div> : <Textarea value={permissionText} onChange={event => setPermissionText(event.target.value)} rows={4} placeholder={ar ? "أدخل معرفات الصلاحيات مفصولة بفواصل" : "Enter permission keys separated by commas"}/>}</div> :
             feature.key === "users" && /scopes/i.test(selectedOperation.endpoint.path) ? <>
               <div><Label>{ar ? "معرفات العيادات المسموح بها" : "Allowed clinic IDs"}</Label><Textarea value={values.clinicIds ?? ""} onChange={event => setValues(current => ({ ...current, clinicIds: event.target.value }))}/></div>
               <div><Label>{ar ? "معرفات الفروع المسموح بها" : "Allowed branch IDs"}</Label><Textarea value={values.branchIds ?? ""} onChange={event => setValues(current => ({ ...current, branchIds: event.target.value }))}/></div>
