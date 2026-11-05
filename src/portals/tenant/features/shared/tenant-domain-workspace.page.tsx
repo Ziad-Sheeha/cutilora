@@ -12,11 +12,13 @@ import { useI18n } from "@/i18n/i18n-provider"
 import { tenantApi } from "../../api/tenant-api"
 import { TenantPageHeading } from "../../components/tenant-page-heading"
 import { ConfirmDialog } from "@/shared/components/dialogs/confirm-dialog"
-import type { TenantFeatureDefinition, TenantFeatureEndpoint } from "./tenant-feature.types"
+import type { TenantFeatureDefinition, TenantFeatureEndpoint, TenantFeatureField } from "./tenant-feature.types"
 
 type Row = Record<string, unknown> & { id?: string; _id?: string; uuid?: string }
 type Resource = { endpoint: TenantFeatureEndpoint; rows: Row[]; summary: Record<string, unknown> | null }
+type SelectedOperation = { endpoint: TenantFeatureEndpoint; row: Row }
 const hidden = new Set(["id", "_id", "uuid", "tenantId", "tenant_id", "createdAt", "updatedAt", "created_at", "updated_at", "deletedAt"])
+const sensitive = /password|token|secret|credential|authorization|signature/i
 const apiPath = (path: string) => path.replace(/^\/api\/v1/, "")
 function unwrap(value: unknown): unknown {
   let current = value
@@ -44,33 +46,20 @@ function rowId(row: Row) {
 }
 function label(value: string, ar: boolean) {
   const known: Record<string, [string, string]> = {
-    "Users directory": ["Users", "المستخدمون"],
-    "List invitations": ["Invitations", "الدعوات"],
-    "Roles directory": ["Roles", "الأدوار"],
-    "Permission catalogue": ["Available permissions", "الصلاحيات المتاحة"],
-    "Read organization defaults": ["Organization policies", "سياسات المؤسسة"],
-    "List shared templates": ["Shared templates", "القوالب المشتركة"],
-    "Consolidated summary": ["Financial summary", "الملخص المالي"],
-    "Clinic comparison": ["Clinic comparison", "مقارنة العيادات"],
-    "Revenue trends": ["Revenue trends", "اتجاهات الإيرادات"],
-    "Expense breakdown": ["Expense breakdown", "تحليل المصروفات"],
-    "Consolidated reports": ["Financial reports", "التقارير المالية"],
-    "Current subscription": ["Current subscription", "الاشتراك الحالي"],
-    "Entitlement usage": ["Plan usage", "استهلاك الخطة"],
-    "Cutilora invoices": ["Invoices", "الفواتير"],
-    "Connected providers": ["Connected services", "الخدمات المتصلة"],
-    "Webhook endpoints": ["Webhooks", "روابط Webhook"],
-    "Available group reports": ["Available reports", "التقارير المتاحة"],
-    "Audit timeline": ["Audit timeline", "سجل التدقيق"],
-    "Read preferences": ["Workspace preferences", "تفضيلات مساحة العمل"],
-    "Read notification preferences": ["Notification preferences", "تفضيلات الإشعارات"],
-    "Active sessions": ["Active sessions", "الجلسات النشطة"],
-    "Security events": ["Security events", "أحداث الأمان"],
-    "Clinic details": ["Clinic profile", "ملف العيادة"],
-    "Clinic branches": ["Clinic branches", "فروع العيادة"],
-    "Assigned users": ["Assigned members", "الأعضاء المعينون"],
-    "Clinic settings and overrides": ["Clinic settings", "إعدادات العيادة"],
-    "Clinic documents": ["Clinic documents", "مستندات العيادة"],
+    "Users directory": ["Users", "المستخدمون"], "Organization memberships": ["Memberships", "العضويات"],
+    "List invitations": ["Invitations", "الدعوات"], "Roles directory": ["Roles", "الأدوار"],
+    "Permission catalogue": ["Available permissions", "الصلاحيات المتاحة"], "Read organization defaults": ["Organization policies", "سياسات المؤسسة"],
+    "List shared templates": ["Shared templates", "القوالب المشتركة"], "Consolidated summary": ["Financial summary", "الملخص المالي"],
+    "Clinic comparison": ["Clinic comparison", "مقارنة العيادات"], "Revenue trends": ["Revenue trends", "اتجاهات الإيرادات"],
+    "Expense breakdown": ["Expense breakdown", "تحليل المصروفات"], "Consolidated reports": ["Financial reports", "التقارير المالية"],
+    "Current subscription": ["Current subscription", "الاشتراك الحالي"], "Entitlement usage": ["Plan usage", "استهلاك الخطة"],
+    "Cutilora invoices": ["Invoices", "الفواتير"], "Connected providers": ["Connected services", "الخدمات المتصلة"],
+    "Webhook endpoints": ["Webhooks", "روابط Webhook"], "Available group reports": ["Available reports", "التقارير المتاحة"],
+    "Audit timeline": ["Audit timeline", "سجل التدقيق"], "Read preferences": ["Workspace preferences", "تفضيلات مساحة العمل"],
+    "Read notification preferences": ["Notification preferences", "تفضيلات الإشعارات"], "Active sessions": ["Active sessions", "الجلسات النشطة"],
+    "Security events": ["Security events", "أحداث الأمان"], "Clinic details": ["Clinic profile", "ملف العيادة"],
+    "Clinic branches": ["Clinic branches", "فروع العيادة"], "Assigned users": ["Assigned members", "الأعضاء المعينون"],
+    "Clinic settings and overrides": ["Clinic settings", "إعدادات العيادة"], "Clinic documents": ["Clinic documents", "مستندات العيادة"],
     "Clinic activity": ["Clinic activity", "نشاط العيادة"],
   }
   const pair = known[value]
@@ -78,15 +67,13 @@ function label(value: string, ar: boolean) {
 }
 function humanize(key: string, ar: boolean) {
   const dictionary: Record<string, [string, string]> = {
-    name: ["Name", "الاسم"], email: ["Email", "البريد الإلكتروني"], status: ["Status", "الحالة"],
-    role: ["Role", "الدور"], scope: ["Scope", "نطاق الصلاحية"], createdAt: ["Created", "تاريخ الإنشاء"],
-    updatedAt: ["Updated", "آخر تحديث"], lastActivityAt: ["Last activity", "آخر نشاط"],
-    displayName: ["Display name", "الاسم التجاري"], legalName: ["Legal name", "الاسم القانوني"],
-    amount: ["Amount", "المبلغ"], currency: ["Currency", "العملة"], invoiceNumber: ["Invoice", "رقم الفاتورة"],
-    provider: ["Provider", "مزود الخدمة"], category: ["Category", "التصنيف"], date: ["Date", "التاريخ"],
-    expiresAt: ["Expires", "تاريخ الانتهاء"], plan: ["Plan", "الخطة"], renewalDate: ["Renewal", "تاريخ التجديد"],
-    isActive: ["Active", "نشط"], clinicName: ["Clinic", "العيادة"], branchName: ["Branch", "الفرع"],
-    action: ["Action", "الإجراء"], actor: ["Performed by", "المنفذ"], module: ["Module", "الوحدة"],
+    name: ["Name", "الاسم"], email: ["Email", "البريد الإلكتروني"], status: ["Status", "الحالة"], role: ["Role", "الدور"],
+    scope: ["Scope", "نطاق الصلاحية"], lastActivityAt: ["Last activity", "آخر نشاط"], displayName: ["Display name", "الاسم التجاري"],
+    legalName: ["Legal name", "الاسم القانوني"], amount: ["Amount", "المبلغ"], currency: ["Currency", "العملة"],
+    invoiceNumber: ["Invoice", "رقم الفاتورة"], provider: ["Provider", "مزود الخدمة"], category: ["Category", "التصنيف"],
+    date: ["Date", "التاريخ"], expiresAt: ["Expires", "تاريخ الانتهاء"], plan: ["Plan", "الخطة"],
+    renewalDate: ["Renewal", "تاريخ التجديد"], isActive: ["Active", "نشط"], clinicName: ["Clinic", "العيادة"],
+    branchName: ["Branch", "الفرع"], action: ["Action", "الإجراء"], actor: ["Performed by", "المنفذ"], module: ["Module", "الوحدة"],
   }
   if (dictionary[key]) return dictionary[key][ar ? 1 : 0]
   return key.replace(/([a-z0-9])([A-Z])/g, "$1 $2").replace(/[_-]/g, " ").replace(/^./, x => x.toUpperCase())
@@ -95,16 +82,14 @@ function display(value: unknown, ar: boolean) {
   if (value === null || value === undefined || value === "") return "—"
   if (typeof value === "boolean") return value ? (ar ? "نعم" : "Yes") : (ar ? "لا" : "No")
   if (Array.isArray(value)) return value.map(item => typeof item === "object" ? JSON.stringify(item) : String(item)).join(", ")
-  if (typeof value === "object") return JSON.stringify(value)
+  if (typeof value === "object") return ar ? "تفاصيل إضافية" : "Additional details"
   return String(value)
 }
 function resolvePath(path: string, row?: Row) {
   return path.replace(/\{([^}]+)\}/g, (_match, token: string) => {
     const aliases: Record<string, unknown> = {
-      id: row?.id ?? row?._id ?? row?.uuid,
-      membershipId: row?.membershipId ?? row?.membership_id ?? row?.id ?? row?._id,
-      userId: row?.userId ?? row?.user_id ?? row?.id ?? row?._id,
-      reportKey: row?.key ?? row?.reportKey ?? row?.id,
+      id: row?.id ?? row?._id ?? row?.uuid, membershipId: row?.membershipId ?? row?.membership_id ?? row?.id ?? row?._id,
+      userId: row?.userId ?? row?.user_id ?? row?.id ?? row?._id, reportKey: row?.key ?? row?.reportKey ?? row?.id,
       webhookId: row?.id ?? row?._id,
     }
     const value = aliases[token] ?? row?.[token]
@@ -123,6 +108,7 @@ function operationLabel(endpoint: TenantFeatureEndpoint, ar: boolean) {
   if (p.includes("update")) return ar ? "تحديث" : "Update"
   if (p.includes("create")) return ar ? "إنشاء" : "Create"
   if (p.includes("replace")) return ar ? "استبدال" : "Replace"
+  if (p.includes("assign")) return ar ? "تعيين" : "Assign"
   return endpoint.purpose
 }
 
@@ -131,11 +117,12 @@ export function TenantDomainWorkspacePage({ feature }: { feature: TenantFeatureD
   const ar = locale === "ar"
   const client = useQueryClient()
   const [values, setValues] = useState<Record<string, string>>({})
-  const [payloadText, setPayloadText] = useState("{}")
   const [formError, setFormError] = useState("")
   const [success, setSuccess] = useState("")
   const [confirm, setConfirm] = useState<{ endpoint: TenantFeatureEndpoint; row?: Row } | null>(null)
   const [details, setDetails] = useState<{ title: string; data: unknown } | null>(null)
+  const [selectedOperation, setSelectedOperation] = useState<SelectedOperation | null>(null)
+  const [permissionText, setPermissionText] = useState("")
   const getEndpoints = feature.endpoints.filter(endpoint => endpoint.method === "GET" && !endpoint.path.includes("{"))
   const writeEndpoints = feature.endpoints.filter(endpoint => endpoint.method !== "GET")
   const resourcesQuery = useQueries({
@@ -152,9 +139,7 @@ export function TenantDomainWorkspacePage({ feature }: { feature: TenantFeatureD
     })),
   })
   const resources: Resource[] = getEndpoints.map((endpoint, index) => ({
-    endpoint,
-    rows: resourcesQuery[index]?.data?.rows ?? [],
-    summary: resourcesQuery[index]?.data?.summary ?? null,
+    endpoint, rows: resourcesQuery[index]?.data?.rows ?? [], summary: resourcesQuery[index]?.data?.summary ?? null,
   }))
   const busy = resourcesQuery.some(query => query.isLoading)
   const hasError = resourcesQuery.find(query => query.isError)?.error
@@ -162,22 +147,19 @@ export function TenantDomainWorkspacePage({ feature }: { feature: TenantFeatureD
   const operation = useMutation({
     mutationFn: async ({ endpoint, row, payload }: { endpoint: TenantFeatureEndpoint; row?: Row; payload?: Record<string, unknown> }) => {
       const path = resolvePath(endpoint.path, row)
-      if (path.includes("//") || path.includes("/undefined")) throw new Error(ar ? "تعذر تحديد السجل المطلوب." : "The target record could not be identified.")
-      const response = await tenantApi.request({
-        method: endpoint.method,
-        url: apiPath(path),
-        data: payload,
-      })
+      if (/\{[^}]+\}/.test(path) || path.includes("/undefined")) throw new Error(ar ? "تعذر تحديد السجل المطلوب." : "The target record could not be identified.")
+      const response = await tenantApi.request({ method: endpoint.method, url: apiPath(path), data: payload })
       return response.data
     },
-    onSuccess: async (_data, variables) => {
+    onSuccess: async (data, variables) => {
       setFormError("")
       setSuccess(ar ? "تم تنفيذ العملية بنجاح." : "The operation completed successfully.")
       setConfirm(null)
+      setSelectedOperation(null)
       await client.invalidateQueries({ queryKey: ["tenant-domain", feature.key] })
-      const result = _data as { url?: string; downloadUrl?: string; exportUrl?: string } | undefined
-      const downloadUrl = result?.url ?? result?.downloadUrl ?? result?.exportUrl
-      if (downloadUrl && /download|export/i.test(variables.endpoint.purpose)) window.open(downloadUrl, "_blank", "noopener,noreferrer")
+      const result = unwrap(data) as { url?: string; downloadUrl?: string; exportUrl?: string } | undefined
+      const url = result?.url ?? result?.downloadUrl ?? result?.exportUrl
+      if (url && /download|export/i.test(variables.endpoint.purpose)) window.open(url, "_blank", "noopener,noreferrer")
     },
     onError: error => {
       setSuccess("")
@@ -185,75 +167,78 @@ export function TenantDomainWorkspacePage({ feature }: { feature: TenantFeatureD
     },
   })
 
-  const formEndpoint = writeEndpoints.find(endpoint => !endpoint.path.includes("{") && ["POST", "PATCH", "PUT"].includes(endpoint.method))
   const fields = feature.fields ?? []
-  const columnsFor = (rows: Row[]): DataTableColumn<Row>[] => {
-    const keys = Object.keys(rows[0] ?? {}).filter(key => !hidden.has(key)).slice(0, 7)
+  const rootWriteEndpoints = writeEndpoints.filter(endpoint => !endpoint.path.includes("{") && ["POST", "PATCH", "PUT"].includes(endpoint.method))
+  function fieldsFor(endpoint: TenantFeatureEndpoint): TenantFeatureField[] {
+    if (feature.key === "subscription" && endpoint.path.endsWith("/change-request")) return [
+      { name: "requestedPlan", label: "Requested plan", type: "select", required: true, options: [{ label: "Starter", value: "starter" }, { label: "Growth", value: "growth" }, { label: "Enterprise", value: "enterprise" }] },
+      { name: "billingCycle", label: "Billing cycle", type: "select", required: true, options: [{ label: "Monthly", value: "monthly" }, { label: "Yearly", value: "yearly" }] },
+      { name: "reason", label: "Reason", type: "textarea" },
+    ]
+    if (feature.key === "integrations" && endpoint.path.endsWith("/webhooks")) return [
+      { name: "name", label: "Webhook name", type: "text", required: true },
+      { name: "url", label: "HTTPS endpoint URL", type: "url", required: true },
+      { name: "events", label: "Subscribed events", type: "textarea", required: true },
+    ]
+    if (feature.key === "governance" && endpoint.path.endsWith("/exports")) return [
+      { name: "from", label: "From date", type: "date" }, { name: "to", label: "To date", type: "date" },
+      { name: "actorId", label: "Actor", type: "text" }, { name: "action", label: "Action", type: "text" },
+      { name: "module", label: "Module", type: "text" },
+    ]
+    return fields
+  }
+  function columnsFor(rows: Row[]): DataTableColumn<Row>[] {
+    const keys = Object.keys(rows[0] ?? {}).filter(key => !hidden.has(key) && !sensitive.test(key)).slice(0, 7)
     const preferred = ["name", "displayName", "email", "role", "status", "plan", "amount", "createdAt"]
     keys.sort((a, b) => {
       const ai = preferred.indexOf(a), bi = preferred.indexOf(b)
       return (ai < 0 ? 99 : ai) - (bi < 0 ? 99 : bi)
     })
-    return keys.map(key => ({
-      id: key,
-      header: humanize(key, ar),
-      cell: row => <span className="block max-w-[240px] truncate text-sm" title={display(row[key], ar)}>{display(row[key], ar)}</span>,
-    }))
+    return keys.map(key => ({ id: key, header: humanize(key, ar), cell: row => <span className="block max-w-[240px] truncate text-sm" title={display(row[key], ar)}>{display(row[key], ar)}</span> }))
   }
-
-  async function submitForm(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
-    if (!formEndpoint) return
-    setFormError("")
-    let payload: Record<string, unknown>
-    try {
-      payload = fields.length
-        ? Object.fromEntries(fields.filter(field => values[field.name] !== undefined && values[field.name] !== "").map(field => [field.name, field.type === "number" ? Number(values[field.name]) : values[field.name]]))
-        : JSON.parse(payloadText) as Record<string, unknown>
-      if (fields.some(field => field.required && !String(values[field.name] ?? "").trim())) {
-        setFormError(ar ? "أكمل كل الحقول المطلوبة." : "Complete all required fields.")
-        return
-      }
-    } catch {
-      setFormError(ar ? "صيغة البيانات غير صحيحة." : "The submitted data is not valid.")
-      return
-    }
-    await operation.mutateAsync({ endpoint, payload })
-    setValues({})
-  }
-
   async function openDetails(endpoint: TenantFeatureEndpoint, row: Row) {
     try {
       const response = await tenantApi.get(apiPath(resolvePath(endpoint.path, row)))
-      setDetails({ title: label(endpoint.purpose, ar), data: unwrap(response.data) })
+      const data = unwrap(response.data)
+      setDetails({ title: label(endpoint.purpose, ar), data })
     } catch (error) {
       setFormError(error instanceof Error ? error.message : (ar ? "تعذر تحميل التفاصيل." : "Unable to load details."))
     }
   }
+  async function submitForm(event: FormEvent<HTMLFormElement>, endpoint: TenantFeatureEndpoint, row?: Row) {
+    event.preventDefault()
+    setFormError("")
+    const activeFields = selectedOperation ? [
+      ...(feature.key === "roles" && /permissions/i.test(endpoint.path) ? [{ name: "permissions", label: "Permissions", type: "textarea" as const, required: true }] : []),
+      ...(feature.key === "users" && /scopes/i.test(endpoint.path) ? [
+        { name: "clinicIds", label: "Clinic access", type: "textarea" as const },
+        { name: "branchIds", label: "Branch access", type: "textarea" as const },
+      ] : []),
+      ...(feature.key === "roles" && !/permissions/i.test(endpoint.path) ? fields : []),
+    ] : fieldsFor(endpoint)
+    if (feature.key === "roles" && /permissions/i.test(endpoint.path)) {
+      const permissions = permissionText.split(/[\n,]/).map(value => value.trim()).filter(Boolean)
+      if (!permissions.length) { setFormError(ar ? "اختر صلاحية واحدة على الأقل." : "Select at least one permission."); return }
+      await operation.mutateAsync({ endpoint, row, payload: { permissions } })
+      return
+    }
+    const missing = activeFields.find(field => field.required && !String(values[field.name] ?? "").trim())
+    if (missing) { setFormError(ar ? "أكمل كل الحقول المطلوبة." : "Complete all required fields."); return }
+    const payload = Object.fromEntries(activeFields.filter(field => values[field.name] !== undefined && values[field.name] !== "").map(field => [
+      field.name,
+      field.type === "number" ? Number(values[field.name]) : ["true", "false"].includes(values[field.name]) ? values[field.name] === "true" : values[field.name],
+    ]))
+    if (feature.key === "users" && /scopes/i.test(endpoint.path)) {
+      payload.clinicIds = String(values.clinicIds ?? "").split(/[\n,]/).map(value => value.trim()).filter(Boolean)
+      payload.branchIds = String(values.branchIds ?? "").split(/[\n,]/).map(value => value.trim()).filter(Boolean)
+    }
+    await operation.mutateAsync({ endpoint, row, payload })
+    setValues({})
+    setPermissionText("")
+  }
 
   const readActions = feature.endpoints.filter(endpoint => endpoint.method === "GET" && endpoint.path.includes("{"))
   const rowActions = writeEndpoints.filter(endpoint => endpoint.path.includes("{"))
-  const showGenericPayload = !fields.length && Boolean(formEndpoint)
-  function fieldsFor(endpoint: TenantFeatureEndpoint) {
-    if (feature.key === "subscription" && endpoint.path.endsWith("/change-request")) return [
-      { name: "requestedPlan", label: "Requested plan", type: "select" as const, required: true, options: [{ label: "Starter", value: "starter" }, { label: "Growth", value: "growth" }, { label: "Enterprise", value: "enterprise" }] },
-      { name: "billingCycle", label: "Billing cycle", type: "select" as const, required: true, options: [{ label: "Monthly", value: "monthly" }, { label: "Yearly", value: "yearly" }] },
-      { name: "reason", label: "Reason", type: "textarea" as const },
-    ]
-    if (feature.key === "integrations" && endpoint.path.endsWith("/webhooks")) return [
-      { name: "name", label: "Webhook name", type: "text" as const, required: true },
-      { name: "url", label: "HTTPS endpoint URL", type: "url" as const, required: true },
-      { name: "events", label: "Subscribed events (comma separated)", type: "text" as const, required: true },
-    ]
-    if (feature.key === "governance" && endpoint.path.endsWith("/exports")) return [
-      { name: "from", label: "From date", type: "date" as const },
-      { name: "to", label: "To date", type: "date" as const },
-      { name: "actorId", label: "Actor", type: "text" as const },
-      { name: "action", label: "Action", type: "text" as const },
-      { name: "module", label: "Module", type: "text" as const },
-    ]
-    return fields
-  }
 
   return (
     <div className="space-y-6">
@@ -266,8 +251,10 @@ export function TenantDomainWorkspacePage({ feature }: { feature: TenantFeatureD
       {hasError && <p role="alert" className="text-sm text-destructive">{hasError instanceof Error ? hasError.message : (ar ? "تعذر تحميل بعض البيانات." : "Some data could not be loaded.")}</p>}
       {resources.map((resource, index) => {
         const rows = resource.rows
-        const isSummary = resource.endpoint.path.includes("/summary") || resource.endpoint.path.endsWith("/subscription") || resource.endpoint.path.endsWith("/configuration") || resource.endpoint.path.endsWith("/preferences")
-        const summaryEntries = Object.entries(resource.summary ?? {}).filter(([key, value]) => !hidden.has(key) && value !== null && typeof value !== "object").slice(0, 12)
+        const matchingReadActions = readActions.filter(endpoint => endpoint.path.startsWith(resource.endpoint.path + "/"))
+        const matchingRowActions = rowActions.filter(endpoint => endpoint.path.startsWith(resource.endpoint.path + "/"))
+        const isSummary = /summary|subscription|configuration|preferences/.test(resource.endpoint.path)
+        const summaryEntries = Object.entries(resource.summary ?? {}).filter(([key, value]) => !hidden.has(key) && !sensitive.test(key) && value !== null && typeof value !== "object").slice(0, 12)
         return (
           <Card key={resource.endpoint.path}>
             <CardContent className="p-5">
@@ -275,16 +262,8 @@ export function TenantDomainWorkspacePage({ feature }: { feature: TenantFeatureD
                 <div><h2 className="font-semibold">{label(resource.endpoint.purpose, ar)}</h2><p className="mt-1 text-xs text-muted-foreground">{ar ? `${rows.length} سجل` : `${rows.length} records`}</p></div>
                 {isSummary && <Activity className="size-5 text-muted-foreground"/>}
               </div>
-              {isSummary && summaryEntries.length > 0 && (
-                <div className="mb-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                  {summaryEntries.map(([key, value]) => <div key={key} className="rounded-xl border bg-muted/20 p-3"><p className="text-xs text-muted-foreground">{humanize(key, ar)}</p><p className="mt-1 break-words text-lg font-semibold">{display(value, ar)}</p></div>)}
-                </div>
-              )}
-              {rows.length > 0 ? (
-                <DataTable columns={columnsFor(rows)} data={rows} getRowId={(row) => rowId(row) || JSON.stringify(row)} isLoading={resourcesQuery[index]?.isLoading} loadingLabel={ar ? "جارٍ التحميل..." : "Loading..."} emptyState={<p className="py-8 text-center text-sm text-muted-foreground">{ar ? "لا توجد بيانات." : "No data available."}</p>}/>
-              ) : !isSummary && !resourcesQuery[index]?.isLoading ? (
-                <p className="rounded-xl border border-dashed py-8 text-center text-sm text-muted-foreground">{ar ? "لا توجد سجلات حالياً." : "No records yet."}</p>
-              ) : null}
+              {isSummary && summaryEntries.length > 0 && <div className="mb-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">{summaryEntries.map(([key, value]) => <div key={key} className="rounded-xl border bg-muted/20 p-3"><p className="text-xs text-muted-foreground">{humanize(key, ar)}</p><p className="mt-1 break-words text-lg font-semibold">{display(value, ar)}</p></div>)}</div>}
+              {rows.length > 0 ? <DataTable columns={columnsFor(rows)} data={rows} getRowId={row => rowId(row) || JSON.stringify(row)} isLoading={resourcesQuery[index]?.isLoading} loadingLabel={ar ? "جارٍ التحميل..." : "Loading..."} emptyState={<p className="py-8 text-center text-sm text-muted-foreground">{ar ? "لا توجد بيانات." : "No data available."}</p>}/> : !isSummary && !resourcesQuery[index]?.isLoading ? <p className="rounded-xl border border-dashed py-8 text-center text-sm text-muted-foreground">{ar ? "لا توجد سجلات حالياً." : "No records yet."}</p> : null}
               {matchingReadActions.length > 0 && rows.length > 0 && <div className="mt-3 flex flex-wrap gap-2">{rows.slice(0, 8).flatMap(row => matchingReadActions.map(endpoint => <Button key={endpoint.path + rowId(row)} size="sm" variant="outline" onClick={() => {
                 if (/download/i.test(endpoint.purpose)) {
                   void tenantApi.get(apiPath(resolvePath(endpoint.path, row))).then(response => {
@@ -295,53 +274,64 @@ export function TenantDomainWorkspacePage({ feature }: { feature: TenantFeatureD
                   }).catch(error => setFormError(error instanceof Error ? error.message : (ar ? "تعذر التنزيل." : "Unable to download.")))
                 } else void openDetails(endpoint, row)
               }}><Eye className="me-2 size-3.5"/>{/download/i.test(endpoint.purpose) ? (ar ? "تنزيل" : "Download") : (ar ? "تفاصيل" : "Details")} · {String(row.name ?? row.email ?? rowId(row)).slice(0, 20)}</Button>))}</div>}
-              {matchingRowActions.length > 0 && rows.length > 0 && (
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {rows.slice(0, 12).flatMap(row => matchingRowActions.map(endpoint => (
-                    <Button key={endpoint.path + rowId(row)} size="sm" variant={endpoint.method === "DELETE" || /revoke|disconnect/i.test(endpoint.purpose) ? "destructive" : "outline"} disabled={!rowId(row) && !row.membershipId && !row.userId || operation.isPending} onClick={() => {
-                      const risky = endpoint.method === "DELETE" || /revoke|disconnect/i.test(endpoint.purpose)
-                      if (risky) setConfirm({ endpoint, row })
-                      else {
-                        const payload = /membership status/i.test(endpoint.purpose) ? { status: String(row.status ?? "").toLowerCase() === "active" ? "suspended" : "active" } : undefined
-                        void operation.mutateAsync({ endpoint, row, payload })
-                      }
-                    }}>{operation.isPending ? <LoaderCircle className="me-2 size-3.5 animate-spin"/> : /resend/i.test(endpoint.purpose) ? <Send className="me-2 size-3.5"/> : /rotate/i.test(endpoint.purpose) ? <RotateCw className="me-2 size-3.5"/> : endpoint.method === "DELETE" ? <Trash2 className="me-2 size-3.5"/> : <ShieldCheck className="me-2 size-3.5"/>}{operationLabel(endpoint, ar)} · {String(row.name ?? row.email ?? rowId(row)).slice(0, 18)}</Button>
-                  )))}
-                </div>
-              )}
+              {matchingRowActions.length > 0 && rows.length > 0 && <div className="mt-4 flex flex-wrap gap-2">{rows.slice(0, 12).flatMap(row => matchingRowActions.map(endpoint => <Button key={endpoint.path + rowId(row)} size="sm" variant={endpoint.method === "DELETE" || /revoke|disconnect/i.test(endpoint.purpose) ? "destructive" : "outline"} disabled={!rowId(row) && !row.membershipId && !row.userId || operation.isPending} onClick={() => {
+                if (endpoint.method === "PATCH" || endpoint.method === "PUT") {
+                  setSelectedOperation({ endpoint, row })
+                  setValues(Object.fromEntries(Object.entries(row).filter(([key, value]) => typeof value === "string" || typeof value === "number").map(([key, value]) => [key, String(value)])))
+                  setPermissionText(Array.isArray(row.permissions) ? row.permissions.map(String).join(", ") : "")
+                } else if (endpoint.method === "DELETE" || /revoke|disconnect/i.test(endpoint.purpose)) setConfirm({ endpoint, row })
+                else {
+                  const payload = /membership status/i.test(endpoint.purpose) ? { status: String(row.status ?? "").toLowerCase() === "active" ? "suspended" : "active" } : undefined
+                  void operation.mutateAsync({ endpoint, row, payload })
+                }
+              }}>{operation.isPending ? <LoaderCircle className="me-2 size-3.5 animate-spin"/> : /resend/i.test(endpoint.purpose) ? <Send className="me-2 size-3.5"/> : /rotate/i.test(endpoint.purpose) ? <RotateCw className="me-2 size-3.5"/> : endpoint.method === "DELETE" ? <Trash2 className="me-2 size-3.5"/> : <ShieldCheck className="me-2 size-3.5"/>}{operationLabel(endpoint, ar)} · {String(row.name ?? row.email ?? rowId(row)).slice(0, 18)}</Button>)))}</div>}
             </CardContent>
           </Card>
         )
       })}
-      {formEndpoint && (
-        <Card>
-          <CardContent className="p-5">
-            <div className="mb-4 flex items-center gap-2"><Plus className="size-5 text-primary"/><h2 className="font-semibold">{operationLabel(formEndpoint, ar)} · {feature.title[ar ? "ar" : "en"]}</h2></div>
-            <form onSubmit={submitForm} className="grid gap-4 sm:grid-cols-2">
-              {fields.map(field => <div key={field.name} className={field.type === "textarea" ? "sm:col-span-2" : ""}>
-                <Label htmlFor={`tenant-op-${field.name}`}>{ar ? ({
-                  email: "البريد الإلكتروني", role: "الدور", scope: "نطاق الوصول", expiresAt: "تاريخ الانتهاء",
-                  name: "الاسم", description: "الوصف", defaultLocale: "اللغة الافتراضية", defaultCurrency: "العملة الافتراضية",
-                  cancellationWindowHours: "مهلة الإلغاء بالساعات", category: "التصنيف", durationMinutes: "المدة بالدقائق",
-                  bufferMinutes: "الفاصل بالدقائق", billingName: "الاسم القانوني للفوترة", billingEmail: "بريد الفوترة",
-                  taxNumber: "الرقم الضريبي", provider: "مزود الخدمة", locale: "اللغة", currency: "العملة", timezone: "المنطقة الزمنية",
-                } as Record<string, string>)[field.name] ?? field.label : field.label}{field.required ? " *" : ""}</Label>
-                {field.type === "select" ? <Select value={values[field.name] ?? ""} onValueChange={value => setValues(current => ({ ...current, [field.name]: value }))}><SelectTrigger id={`tenant-op-${field.name}`}><SelectValue placeholder={ar ? "اختر..." : "Select..."}/></SelectTrigger><SelectContent>{field.options?.map(option => <SelectItem key={option.value} value={option.value}>{ar ? ({
-                  tenant_admin: "مسؤول المؤسسة", organization_manager: "مدير المؤسسة", read_only_analyst: "محلل للقراءة فقط",
-                  clinic_manager: "مدير عيادة", branch_manager: "مدير فرع", tenant: "المؤسسة بالكامل", clinic: "عيادات محددة", branch: "فروع محددة",
-                  en: "الإنجليزية", ar: "العربية", EGP: "جنيه مصري", SAR: "ريال سعودي", AED: "درهم إماراتي", USD: "دولار أمريكي",
-                  whatsapp: "واتساب", sms: "رسائل SMS", email: "البريد الإلكتروني", calendar: "التقويم", payment: "الدفع",
-                } as Record<string, string>)[option.value] ?? option.label : option.label}</SelectItem>)}</SelectContent></Select>
-                : field.type === "textarea" ? <Textarea id={`tenant-op-${field.name}`} value={values[field.name] ?? ""} onChange={event => setValues(current => ({ ...current, [field.name]: event.target.value }))}/>
-                : <Input id={`tenant-op-${field.name}`} type={field.type ?? "text"} value={values[field.name] ?? ""} onChange={event => setValues(current => ({ ...current, [field.name]: event.target.value }))}/>}
-              </div>)}
-              {showGenericPayload && activeFields.length === 0 && <div className="sm:col-span-2"><Label>{ar ? "تفاصيل الإجراء" : "Additional details"}</Label><Textarea value={payloadText} onChange={event => setPayloadText(event.target.value)} rows={4} className="mt-2"/></div>}
-              <div className="flex flex-wrap items-center gap-2 sm:col-span-2"><Button type="submit" disabled={operation.isPending}>{operation.isPending ? <LoaderCircle className="me-2 size-4 animate-spin"/> : <Check className="me-2 size-4"/>}{operationLabel(formEndpoint, ar)}</Button><Button type="button" variant="outline" onClick={() => setValues({})}>{ar ? "مسح الحقول" : "Clear fields"}</Button></div>
-            </form>
-          </CardContent>
-        </Card>
-      )}
-      {details && <Card><CardContent className="p-5"><div className="mb-3 flex items-center justify-between"><h2 className="font-semibold">{details.title}</h2><Button size="sm" variant="ghost" onClick={() => setDetails(null)}><XCircle className="me-2 size-4"/>{ar ? "إغلاق" : "Close"}</Button></div><pre className="max-h-96 overflow-auto rounded-xl bg-muted p-4 text-xs" dir="ltr">{JSON.stringify(details.data, null, 2)}</pre></CardContent></Card>}
+      {rootWriteEndpoints.map(endpoint => {
+        const activeFields = fieldsFor(endpoint)
+        return <Card key={endpoint.path}><CardContent className="p-5">
+          <div className="mb-4 flex items-center gap-2"><Plus className="size-5 text-primary"/><h2 className="font-semibold">{operationLabel(endpoint, ar)} · {feature.title[ar ? "ar" : "en"]}</h2></div>
+          <form onSubmit={event => void submitForm(event, endpoint)} className="grid gap-4 sm:grid-cols-2">
+            {activeFields.map(field => <div key={field.name} className={field.type === "textarea" ? "sm:col-span-2" : ""}>
+              <Label htmlFor={`tenant-op-${feature.key}-${endpoint.path}-${field.name}`}>{ar ? ({
+                email: "البريد الإلكتروني", role: "الدور", scope: "نطاق الوصول", expiresAt: "تاريخ الانتهاء", name: "الاسم",
+                description: "الوصف", defaultLocale: "اللغة الافتراضية", defaultCurrency: "العملة الافتراضية",
+                cancellationWindowHours: "مهلة الإلغاء بالساعات", category: "التصنيف", durationMinutes: "المدة بالدقائق",
+                bufferMinutes: "الفاصل بالدقائق", billingName: "الاسم القانوني للفوترة", billingEmail: "بريد الفوترة",
+                taxNumber: "الرقم الضريبي", provider: "مزود الخدمة", locale: "اللغة", currency: "العملة", timezone: "المنطقة الزمنية",
+                emailEnabled: "إشعارات البريد الإلكتروني", inAppEnabled: "إشعارات داخل التطبيق", securityAlerts: "تنبيهات الأمان",
+                billingAlerts: "تنبيهات الفوترة", membershipAlerts: "تنبيهات العضويات", requestedPlan: "الخطة المطلوبة",
+                billingCycle: "دورة الفوترة", reason: "سبب الطلب", url: "رابط HTTPS", events: "الأحداث المشترك بها",
+                from: "من تاريخ", to: "إلى تاريخ", actorId: "المنفذ", action: "الإجراء", module: "الوحدة",
+              } as Record<string, string>)[field.name] ?? field.label : field.label}{field.required ? " *" : ""}</Label>
+              {field.type === "select" ? <Select value={values[field.name] ?? ""} onValueChange={value => setValues(current => ({ ...current, [field.name]: value }))}><SelectTrigger id={`tenant-op-${feature.key}-${field.name}`}><SelectValue placeholder={ar ? "اختر..." : "Select..."}/></SelectTrigger><SelectContent>{field.options?.map(option => <SelectItem key={option.value} value={option.value}>{ar ? ({
+                tenant_admin: "مسؤول المؤسسة", organization_manager: "مدير المؤسسة", read_only_analyst: "محلل للقراءة فقط",
+                clinic_manager: "مدير عيادة", branch_manager: "مدير فرع", tenant: "المؤسسة بالكامل", clinic: "عيادات محددة", branch: "فروع محددة",
+                en: "الإنجليزية", ar: "العربية", EGP: "جنيه مصري", SAR: "ريال سعودي", AED: "درهم إماراتي", USD: "دولار أمريكي",
+                whatsapp: "واتساب", sms: "رسائل SMS", email: "البريد الإلكتروني", calendar: "التقويم", payment: "الدفع",
+                true: "مفعل", false: "معطل", starter: "المبتدئة", growth: "النمو", enterprise: "المؤسسات", monthly: "شهري", yearly: "سنوي",
+              } as Record<string, string>)[option.value] ?? option.label : option.label}</SelectItem>)}</SelectContent></Select>
+              : field.type === "textarea" ? <Textarea id={`tenant-op-${feature.key}-${field.name}`} value={values[field.name] ?? ""} onChange={event => setValues(current => ({ ...current, [field.name]: event.target.value }))}/>
+              : <Input id={`tenant-op-${feature.key}-${field.name}`} type={field.type ?? "text"} value={values[field.name] ?? ""} onChange={event => setValues(current => ({ ...current, [field.name]: event.target.value }))}/>}
+            </div>)}
+            <div className="flex flex-wrap items-center gap-2 sm:col-span-2"><Button type="submit" disabled={operation.isPending}>{operation.isPending ? <LoaderCircle className="me-2 size-4 animate-spin"/> : <Check className="me-2 size-4"/>}{operationLabel(endpoint, ar)}</Button><Button type="button" variant="outline" onClick={() => setValues({})}>{ar ? "مسح الحقول" : "Clear fields"}</Button></div>
+          </form>
+        </CardContent></Card>
+      })}
+      {selectedOperation && <Card><CardContent className="p-5">
+        <div className="mb-4 flex items-center justify-between gap-3"><div><h2 className="font-semibold">{operationLabel(selectedOperation.endpoint, ar)}</h2><p className="mt-1 text-xs text-muted-foreground">{String(selectedOperation.row.name ?? selectedOperation.row.email ?? rowId(selectedOperation.row))}</p></div><Button variant="ghost" size="sm" onClick={() => setSelectedOperation(null)}><XCircle className="me-2 size-4"/>{ar ? "إغلاق" : "Close"}</Button></div>
+        <form onSubmit={event => void submitForm(event, selectedOperation.endpoint, selectedOperation.row)} className="grid gap-4 sm:grid-cols-2">
+          {feature.key === "roles" && /permissions/i.test(selectedOperation.endpoint.path) ? <div className="sm:col-span-2"><Label>{ar ? "الصلاحيات (افصل بينها بفواصل)" : "Permissions (comma separated)"}</Label><Textarea value={permissionText} onChange={event => setPermissionText(event.target.value)} rows={5}/></div> :
+            feature.key === "users" && /scopes/i.test(selectedOperation.endpoint.path) ? <>
+              <div><Label>{ar ? "معرفات العيادات المسموح بها" : "Allowed clinic IDs"}</Label><Textarea value={values.clinicIds ?? ""} onChange={event => setValues(current => ({ ...current, clinicIds: event.target.value }))}/></div>
+              <div><Label>{ar ? "معرفات الفروع المسموح بها" : "Allowed branch IDs"}</Label><Textarea value={values.branchIds ?? ""} onChange={event => setValues(current => ({ ...current, branchIds: event.target.value }))}/></div>
+            </> : fields.map(field => <div key={field.name}><Label>{ar ? ({ name: "الاسم", description: "الوصف", scope: "نطاق الوصول" } as Record<string, string>)[field.name] ?? field.label : field.label}</Label><Input value={values[field.name] ?? ""} onChange={event => setValues(current => ({ ...current, [field.name]: event.target.value }))}/></div>)}
+          <div className="sm:col-span-2"><Button type="submit" disabled={operation.isPending}>{operation.isPending ? <LoaderCircle className="me-2 size-4 animate-spin"/> : <Check className="me-2 size-4"/>}{ar ? "حفظ التغييرات" : "Save changes"}</Button></div>
+        </form>
+      </CardContent></Card>}
+      {details && <Card><CardContent className="p-5"><div className="mb-3 flex items-center justify-between"><h2 className="font-semibold">{details.title}</h2><Button size="sm" variant="ghost" onClick={() => setDetails(null)}><XCircle className="me-2 size-4"/>{ar ? "إغلاق" : "Close"}</Button></div><div className="grid gap-3 sm:grid-cols-2">{Object.entries(details.data && typeof details.data === "object" ? details.data as Record<string, unknown> : { value: details.data }).filter(([key]) => !sensitive.test(key) && !hidden.has(key)).map(([key, value]) => <div key={key} className="rounded-xl border p-3"><p className="text-xs text-muted-foreground">{humanize(key, ar)}</p><p className="mt-1 break-words text-sm font-medium">{display(value, ar)}</p></div>)}</div></CardContent></Card>}
       <ConfirmDialog open={Boolean(confirm)} title={confirm ? operationLabel(confirm.endpoint, ar) : ""} description={ar ? "هل أنت متأكد من تنفيذ هذا الإجراء؟ قد يؤثر على وصول المستخدم أو اتصال الخدمة." : "Are you sure you want to perform this action? It may affect user access or a connected service."} confirmLabel={confirm ? operationLabel(confirm.endpoint, ar) : (ar ? "تأكيد" : "Confirm")} destructive isLoading={operation.isPending} onOpenChange={open => { if (!open) setConfirm(null) }} onConfirm={() => { if (confirm) void operation.mutateAsync({ endpoint: confirm.endpoint, row: confirm.row }) }}/>
     </div>
   )
