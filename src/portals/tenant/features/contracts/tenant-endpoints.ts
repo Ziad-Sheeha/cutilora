@@ -19,6 +19,9 @@ export const tenantEndpoints = {
     deactivate: "/api/v1/clinics/{clinicId}/deactivate",
     branches: "/api/v1/clinics/{clinicId}/branches",
     settings: "/api/v1/clinics/{clinicId}/settings",
+    users: "/api/v1/clinics/{clinicId}/users",
+    documents: "/api/v1/clinics/{clinicId}/documents",
+    activity: "/api/v1/clinics/{clinicId}/activity",
   },
   branches: {
     list: "/api/v1/branches?clinicId={clinicId}",
@@ -28,6 +31,8 @@ export const tenantEndpoints = {
     businessHours: "/api/v1/branches/{branchId}/business-hours",
     holidays: "/api/v1/branches/{branchId}/holidays",
     settings: "/api/v1/branches/{branchId}/settings",
+    manager: "/api/v1/branches/{branchId}/manager",
+    activity: "/api/v1/branches/{branchId}/activity",
   },
   profile: {
     read: "/api/v1/tenant/profile",
@@ -39,6 +44,7 @@ export const tenantEndpoints = {
     list: "/api/v1/tenant/users",
     invitations: "/api/v1/tenant/invitations",
     memberships: "/api/v1/tenant/memberships",
+    membershipHistory: "/api/v1/tenant/memberships/{membershipId}/history",
   },
   access: {
     permissions: "/api/v1/permissions",
@@ -68,10 +74,13 @@ export const tenantEndpoints = {
   integrations: {
     providers: "/api/v1/tenant/integrations",
     webhooks: "/api/v1/tenant/webhooks",
+    webhookAttempts: "/api/v1/tenant/webhooks/{webhookId}/deliveries",
   },
   governance: {
     auditLogs: "/api/v1/tenant/audit-logs",
     reports: "/api/v1/tenant/reports",
+    auditEvent: "/api/v1/tenant/audit-logs/{auditEventId}",
+    auditExports: "/api/v1/tenant/audit-logs/exports",
   },
   settings: {
     notifications: "/api/v1/tenant/notification-preferences",
