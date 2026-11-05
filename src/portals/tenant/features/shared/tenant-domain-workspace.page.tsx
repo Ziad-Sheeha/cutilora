@@ -149,9 +149,9 @@ function display(value: unknown, ar: boolean) {
 function resolvePath(path: string, row?: Row) {
   return path.replace(/\{([^}]+)\}/g, (_match, token: string) => {
     const aliases: Record<string, unknown> = {
-      id: row?.id ?? row?._id ?? row?.uuid ?? row?.invitationId ?? row?.invitation_id ?? row?.roleId ?? row?.role_id ?? row?.invoiceId ?? row?.invoice_id ?? row?.reportId ?? row?.report_id ?? row?.auditEventId ?? row?.audit_event_id ?? row?.sessionId ?? row?.session_id, membershipId: row?.membershipId ?? row?.membership_id ?? row?.id ?? row?._id, invitationId: row?.invitationId ?? row?.invitation_id ?? row?.id ?? row?._id, roleId: row?.roleId ?? row?.role_id ?? row?.id ?? row?._id,
+      id: row?.id ?? row?._id ?? row?.uuid ?? row?.invitationId ?? row?.invitation_id ?? row?.roleId ?? row?.role_id ?? row?.integrationId ?? row?.integration_id ?? row?.webhookId ?? row?.webhook_id ?? row?.invoiceId ?? row?.invoice_id ?? row?.reportId ?? row?.report_id ?? row?.auditEventId ?? row?.audit_event_id ?? row?.sessionId ?? row?.session_id, membershipId: row?.membershipId ?? row?.membership_id ?? row?.id ?? row?._id, invitationId: row?.invitationId ?? row?.invitation_id ?? row?.id ?? row?._id, roleId: row?.roleId ?? row?.role_id ?? row?.id ?? row?._id, integrationId: row?.integrationId ?? row?.integration_id ?? row?.id ?? row?._id,
       userId: row?.userId ?? row?.user_id ?? row?.id ?? row?._id, reportKey: row?.key ?? row?.reportKey ?? row?.id,
-      webhookId: row?.webhookId ?? row?.id ?? row?._id,
+      webhookId: row?.webhookId ?? row?.webhook_id ?? row?.id ?? row?._id,
       clinicId: row?.clinicId ?? row?.id ?? row?._id,
     }
     const value = aliases[token] ?? row?.[token]
@@ -273,7 +273,9 @@ export function TenantDomainWorkspacePage({ feature, clinicId, clinics = [], bra
     } else if (feature.key === "configuration") {
       source = resources.find(resource => resource.endpoint.path.endsWith("/configuration"))?.summary ?? null
     } else if (feature.key === "subscription") {
-      source = billingProfileResource?.summary ?? null
+      const billing = billingProfileResource?.summary
+      const nested = billing?.billingProfile && typeof billing.billingProfile === "object" ? billing.billingProfile as Record<string, unknown> : billing?.billing_profile && typeof billing.billing_profile === "object" ? billing.billing_profile as Record<string, unknown> : {}
+      source = { ...(billing ?? {}), ...nested }
     } else return
     if (!source) return
     const nextValues = Object.fromEntries(Object.entries(source).filter(([key, value]) => !hidden.has(key) && !sensitive.test(key) && (typeof value === "string" || typeof value === "number" || typeof value === "boolean")).map(([key, value]) => [key, String(value)]))
