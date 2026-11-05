@@ -72,6 +72,7 @@ export function TenantOrganizationPage() {
     staleTime: 30_000,
   })
   const profile = profileQuery.data ?? (tenant as unknown as Record<string, unknown> | undefined) ?? {}
+  const branding = (profile.branding && typeof profile.branding === "object" ? profile.branding : tenant?.branding) as { logoUrl?: string; coverImageUrl?: string } | undefined
   useEffect(() => { setValues(toForm(profile)) }, [profile])
   const countriesQuery = useQuery({ queryKey: ["tenant-geo", "countries"], queryFn: () => getTenantGeo("countries"), staleTime: 300_000 })
   const citiesQuery = useQuery({
@@ -143,9 +144,9 @@ export function TenantOrganizationPage() {
   return <div className="space-y-7">
     <TenantPageHeading eyebrow={copy.eyebrow} title={copy.title} description={copy.description}/>
     <Card className="overflow-hidden border-white bg-white">
-      <div className="h-24 bg-gradient-to-r from-[#211936] via-[#46316e] to-[#9274d5]"/>
+      <div className="flex h-24 items-center justify-center overflow-hidden bg-gradient-to-r from-[#211936] via-[#46316e] to-[#9274d5]">{branding?.coverImageUrl && <img src={branding.coverImageUrl} alt="" className="h-full w-full object-contain" />}</div>
       <CardContent className="-mt-8 p-6">
-        <div className="mb-6 flex items-end gap-4"><span className="grid size-[72px] place-items-center rounded-2xl border-4 border-white bg-violet-100 text-violet-700 shadow-sm"><Building2 className="size-8"/></span><div className="pb-1"><h2 className="text-xl font-semibold">{values.displayName || tenant?.name || "—"}</h2><p className="mt-1 text-xs text-muted-foreground">{tenant?.slug || "—"}</p></div></div>
+        <div className="mb-6 flex items-end gap-4"><span className="grid size-[72px] place-items-center overflow-hidden rounded-2xl border-4 border-white bg-white text-violet-700 shadow-sm">{branding?.logoUrl ? <img src={branding.logoUrl} alt="" className="size-full object-contain"/> : <Building2 className="size-8"/>}</span><div className="pb-1"><h2 className="text-xl font-semibold">{values.displayName || tenant?.name || "—"}</h2><p className="mt-1 text-xs text-muted-foreground">{tenant?.slug || "—"}</p></div></div>
         {profileQuery.isLoading ? <p className="py-6 text-center text-sm text-muted-foreground">{copy.loading}</p> : profileQuery.isError ? <p role="alert" className="text-sm text-destructive">{profileQuery.error instanceof Error ? profileQuery.error.message : (ar ? "تعذر تحميل الملف." : "Unable to load profile.")}</p> : <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">{summary.map(item => { const Icon = item.icon; return <div key={item.label} className="rounded-xl border bg-slate-50/70 p-4"><div className="flex items-center gap-2 text-xs font-medium text-muted-foreground"><Icon className="size-4"/>{item.label}</div><p className="mt-3 break-words text-sm font-semibold">{item.value || "—"}</p></div> })}</div>}
         <div className="mt-5 grid gap-4 border-t pt-5 sm:grid-cols-3">
           <ProfileValue label={ar ? "نوع المؤسسة" : "Business type"} value={localizedValue(profile.businessType ?? tenant?.businessType, ar)}/>
