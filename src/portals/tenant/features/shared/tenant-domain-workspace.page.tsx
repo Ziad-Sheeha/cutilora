@@ -164,6 +164,7 @@ export function TenantDomainWorkspacePage({ feature, clinicId, clinics = [], bra
         const rows = isSummaryResource && record && !Array.isArray(record.items) && !Array.isArray(record.records) ? [] : toRows(data)
         return { rows, summary, pagination }
       },
+      enabled: !(dateFrom && dateTo && dateFrom > dateTo),
       staleTime: 20_000,
     })),
   })
