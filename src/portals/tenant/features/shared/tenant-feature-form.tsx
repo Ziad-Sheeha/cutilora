@@ -22,6 +22,58 @@ export function TenantFeatureForm({ feature }: Props) {
 
   if (!feature.fields?.length || !feature.schemaKey) return null
 
+  function fieldLabel(name: string, fallback: string) {
+    if (!ar) return fallback
+    const labels: Record<string, string> = {
+      email: "البريد الإلكتروني",
+      role: "الدور",
+      scope: "نطاق الصلاحية",
+      expiresAt: "تاريخ انتهاء الدعوة",
+      name: feature.key === "roles" ? "اسم الدور" : feature.key === "catalog" ? "اسم القالب" : "اسم التكامل",
+      description: "الوصف",
+      defaultLocale: "اللغة الافتراضية",
+      defaultCurrency: "العملة الافتراضية",
+      cancellationWindowHours: "مهلة الإلغاء (بالساعات)",
+      category: "التصنيف",
+      durationMinutes: "المدة المقترحة (بالدقائق)",
+      bufferMinutes: "الفاصل الزمني (بالدقائق)",
+      billingName: "الاسم القانوني للفوترة",
+      billingEmail: "البريد الإلكتروني للفوترة",
+      taxNumber: "رقم التسجيل الضريبي",
+      provider: "مزود الخدمة",
+      locale: "اللغة",
+      currency: "العملة",
+      timezone: "المنطقة الزمنية للمؤسسة",
+    }
+    return labels[name] || fallback
+  }
+
+  function optionLabel(value: string, fallback: string) {
+    if (!ar) return fallback
+    const labels: Record<string, string> = {
+      tenant_admin: "مسؤول المؤسسة",
+      organization_manager: "مدير المؤسسة",
+      read_only_analyst: "محلل للقراءة فقط",
+      clinic_manager: "مدير عيادة",
+      branch_manager: "مدير فرع",
+      tenant: "المؤسسة بالكامل",
+      clinic: "عيادات محددة",
+      branch: "فروع محددة",
+      en: "الإنجليزية",
+      ar: "العربية",
+      EGP: "جنيه مصري (EGP)",
+      SAR: "ريال سعودي (SAR)",
+      AED: "درهم إماراتي (AED)",
+      USD: "دولار أمريكي (USD)",
+      whatsapp: "واتساب",
+      sms: "رسائل SMS",
+      email: "البريد الإلكتروني",
+      calendar: "التقويم",
+      payment: "مرجع بوابة الدفع",
+    }
+    return labels[value] || fallback
+  }
+
   function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     const result = validateTenantFeatureForm(
@@ -61,7 +113,7 @@ export function TenantFeatureForm({ feature }: Props) {
           {feature.fields.map((field) => (
             <Field key={field.name} className={field.type === "textarea" ? "sm:col-span-2" : ""}>
               <Label htmlFor={`tenant-feature-${field.name}`}>
-                {ar ? field.label : field.label}
+                {fieldLabel(field.name, field.label)}
                 {field.required && <span className="ms-1 text-red-600">*</span>}
               </Label>
               {field.type === "select" ? (
@@ -75,7 +127,7 @@ export function TenantFeatureForm({ feature }: Props) {
                   }}
                 >
                   <option value="">{ar ? "اختر..." : "Select..."}</option>
-                  {field.options?.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+                  {field.options?.map((option) => <option key={option.value} value={option.value}>{optionLabel(option.value, option.label)}</option>)}
                 </Select>
               ) : field.type === "textarea" ? (
                 <Textarea
