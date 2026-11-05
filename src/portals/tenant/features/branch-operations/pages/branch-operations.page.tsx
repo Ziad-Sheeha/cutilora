@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { CalendarDays, Clock3, Plus, Save, Trash2 } from "lucide-react"
+import { Activity, CalendarDays, Clock3, Plus, Save, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { DataTable, type DataTableColumn } from "@/components/ui/data-table"
@@ -44,7 +44,7 @@ export function BranchOperationsPage() {
   const [holidayClosed, setHolidayClosed] = useState("closed")
   const [holidayOpens, setHolidayOpens] = useState("09:00")
   const [holidayCloses, setHolidayCloses] = useState("17:00")
-  const [holidayError, setHolidayError] = useState("")
+  const [holidayError, setHolidayError] = useState("")\n  const [branchTimezone, setBranchTimezone] = useState("Africa/Cairo")\n  const [branchStatus, setBranchStatus] = useState("active")\n  const [managerId, setManagerId] = useState("")\n  const [settingsError, setSettingsError] = useState("")
 
   const hoursQuery = useQuery({
     queryKey: ["tenant-branch-hours", branchId],
@@ -84,6 +84,28 @@ export function BranchOperationsPage() {
     onError: (error) => setHolidayError(error instanceof Error ? error.message : (ar ? "تعذر إضافة العطلة" : "Unable to create holiday")),
   })
 
+  const saveSettings = useMutation({
+    mutationFn: () => updateBranchSettings(branchId, { timezone: branchTimezone, status: branchStatus }),
+    onSuccess: async () => {
+      setSettingsError("")
+      await Promise.all([queryClient.invalidateQueries({ queryKey: ["tenant-branch-settings", branchId] }), refresh()])
+    },
+    onError: error => setSettingsError(error instanceof Error ? error.message : (ar ? "تعذر حفظ إعدادات الفرع." : "Unable to save branch settings.")),
+  })
+  const saveManager = useMutation({
+    mutationFn: () => assignBranchManager(branchId, managerId),
+    onSuccess: async () => {
+      setSettingsError("")
+      await queryClient.invalidateQueries({ queryKey: ["tenant-branch-settings", branchId] })
+    },
+    onError: error => setSettingsError(error instanceof Error ? error.message : (ar ? "تعذر تعيين مدير الفرع." : "Unable to assign branch manager.")),
+  })
+  const activityColumns = useMemo<DataTableColumn<BranchActivity>[]>(() => [
+    { id: "action", header: ar ? "الإجراء" : "Action", cell: row => <span className="font-medium">{row.action ?? row.description ?? "—"}</span> },
+    { id: "actor", header: ar ? "المنفذ" : "Performed by", cell: row => row.actor ?? "—" },
+    { id: "module", header: ar ? "الوحدة" : "Module", cell: row => row.module ?? "—" },
+    { id: "createdAt", header: ar ? "التاريخ" : "Date", cell: row => row.createdAt ? new Date(row.createdAt).toLocaleString(ar ? "ar-EG" : "en-US") : "—" },
+  ], [ar])
   const holidayColumns = useMemo<DataTableColumn<BranchHoliday>[]>(() => [
     { id: "name", header: ar ? "العطلة" : "Holiday", cell: (row) => <span className="font-medium">{row.name}</span> },
     { id: "date", header: ar ? "التاريخ" : "Date", cell: (row) => <time className="text-sm tabular-nums">{row.date}</time> },
@@ -164,6 +186,24 @@ export function BranchOperationsPage() {
             {holidayOpen && <form onSubmit={submitHoliday} className="mb-5 grid gap-3 rounded-xl border bg-muted/20 p-4 sm:grid-cols-2"><div><Label>{ar ? "اسم العطلة" : "Holiday name"}</Label><Input value={holidayName} onChange={(event) => setHolidayName(event.target.value)} required/></div><div><Label>{ar ? "التاريخ" : "Date"}</Label><Input type="date" value={holidayDate} onChange={(event) => setHolidayDate(event.target.value)} required/></div><div><Label>{ar ? "حالة الفرع" : "Branch availability"}</Label><Select value={holidayClosed} onValueChange={setHolidayClosed}><SelectTrigger><SelectValue/></SelectTrigger><SelectContent><SelectItem value="closed">{ar ? "مغلق طوال اليوم" : "Closed all day"}</SelectItem><SelectItem value="open">{ar ? "مواعيد عمل استثنائية" : "Special opening hours"}</SelectItem></SelectContent></Select></div>{holidayClosed === "open" && <div className="flex items-end gap-2"><div className="flex-1"><Label>{ar ? "من" : "Opens"}</Label><Input type="time" value={holidayOpens} onChange={(event) => setHolidayOpens(event.target.value)}/></div><div className="flex-1"><Label>{ar ? "إلى" : "Closes"}</Label><Input type="time" value={holidayCloses} onChange={(event) => setHolidayCloses(event.target.value)}/></div></div>}{holidayError && <p role="alert" className="text-sm text-destructive sm:col-span-2">{holidayError}</p>}<div className="flex gap-2 sm:col-span-2"><Button type="submit" loading={createHoliday.isPending} disabled={createHoliday.isPending}>{ar ? "حفظ العطلة" : "Save holiday"}</Button><Button type="button" variant="outline" onClick={() => setHolidayOpen(false)}>{ar ? "إلغاء" : "Cancel"}</Button></div></form>}
             {holidaysQuery.isError && <p role="alert" className="mb-3 text-sm text-destructive">{holidaysQuery.error instanceof Error ? holidaysQuery.error.message : (ar ? "تعذر تحميل العطلات" : "Unable to load holidays")}</p>}
             <DataTable columns={holidayColumns} data={holidaysQuery.data ?? []} getRowId={unwrapHolidayId} isLoading={holidaysQuery.isLoading} loadingLabel={ar ? "جارٍ تحميل العطلات..." : "Loading holidays..."} emptyState={<div className="py-12 text-center text-sm text-muted-foreground">{ar ? "لا توجد عطلات مسجلة لهذا الفرع." : "No holidays have been recorded for this branch."}</div>}/>
+          </CardContent></Card>
+
+          <Card><CardContent className="p-5 sm:p-6">
+            <div className="mb-5 flex items-center gap-3"><span className="grid size-10 place-items-center rounded-xl bg-violet-50 text-violet-700"><Save className="size-5"/></span><div><h2 className="font-semibold">{ar ? "إعدادات الفرع ومديره" : "Branch settings & manager"}</h2><p className="mt-1 text-xs text-muted-foreground">{ar ? "حدّث المنطقة الزمنية والحالة وعيّن مديراً للفرع." : "Update the branch timezone and status, and assign its manager."}</p></div></div>
+            {settingsQuery.isLoading ? <p className="py-6 text-center text-sm text-muted-foreground">{ar ? "جارٍ تحميل الإعدادات..." : "Loading settings..."}</p> : <div className="grid gap-4 sm:grid-cols-2">
+              <div><Label>{ar ? "المنطقة الزمنية" : "Timezone"}</Label><Input value={branchTimezone} onChange={event => setBranchTimezone(event.target.value)} placeholder="Africa/Cairo" className="mt-2"/></div>
+              <div><Label>{ar ? "حالة الفرع" : "Branch status"}</Label><Select value={branchStatus} onValueChange={setBranchStatus}><SelectTrigger className="mt-2"><SelectValue/></SelectTrigger><SelectContent><SelectItem value="active">{ar ? "نشط" : "Active"}</SelectItem><SelectItem value="inactive">{ar ? "غير نشط" : "Inactive"}</SelectItem><SelectItem value="suspended">{ar ? "موقوف" : "Suspended"}</SelectItem></SelectContent></Select></div>
+              <div className="sm:col-span-2 flex flex-wrap justify-end"><Button onClick={() => saveSettings.mutate()} disabled={saveSettings.isPending}>{saveSettings.isPending ? (ar ? "جارٍ الحفظ..." : "Saving...") : (ar ? "حفظ الإعدادات" : "Save settings")}</Button></div>
+              <div className="sm:col-span-2 border-t pt-4"><Label>{ar ? "مدير الفرع" : "Branch manager"}</Label><div className="mt-2 flex flex-col gap-2 sm:flex-row"><Select value={managerId || "none"} onValueChange={setManagerId}><SelectTrigger className="sm:flex-1"><SelectValue placeholder={ar ? "اختر مديراً" : "Select a manager"}/></SelectTrigger><SelectContent><SelectItem value="none">{ar ? "بدون مدير" : "No manager"}</SelectItem>{(usersQuery.data ?? []).map(user => { const id = String(user.id ?? user._id ?? ""); return id ? <SelectItem key={id} value={id}>{user.name ?? user.email ?? id}</SelectItem> : null })}</SelectContent></Select><Button variant="outline" onClick={() => saveManager.mutate()} disabled={!managerId || managerId === "none" || saveManager.isPending}>{saveManager.isPending ? (ar ? "جارٍ التعيين..." : "Assigning...") : (ar ? "تعيين المدير" : "Assign manager")}</Button></div></div>
+              {settingsError && <p role="alert" className="text-sm text-destructive sm:col-span-2">{settingsError}</p>}
+              {settingsQuery.isError && <p role="alert" className="text-sm text-destructive sm:col-span-2">{settingsQuery.error instanceof Error ? settingsQuery.error.message : (ar ? "تعذر تحميل إعدادات الفرع." : "Unable to load branch settings.")}</p>}
+            </div>}
+          </CardContent></Card>
+
+          <Card><CardContent className="p-5 sm:p-6">
+            <div className="mb-4 flex items-center gap-3"><span className="grid size-10 place-items-center rounded-xl bg-slate-100 text-slate-700"><Activity className="size-5"/></span><div><h2 className="font-semibold">{ar ? "سجل نشاط الفرع" : "Branch activity"}</h2><p className="mt-1 text-xs text-muted-foreground">{ar ? "سجل للقراءة فقط يوضح التغييرات والأحداث." : "Read-only history of branch changes and events."}</p></div></div>
+            {activityQuery.isError && <p role="alert" className="mb-3 text-sm text-destructive">{activityQuery.error instanceof Error ? activityQuery.error.message : (ar ? "تعذر تحميل سجل النشاط." : "Unable to load activity.")}</p>}
+            <DataTable columns={activityColumns} data={activityQuery.data ?? []} getRowId={row => String(row.id ?? row._id ?? row.createdAt ?? JSON.stringify(row))} isLoading={activityQuery.isLoading} loadingLabel={ar ? "جارٍ تحميل النشاط..." : "Loading activity..."} emptyState={<p className="py-10 text-center text-sm text-muted-foreground">{ar ? "لا توجد أحداث مسجلة لهذا الفرع." : "No activity has been recorded for this branch."}</p>}/>
           </CardContent></Card>
         </>
       )}
