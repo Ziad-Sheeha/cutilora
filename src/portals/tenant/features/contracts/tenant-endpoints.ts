@@ -6,6 +6,11 @@ export const tenantEndpoints = {
     activity: "/api/v1/tenant/dashboard/activity",
     alerts: "/api/v1/tenant/dashboard/alerts",
   },
+  profile: {
+    read: "/api/v1/tenant/profile",
+    update: "/api/v1/tenant/profile",
+    preferences: "/api/v1/tenant/preferences",
+  },
   clinics: {
     list: "/api/v1/tenant/clinics",
     create: "/api/v1/tenant/clinics",
@@ -20,7 +25,7 @@ export const tenantEndpoints = {
     activity: "/api/v1/tenant/clinics/{clinicId}/activity",
   },
   branches: {
-    list: "/api/v1/tenant/branches?clinicId={clinicId}",
+    list: "/api/v1/tenant/branches",
     create: "/api/v1/tenant/branches",
     details: "/api/v1/tenant/branches/{branchId}",
     update: "/api/v1/tenant/branches/{branchId}",
@@ -29,12 +34,6 @@ export const tenantEndpoints = {
     settings: "/api/v1/tenant/branches/{branchId}/settings",
     manager: "/api/v1/tenant/branches/{branchId}/manager",
     activity: "/api/v1/tenant/branches/{branchId}/activity",
-  },
-  profile: {
-    read: "/api/v1/tenant/profile",
-    update: "/api/v1/tenant/profile",
-    preferences: "/api/v1/tenant/preferences",
-    documents: "/api/v1/tenant/documents",
   },
   documents: {
     list: "/api/v1/tenant/documents",
@@ -65,6 +64,11 @@ export const tenantEndpoints = {
     rolePermissions: "/api/v1/roles/{roleId}/permissions",
     current: "/api/v1/access/me",
   },
+  configuration: {
+    defaults: "/api/v1/tenant/configuration",
+    previewApply: "/api/v1/tenant/configuration/preview-apply",
+    apply: "/api/v1/tenant/configuration/apply",
+  },
   catalog: {
     list: "/api/v1/tenant/catalog-templates",
     create: "/api/v1/tenant/catalog-templates",
@@ -79,13 +83,13 @@ export const tenantEndpoints = {
     expenseSummary: "/api/v1/tenant/finance/expense-summary",
     reports: "/api/v1/tenant/finance/reports",
   },
-  billing: {
-    subscription: "/api/v1/tenant/subscription",
+  subscription: {
+    current: "/api/v1/tenant/subscription",
     usage: "/api/v1/tenant/subscription/usage",
     invoices: "/api/v1/tenant/invoices",
     invoice: "/api/v1/tenant/invoices/{invoiceId}",
     invoiceDownload: "/api/v1/tenant/invoices/{invoiceId}/download",
-    profile: "/api/v1/tenant/billing-profile",
+    billingProfile: "/api/v1/tenant/billing-profile",
     changeRequest: "/api/v1/tenant/subscription/change-request",
   },
   integrations: {
@@ -105,38 +109,8 @@ export const tenantEndpoints = {
     event: "/api/v1/tenant/audit-logs/{auditEventId}",
     export: "/api/v1/tenant/audit-logs/exports",
   },
-  configuration: {
-    defaults: "/api/v1/tenant/configuration",
-    templates: "/api/v1/tenant/catalog-templates",
-    previewApply: "/api/v1/tenant/configuration/preview-apply",
-    apply: "/api/v1/tenant/configuration/apply",
-  },
-  finance: {
-    summary: "/api/v1/tenant/finance/summary",
-    clinicComparison: "/api/v1/tenant/finance/clinic-comparison",
-    revenueTrends: "/api/v1/tenant/finance/revenue-trends",
-    expenseSummary: "/api/v1/tenant/finance/expense-summary",
-    reports: "/api/v1/tenant/finance/reports",
-  },
-  subscription: {
-    current: "/api/v1/tenant/subscription",
-    usage: "/api/v1/tenant/subscription/usage",
-    invoices: "/api/v1/tenant/invoices",
-    billingProfile: "/api/v1/tenant/billing-profile",
-    changeRequest: "/api/v1/tenant/subscription/change-request",
-  },
-  integrations: {
-    providers: "/api/v1/tenant/integrations",
-    webhooks: "/api/v1/tenant/webhooks",
-    webhookAttempts: "/api/v1/tenant/webhooks/{webhookId}/deliveries",
-  },
-  governance: {
-    auditLogs: "/api/v1/tenant/audit-logs",
-    reports: "/api/v1/tenant/reports",
-    auditEvent: "/api/v1/tenant/audit-logs/{auditEventId}",
-    auditExports: "/api/v1/tenant/audit-logs/exports",
-  },
   settings: {
+    preferences: "/api/v1/tenant/preferences",
     notifications: "/api/v1/tenant/notification-preferences",
     sessions: "/api/v1/tenant/security/sessions",
     securityEvents: "/api/v1/tenant/security/events",
