@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react"
+import { useEffect, useState, type FormEvent } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { FieldError } from "@/components/ui/field"
@@ -6,20 +6,21 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useI18n } from "@/i18n/i18n-provider"
 import { branchFormSchema, getTenantFieldErrors } from "../features/shared/tenant-feature-schemas"
+import type { Branch } from "../types/tenant.types"
 
-type Props = { onCancel: () => void; onSave: (payload: Record<string, unknown>) => Promise<void> }
+type Props = { branch?: Branch | null; onCancel: () => void; onSave: (payload: Record<string, unknown>) => Promise<void> }
 
 function slugify(value: string) {
   return value.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")
 }
 
-export function TenantBranchForm({ onCancel, onSave }: Props) {
+export function TenantBranchForm({ branch, onCancel, onSave }: Props) {
   const { locale } = useI18n()
   const ar = locale === "ar"
-  const [name, setName] = useState("")
-  const [slug, setSlug] = useState("")
-  const [address, setAddress] = useState("")
-  const [timezone, setTimezone] = useState("Africa/Cairo")
+  const [name, setName] = useState(branch?.name ?? "")
+  const [slug, setSlug] = useState(branch?.slug ?? "")
+  const [address, setAddress] = useState(branch?.address ?? "")
+  const [timezone, setTimezone] = useState(branch?.timezone ?? "Africa/Cairo")
   const [saving, setSaving] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [serverError, setServerError] = useState("")
