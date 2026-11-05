@@ -75,6 +75,8 @@ function normalizeTenant(value: unknown): Tenant {
     legal: tenantLegal, branding: tenantBranding,
     clinics: asArray(row.clinics).map(normalizeClinic).filter((clinic): clinic is TenantClinic => clinic !== null),
     preferences: tenantPreferences,
+    subscription: object(row.subscription) ? normalizeSubscription(row.subscription) : null,
+    paymentHistory: asArray(object(row.subscription)?.paymentHistory).map(normalizePayment),
     createdAt: nullableText(row.createdAt ?? row.created_at), updatedAt: nullableText(row.updatedAt ?? row.updated_at),
   }
 }
