@@ -36,7 +36,7 @@ export function TenantProfileOverview({ tenant, labels, locale }: { tenant: Tena
   const created = formatDate(tenant.createdAt, locale)
   const updated = formatDate(tenant.updatedAt, locale)
   const human = (value?: string | null) => value ? value.replace(/[_-]/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase()) : "—"
-  const address = [tenant.address.addressLine1, tenant.address.addressLine2, tenant.address.building, tenant.address.floor, tenant.address.unit, tenant.address.landmark, tenant.address.postalCode].filter(Boolean).join(" · ")
+  const address = [tenant.address.addressLine1, tenant.address.addressLine2, tenant.address.building, tenant.address.floor, tenant.address.unit, tenant.address.postalCode].filter(Boolean).join(" · ")
   const contactCount = [tenant.contact.email, tenant.contact.phone, tenant.contact.alternatePhone, tenant.contact.whatsapp, tenant.contact.website].filter(Boolean).length
   const legalCount = [tenant.legal.taxNumber, tenant.legal.vatNumber, tenant.legal.commercialRegistrationNumber].filter(Boolean).length
 
