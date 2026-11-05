@@ -94,12 +94,12 @@ export function TenantDocumentsPage() {
   })
   const archive = useMutation({
     mutationFn: (id: string) => tenantApi.delete(`${root}/${encodeURIComponent(id)}`),
-    onSuccess: async () => { setArchiveId(null); await qc.invalidateQueries({ queryKey: ["tenant-documents"] }) },
+    onSuccess: async () => { setArchiveId(null); setError(""); await qc.invalidateQueries({ queryKey: ["tenant-documents"] }) },
     onError: (e) => setError(e instanceof Error ? e.message : "Archive failed"),
   })
   const verify = useMutation({
     mutationFn: (id: string) => tenantApi.patch(`${root}/${encodeURIComponent(id)}/verification`, { verificationStatus: "verified" }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["tenant-documents"] }),
+    onSuccess: async () => { setError(""); await qc.invalidateQueries({ queryKey: ["tenant-documents"] }) },
     onError: (e) => setError(e instanceof Error ? e.message : "Verification update failed"),
   })
   async function openDocument(row: DocumentRecord) {
@@ -126,7 +126,7 @@ export function TenantDocumentsPage() {
     { id: "expiry", header: ar ? "تاريخ الانتهاء" : "Expiry date", cell: row => row.expiryDate ?? row.expiresAt ?? "—" },
     { id: "expiryStatus", header: ar ? "حالة الصلاحية" : "Expiry status", cell: row => expiryState(row.expiryDate ?? row.expiresAt, ar) },
     { id: "size", header: ar ? "الحجم" : "Size", cell: row => bytes(row.size) },
-    ...(canWrite ? [{ id: "actions", header: ar ? "الإجراءات" : "Actions", cell: (row: DocumentRecord) => <div className="flex flex-wrap gap-1"><Button size="icon" variant="ghost" title={ar ? "معاينة / تنزيل" : "Preview / download"} disabled={!idOf(row)} onClick={() => void openDocument(row)}><Eye className="size-4"/></Button><Button size="icon" variant="ghost" title={ar ? "استبدال الملف" : "Replace file"} disabled={!idOf(row)} onClick={() => { setReplaceId(idOf(row)); setFile(null); setCategory(row.category ?? row.type ?? "legal"); setExpiryDate(row.expiryDate ?? row.expiresAt ?? ""); setError("") }}><Upload className="size-4"/></Button><Button size="icon" variant="ghost" title={ar ? "اعتماد المستند" : "Mark verified"} disabled={!idOf(row) || verify.isPending || row.verificationStatus === "verified"} onClick={() => verify.mutate(idOf(row))}><BadgeCheck className="size-4"/></Button><Button size="icon" variant="ghost" title={ar ? "أرشفة" : "Archive"} disabled={!idOf(row)} onClick={() => setArchiveId(idOf(row))}><Archive className="size-4"/></Button></div> }] : []),
+    ...(canWrite ? [{ id: "actions", header: ar ? "الإجراءات" : "Actions", cell: (row: DocumentRecord) => <div className="flex flex-wrap gap-1"><Button size="icon" variant="ghost" title={ar ? "معاينة / تنزيل" : "Preview / download"} disabled={!idOf(row)} onClick={() => void openDocument(row)}><Eye className="size-4"/></Button><Button size="icon" variant="ghost" title={ar ? "استبدال الملف" : "Replace file"} disabled={!idOf(row)} onClick={() => { setReplaceId(idOf(row)); setFile(null); setCategory(row.category ?? row.type ?? "legal"); setExpiryDate(row.expiryDate ?? row.expiresAt ?? ""); setError("") }}><Upload className="size-4"/></Button><Button size="icon" variant="ghost" title={ar ? "اعتماد المستند" : "Mark verified"} disabled={!idOf(row) || verify.isPending || String(row.verificationStatus ?? row.status ?? "").toLowerCase() === "verified"} onClick={() => verify.mutate(idOf(row))}><BadgeCheck className="size-4"/></Button><Button size="icon" variant="ghost" title={ar ? "أرشفة" : "Archive"} disabled={!idOf(row)} onClick={() => setArchiveId(idOf(row))}><Archive className="size-4"/></Button></div> }] : []),
   ], [ar, canWrite])
   return <div className="space-y-6">
     <TenantPageHeading eyebrow={ar ? "ملف المؤسسة" : "ORGANIZATION PROFILE"} title={ar ? "مستندات المؤسسة" : "Organization Documents"} description={ar ? "احفظ مستندات مؤسستك وتابع تصنيفاتها وحالة التحقق وتواريخ الانتهاء." : "Store organization documents and track their categories, verification and expiry dates."}/>
