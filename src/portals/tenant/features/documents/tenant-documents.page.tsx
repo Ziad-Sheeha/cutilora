@@ -33,6 +33,18 @@ function expiryState(value?: string, ar = false) {
   if (days <= 30) return ar ? "ينتهي قريباً" : "Expiring soon"
   return ar ? "ساري" : "Valid"
 }
+function categoryLabel(value: string | undefined, ar: boolean) {
+  if (!value) return "—"
+  if (!ar) return value.replaceAll("_", " ")
+  const labels: Record<string, string> = { legal: "مستندات قانونية", license: "تراخيص", tax: "مستندات ضريبية", insurance: "تأمين", other: "أخرى" }
+  return labels[value.toLowerCase()] ?? value
+}
+function verificationLabel(value: string | undefined, ar: boolean) {
+  if (!value) return ar ? "قيد المراجعة" : "Pending"
+  if (!ar) return value.replaceAll("_", " ")
+  const labels: Record<string, string> = { pending: "قيد المراجعة", verified: "تم التحقق", rejected: "مرفوض", expired: "منتهي", under_review: "قيد المراجعة" }
+  return labels[value.toLowerCase()] ?? value
+}
 function bytes(value?: number) {
   if (!value) return "—"
   return value < 1024 * 1024 ? `${(value / 1024).toFixed(0)} KB` : `${(value / 1024 / 1024).toFixed(1)} MB`
@@ -107,8 +119,8 @@ export function TenantDocumentsPage() {
   const rows = query.data ?? []
   const columns = useMemo<DataTableColumn<DocumentRecord>[]>(() => [
     { id: "document", header: ar ? "المستند" : "Document", cell: row => <div className="flex min-w-0 items-center gap-2"><FileText className="size-4 shrink-0 text-primary"/><span className="max-w-[220px] truncate font-medium">{row.name ?? row.originalName ?? row.fileName ?? "—"}</span></div> },
-    { id: "category", header: ar ? "التصنيف" : "Category", cell: row => row.category ?? row.type ?? "—" },
-    { id: "verification", header: ar ? "التحقق" : "Verification", cell: row => row.verificationStatus ?? row.status ?? (ar ? "قيد المراجعة" : "Pending") },
+    { id: "category", header: ar ? "التصنيف" : "Category", cell: row => categoryLabel(row.category ?? row.type, ar) },
+    { id: "verification", header: ar ? "التحقق" : "Verification", cell: row => verificationLabel(row.verificationStatus ?? row.status, ar) },
     { id: "expiry", header: ar ? "تاريخ الانتهاء" : "Expiry date", cell: row => row.expiryDate ?? row.expiresAt ?? "—" },
     { id: "expiryStatus", header: ar ? "حالة الصلاحية" : "Expiry status", cell: row => expiryState(row.expiryDate ?? row.expiresAt, ar) },
     { id: "size", header: ar ? "الحجم" : "Size", cell: row => bytes(row.size) },
