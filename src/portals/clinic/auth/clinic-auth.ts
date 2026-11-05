@@ -1,6 +1,7 @@
 import { appEnv } from "@/config/env"
 import { isAccessTokenExpired } from "@/shared/auth/session/session-expiry"
 
+export const CLINIC_SESSION_EXPIRED_EVENT = "cutilora:clinic-session-expired"
 const TOKEN_KEY = "cutilora.clinic.access-token"
 const API_BASE_URL = appEnv.apiBaseUrl.replace(/\/$/, "")
 
