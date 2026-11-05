@@ -1,8 +1,4 @@
-/**
- * Proposed Tenant API surface mapped from the Organization Management plan.
- * These routes are contracts only until the backend confirms and implements them.
- * Existing tenant context, clinics and branches calls remain in tenant-api.ts.
- */
+/** Tenant portal API route catalogue. All requests use the active tenant session. */
 export const tenantEndpoints = {
   dashboard: {
     summary: "/api/v1/tenant/dashboard/summary",
@@ -39,6 +35,15 @@ export const tenantEndpoints = {
     update: "/api/v1/tenant/profile",
     preferences: "/api/v1/tenant/preferences",
     documents: "/api/v1/tenant/documents",
+  },
+  documents: {
+    list: "/api/v1/tenant/documents",
+    upload: "/api/v1/tenant/documents",
+    details: "/api/v1/tenant/documents/{documentId}",
+    replaceFile: "/api/v1/tenant/documents/{documentId}/file",
+    verification: "/api/v1/tenant/documents/{documentId}/verification",
+    download: "/api/v1/tenant/documents/{documentId}/download",
+    archive: "/api/v1/tenant/documents/{documentId}",
   },
   users: {
     list: "/api/v1/tenant/users",
