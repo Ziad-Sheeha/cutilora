@@ -12,6 +12,7 @@ import { TenantPageHeading } from "../components/tenant-page-heading"
 import type { TenantOutletContext } from "../layout/tenant-layout"
 import { useOutletContext } from "react-router"
 import { getTenantGeo, tenantApi, updateTenantProfile } from "../api/tenant-api"
+import { canManageOrganization } from "../auth/tenant-permissions"
 import { tenantProfileSchema, getTenantFieldErrors } from "../features/shared/tenant-feature-schemas"
 
 type ProfileForm = {
@@ -58,6 +59,7 @@ export function TenantOrganizationPage() {
   const { context, refresh } = useOutletContext<TenantOutletContext>()
   const { locale } = useI18n()
   const ar = locale === "ar"
+  const canWrite = canManageOrganization()
   const client = useQueryClient()
   const tenant = context?.tenant
   const [values, setValues] = useState<ProfileForm>(() => toForm((tenant ?? {}) as unknown as Record<string, unknown>))
@@ -155,7 +157,7 @@ export function TenantOrganizationPage() {
         </div>
       </CardContent>
     </Card>
-    <Card><CardContent className="p-5 sm:p-6">
+    {canWrite && <Card><CardContent className="p-5 sm:p-6">
       <div className="mb-5"><h2 className="font-semibold">{ar ? "تعديل بيانات المؤسسة" : "Edit organization details"}</h2><p className="mt-1 text-sm text-muted-foreground">{ar ? "يتم حفظ التغييرات على ملف المؤسسة النشط." : "Changes are saved to the active organization's profile."}</p></div>
       <form onSubmit={submit} noValidate className="grid gap-4 sm:grid-cols-2">
         <ProfileField label={copy.displayName} value={values.displayName} error={errors.displayName} onChange={value => update("displayName", value)}/>
@@ -171,7 +173,7 @@ export function TenantOrganizationPage() {
         {mutation.isSuccess && !formError && <p role="status" className="text-sm text-emerald-700 sm:col-span-2">{ar ? "تم حفظ بيانات المؤسسة بنجاح." : "Organization profile saved successfully."}</p>}
         <div className="flex justify-end sm:col-span-2"><Button type="submit" disabled={mutation.isPending || profileQuery.isLoading}>{mutation.isPending ? (ar ? "جارٍ الحفظ..." : "Saving...") : copy.save}</Button></div>
       </form>
-    </CardContent></Card>
+    </CardContent></Card>}
   </div>
 }
 function ProfileField({ label, value, error, onChange, type = "text", required = true }: { label: string; value: string; error?: string; onChange: (value: string) => void; type?: "text" | "email" | "tel"; required?: boolean }) {
