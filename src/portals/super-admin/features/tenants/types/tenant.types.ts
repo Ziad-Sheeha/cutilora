@@ -1,5 +1,5 @@
 export type TenantStatus = "active" | "inactive" | "suspended" | "pending" | string
-export type TenantBusinessType = "single_clinic" | "clinic_group" | string
+export type TenantBusinessType = "single_clinic" | "clinic_group" | "medical_center" | string
 
 export interface TenantContact {
   email: string | null
@@ -20,7 +20,6 @@ export interface TenantAddress {
   floor: string
   unit: string
   postalCode: string
-  landmark?: string
   latitude: number | null
   longitude: number | null
 }
@@ -97,7 +96,7 @@ export interface TenantPayload {
   description?: string
   industry: string
   contact?: { email?: string; phone?: string; alternatePhone?: string; whatsapp?: string; website?: string }
-  address?: Partial<TenantAddress> & { landmark?: string }
+  address?: Partial<TenantAddress>
   legal?: Partial<TenantLegal>
   branding?: { logoBase64?: string; coverImageBase64?: string; primaryColor?: string }
   preferences?: Partial<TenantPreferences>
