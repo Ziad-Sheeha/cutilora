@@ -293,7 +293,7 @@ export function TenantDomainWorkspacePage({ feature, clinicId, clinics = [], bra
   })
 
   const fields = feature.fields ?? []
-  const rootWriteEndpoints = writeEndpoints.filter(endpoint => (!endpoint.path.includes("{") || (feature.key === "clinic-workspace" && endpoint.path.includes("{clinicId}"))) && ["POST", "PATCH", "PUT"].includes(endpoint.method) && !(feature.key === "configuration" && endpoint.path.endsWith("/apply")))
+  const rootWriteEndpoints = writeEndpoints.filter(endpoint => (!endpoint.path.includes("{") || (feature.key === "clinic-workspace" && Boolean(clinicId) && endpoint.path.includes("{clinicId}"))) && ["POST", "PATCH", "PUT"].includes(endpoint.method) && !(feature.key === "configuration" && endpoint.path.endsWith("/apply")))
   function fieldsFor(endpoint: TenantFeatureEndpoint): TenantFeatureField[] {
     if (feature.key === "integrations" && /rotate/i.test(endpoint.purpose)) {
       return [{ name: "apiKey", label: "New provider API key (optional)", type: "password" }]
