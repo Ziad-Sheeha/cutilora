@@ -42,6 +42,17 @@ export interface TenantPreferences {
   weekStartsOn: number
   supportedLanguages: string[]
 }
+export interface TenantClinic {
+  id: string
+  name: string
+  slug: string
+  code: string
+  status: string
+  clinicType: string
+  description: string
+  specialties: string[]
+  branding: TenantBranding
+}
 export interface Tenant {
   id: string
   name: string
@@ -57,6 +68,7 @@ export interface Tenant {
   address: TenantAddress
   legal: TenantLegal
   branding: TenantBranding
+  clinics: TenantClinic[]
   preferences: TenantPreferences
   createdAt: string | null
   updatedAt: string | null
