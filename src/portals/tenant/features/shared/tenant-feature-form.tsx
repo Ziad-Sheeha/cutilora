@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Field, FieldError } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
+import { DatePicker } from "@/components/ui/date-picker"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
@@ -170,6 +171,8 @@ export function TenantFeatureForm({ feature, onSave, initialValues }: Props) {
                     ))}
                   </SelectContent>
                 </Select>
+              ) : field.type === "date" ? (
+                <DatePicker value={values[field.name] || ""} onChange={(value) => { setValues((current) => ({ ...current, [field.name]: value })); setErrors((current) => ({ ...current, [field.name]: "" })); setValidated(false) }} placeholder={ar ? "اختر التاريخ" : "Select date"} locale={ar ? "ar" : "en"} dir={ar ? "rtl" : "ltr"}/>
               ) : field.type === "textarea" ? (
                 <Textarea
                   id={`tenant-feature-${field.name}`}
