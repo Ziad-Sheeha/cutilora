@@ -3,6 +3,16 @@ import { NavLink, useLocation } from "react-router"
 import {
   ChevronDown,
   LogOut,
+  BriefcaseBusiness,
+  UsersRound,
+  WalletCards,
+  CreditCard,
+  PlugZap,
+  ChartNoAxesCombined,
+  ClipboardCheck,
+  Settings2,
+  LayoutDashboard,
+  SlidersHorizontal,
   PanelLeftClose,
   PanelLeftOpen,
   Sparkles,
@@ -102,6 +112,11 @@ function TenantSidebarView({ collapsed = false, onToggleCollapse, onNavigate }: 
       clearTenantSession()
       window.location.assign("/tenant/login")
     }
+  }
+
+  function groupIcon(key: string) {
+    const icons = { overview: LayoutDashboard, organization: BriefcaseBusiness, access: UsersRound, configuration: SlidersHorizontal, finance: WalletCards, subscription: CreditCard, integrations: PlugZap, insights: ChartNoAxesCombined, governance: ClipboardCheck, settings: Settings2 }
+    return icons[key as keyof typeof icons] || Sparkles
   }
 
   function isGroupActive(group: (typeof tenantNavigation)[number]) {
@@ -227,7 +242,8 @@ function TenantSidebarView({ collapsed = false, onToggleCollapse, onNavigate }: 
             </p>
           )}
           {filteredNavigation.map((group) => {
-            const GroupIcon = group.items[0]?.icon || Sparkles
+            const GroupIcon = groupIcon(group.key)
+            const groupActive = isGroupActive(group)
             const groupLabel = group.label[ar ? "ar" : "en"]
             const isOpen = expandedGroups[group.key] ?? isGroupActive(group)
             if (collapsed) {
@@ -240,7 +256,7 @@ function TenantSidebarView({ collapsed = false, onToggleCollapse, onNavigate }: 
                           variant="ghost"
                           size="icon"
                           aria-label={groupLabel}
-                          className={`w-full text-white/65 hover:bg-white/10 hover:text-white ${isGroupActive(group) ? "bg-white/10 text-white" : ""}`}
+                          className={`w-full rounded-xl text-white/65 hover:bg-white/10 hover:text-white ${groupActive ? "bg-violet-500/20 text-violet-100 ring-1 ring-inset ring-violet-300/20" : ""}`}
                         >
                           <GroupIcon className="size-[18px]" />
                         </Button>
@@ -254,7 +270,7 @@ function TenantSidebarView({ collapsed = false, onToggleCollapse, onNavigate }: 
                       const Icon = item.icon
                       return (
                         <DropdownMenuItem key={item.key} asChild>
-                          <NavLink to={item.href} end={item.href === "/tenant"} onClick={onNavigate} className="flex w-full items-center gap-2">
+                          <NavLink to={item.href} end={item.href === "/tenant"} onClick={onNavigate} className={({ isActive }) => `flex w-full items-center gap-2 rounded-lg ${isActive ? "bg-violet-100 font-semibold text-violet-800 focus:bg-violet-100 focus:text-violet-900" : ""}`}>
                             <Icon className="size-4" />
                             <span>{labels[item.key] || item.key}</span>
                           </NavLink>
@@ -272,9 +288,9 @@ function TenantSidebarView({ collapsed = false, onToggleCollapse, onNavigate }: 
                   variant="ghost"
                   onClick={() => setExpandedGroups((current) => ({ ...current, [group.key]: !isOpen }))}
                   aria-expanded={isOpen}
-                  className="mb-1 h-9 w-full justify-between rounded-lg px-3 text-[10px] font-bold uppercase tracking-[.14em] text-white/40 hover:bg-white/[.05] hover:text-white/75"
+                  className={`mb-1 h-10 w-full justify-between rounded-xl px-3 text-[10px] font-bold uppercase tracking-[.14em] transition-colors ${groupActive ? "bg-white/[.07] text-violet-200 hover:bg-white/10 hover:text-violet-100" : "text-white/40 hover:bg-white/[.05] hover:text-white/75"}`}
                 >
-                  <span>{groupLabel}</span>
+                  <span className="flex min-w-0 items-center gap-2.5"><GroupIcon className={`size-4 shrink-0 ${groupActive ? "text-violet-300" : "text-white/45"}`} /><span className="truncate">{groupLabel}</span></span>
                   <ChevronDown className={`size-3.5 transition-transform ${isOpen ? "rotate-180" : ""}`} />
                 </Button>
                 {isOpen && <div className="space-y-1">{group.items.map(renderLink)}</div>}
