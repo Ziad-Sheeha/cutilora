@@ -187,6 +187,8 @@ export function TenantDomainWorkspacePage({ feature, clinicId, clinics = [], bra
   const [permissionText, setPermissionText] = useState("")
   const [selectedClinicIds, setSelectedClinicIds] = useState<string[]>([])
   const [selectedBranchIds, setSelectedBranchIds] = useState<string[]>([])
+  const [invitationClinicIds, setInvitationClinicIds] = useState<string[]>([])
+  const [invitationBranchIds, setInvitationBranchIds] = useState<string[]>([])
   const [pendingPreview, setPendingPreview] = useState<{ payload: Record<string, unknown>; preview: Record<string, unknown> } | null>(null)
   const getEndpoints = feature.endpoints.filter(endpoint => endpoint.method === "GET" && !endpoint.path.includes("{"))
   const writeEndpoints = feature.endpoints.filter(endpoint => endpoint.method !== "GET")
@@ -331,11 +333,27 @@ export function TenantDomainWorkspacePage({ feature, clinicId, clinics = [], bra
     }
     const missing = activeFields.find(field => field.required && !String(values[field.name] ?? "").trim())
     if (missing) { setFormError(ar ? "أكمل كل الحقول المطلوبة." : "Complete all required fields."); return }
+    if (feature.key === "invitations" && values.scope === "clinic" && invitationClinicIds.length === 0) {
+      setFormError(ar ? "اختر عيادة واحدة على الأقل." : "Select at least one clinic.")
+      return
+    }
+    if (feature.key === "invitations" && values.scope === "branch" && invitationBranchIds.length === 0) {
+      setFormError(ar ? "اختر فرعاً واحداً على الأقل." : "Select at least one branch.")
+      return
+    }
     const payload: Record<string, unknown> = Object.fromEntries(activeFields.filter(field => values[field.name] !== undefined && values[field.name] !== "").map(field => [
       field.name,
       field.type === "number" ? Number(values[field.name]) : ["true", "false"].includes(values[field.name]) ? values[field.name] === "true" : values[field.name],
     ]))
+    if (feature.key === "invitations") {
+      if (values.scope === "clinic") payload.clinicIds = invitationClinicIds
+      if (values.scope === "branch") payload.branchIds = invitationBranchIds
+    }
     const result = await operation.mutateAsync({ endpoint, row, payload })
+    if (feature.key === "invitations") {
+      setInvitationClinicIds([])
+      setInvitationBranchIds([])
+    }
     if (feature.key === "configuration" && endpoint.path.endsWith("/preview-apply")) {
       const preview = unwrap(result)
       setPendingPreview({ payload, preview: preview && typeof preview === "object" ? preview as Record<string, unknown> : {} })
@@ -458,6 +476,8 @@ export function TenantDomainWorkspacePage({ feature, clinicId, clinics = [], bra
               : field.type === "textarea" ? <Textarea id={`tenant-op-${feature.key}-${field.name}`} value={values[field.name] ?? ""} onChange={event => setValues(current => ({ ...current, [field.name]: event.target.value }))}/>
               : <Input id={`tenant-op-${feature.key}-${field.name}`} type={field.type ?? "text"} value={values[field.name] ?? ""} onChange={event => setValues(current => ({ ...current, [field.name]: event.target.value }))}/>}
             </div>)}
+            {feature.key === "invitations" && values.scope === "clinic" && <div className="sm:col-span-2"><Label>{ar ? "العيادات المسموح بها" : "Allowed clinics"}</Label><div className="mt-2 grid gap-2 rounded-xl border p-3 sm:grid-cols-2">{clinics.map(clinic => <label key={clinic._id} className="flex items-center gap-2 text-sm"><Checkbox checked={invitationClinicIds.includes(clinic._id)} onChange={event => setInvitationClinicIds(current => event.target.checked ? [...new Set([...current, clinic._id])] : current.filter(id => id !== clinic._id))}/>{clinic.name}</label>)}</div></div>}
+            {feature.key === "invitations" && values.scope === "branch" && <div className="sm:col-span-2"><Label>{ar ? "الفروع المسموح بها" : "Allowed branches"}</Label><div className="mt-2 grid gap-2 rounded-xl border p-3 sm:grid-cols-2">{branches.map(branch => <label key={branch._id} className="flex items-center gap-2 text-sm"><Checkbox checked={invitationBranchIds.includes(branch._id)} onChange={event => setInvitationBranchIds(current => event.target.checked ? [...new Set([...current, branch._id])] : current.filter(id => id !== branch._id))}/>{branch.name}</label>)}</div></div>}
             <div className="flex flex-wrap items-center gap-2 sm:col-span-2"><Button type="submit" disabled={operation.isPending}>{operation.isPending ? <LoaderCircle className="me-2 size-4 animate-spin"/> : <Check className="me-2 size-4"/>}{operationLabel(endpoint, ar)}</Button><Button type="button" variant="outline" onClick={() => setValues({})}>{ar ? "مسح الحقول" : "Clear fields"}</Button></div>
           </form>
         </CardContent></Card>
