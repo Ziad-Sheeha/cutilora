@@ -192,6 +192,12 @@ export function TenantDomainWorkspacePage({ feature, clinicId, clinics = [], bra
   const fields = feature.fields ?? []
   const rootWriteEndpoints = writeEndpoints.filter(endpoint => !endpoint.path.includes("{") && ["POST", "PATCH", "PUT"].includes(endpoint.method) && !(feature.key === "configuration" && endpoint.path.endsWith("/apply")))
   function fieldsFor(endpoint: TenantFeatureEndpoint): TenantFeatureField[] {
+    if (feature.key === "clinic-workspace" && endpoint.path.endsWith("/settings")) return [
+      { name: "timezone", label: "Timezone", type: "text", required: true },
+      { name: "defaultLocale", label: "Default language", type: "select", required: true, options: [{ label: "English", value: "en" }, { label: "العربية", value: "ar" }] },
+      { name: "defaultCurrency", label: "Default currency", type: "select", required: true, options: [{ label: "EGP", value: "EGP" }, { label: "SAR", value: "SAR" }, { label: "AED", value: "AED" }, { label: "USD", value: "USD" }] },
+      { name: "cancellationWindowHours", label: "Cancellation notice (hours)", type: "number", required: true },
+    ]
     if (feature.key === "users" && endpoint.path.includes("/memberships/")) return [
       { name: "role", label: "Organization role", type: "select", required: true, options: [{ label: "Tenant admin", value: "tenant_admin" }, { label: "Organization manager", value: "organization_manager" }, { label: "Clinic manager", value: "clinic_manager" }, { label: "Branch manager", value: "branch_manager" }, { label: "Read-only analyst", value: "read_only_analyst" }] },
       { name: "status", label: "Membership status", type: "select", required: true, options: [{ label: "Active", value: "active" }, { label: "Suspended", value: "suspended" }] },
