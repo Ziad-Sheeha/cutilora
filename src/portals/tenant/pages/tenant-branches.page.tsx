@@ -38,6 +38,7 @@ export function TenantBranchesPage() {
         empty: "لا توجد فروع لهذه العيادة بعد",
         emptyDescription: "يمكنك إضافة أول فرع لهذه العيادة.",
         count: "فرع",
+        search: "ابحث باسم الفرع أو المعرّف...",
       }
     : {
         eyebrow: "LOCATION MANAGEMENT",
@@ -50,6 +51,7 @@ export function TenantBranchesPage() {
         empty: "No branches for this clinic yet",
         emptyDescription: "Create the first branch for this clinic.",
         count: "branches",
+        search: "Search branches by name or slug...",
       }
 
   useEffect(() => {
