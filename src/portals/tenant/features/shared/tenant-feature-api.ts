@@ -36,8 +36,32 @@ function isCollectionPath(path: string) {
 }
 
 export function getTenantFeatureListEndpoint(feature: TenantFeatureDefinition) {
-  return feature.endpoints.find(
+  const collectionGets = feature.endpoints.filter(
     (endpoint) => endpoint.method === "GET" && isCollectionPath(endpoint.path),
+  )
+  const collectionPosts = feature.endpoints.filter(
+    (endpoint) => endpoint.method === "POST" && isCollectionPath(endpoint.path),
+  )
+
+  // Prefer the collection that supports creation; this avoids treating
+  // auxiliary resources (e.g. /permissions) as the module's main directory.
+  const matchingCreate = collectionGets.find((getEndpoint) =>
+    collectionPosts.some(
+      (postEndpoint) =>
+        postEndpoint.path.split("?")[0] === getEndpoint.path.split("?")[0],
+    ),
+  )
+  if (matchingCreate) return matchingCreate
+
+  const keyPath = feature.key.split("/").at(-1)?.replace(/s$/, "")
+  const matchingResource = collectionGets.find((endpoint) => {
+    const segment = endpoint.path.split("?")[0].split("/").filter(Boolean).at(-1)
+    return segment === feature.key.split("/").at(-1) || segment === keyPath
+  })
+  if (matchingResource) return matchingResource
+
+  return collectionGets.find((endpoint) =>
+    !/permissions|access\/me|\/me$|catalogue|catalog\/categories/i.test(endpoint.path),
   )
 }
 
