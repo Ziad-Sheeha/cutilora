@@ -247,7 +247,7 @@ export function TenantDomainWorkspacePage({ feature, clinicId, clinics = [], bra
       const url = result?.url ?? result?.downloadUrl ?? result?.exportUrl
       if (url && /download|export/i.test(variables.endpoint.purpose)) window.open(url, "_blank", "noopener,noreferrer")
       const issuedCredential = result?.secret ?? result?.apiKey ?? result?.token ?? result?.credential ?? result?.credentials?.apiKey
-      if (issuedCredential && /connect|rotate/i.test(variables.endpoint.purpose)) setOneTimeCredential(issuedCredential)
+      if (issuedCredential && /connect|rotate|register/i.test(variables.endpoint.purpose)) setOneTimeCredential(issuedCredential)
     },
     onError: error => {
       setSuccess("")
