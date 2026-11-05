@@ -317,8 +317,6 @@ export const tenantFeatureRegistry: TenantFeatureDefinition[] = [
       { method: "PUT", path: "/api/v1/tenant/branches/{branchId}/business-hours", purpose: "Replace weekly schedule" },
       { method: "GET", path: "/api/v1/tenant/branches/{branchId}/holidays", purpose: "List holidays and closures" },
       { method: "POST", path: "/api/v1/tenant/branches/{branchId}/holidays", purpose: "Create holiday or exception" },
-      { method: "PATCH", path: "/api/v1/tenant/branches/{branchId}/holidays/{holidayId}", purpose: "Update holiday or exception" },
-      { method: "DELETE", path: "/api/v1/tenant/branches/{branchId}/holidays/{holidayId}", purpose: "Delete holiday or exception" },
       { method: "PATCH", path: "/api/v1/tenant/branches/{branchId}/settings", purpose: "Update branch settings" },
       { method: "GET", path: "/api/v1/tenant/branches/{branchId}/activity", purpose: "Branch activity" },
       { method: "PATCH", path: "/api/v1/tenant/branches/{branchId}/manager", purpose: "Assign branch manager" },
