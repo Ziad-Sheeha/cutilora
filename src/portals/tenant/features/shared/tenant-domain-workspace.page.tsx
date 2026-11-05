@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea"
 import { useI18n } from "@/i18n/i18n-provider"
 import { tenantApi } from "../../api/tenant-api"
+import { canWriteTenantFeature } from "../../auth/tenant-permissions"
 import { TenantPageHeading } from "../../components/tenant-page-heading"
 import { ConfirmDialog } from "@/shared/components/dialogs/confirm-dialog"
 import type { TenantFeatureDefinition, TenantFeatureEndpoint, TenantFeatureField } from "./tenant-feature.types"
@@ -176,6 +177,7 @@ function operationLabel(endpoint: TenantFeatureEndpoint, ar: boolean) {
 export function TenantDomainWorkspacePage({ feature, clinicId, clinics = [], branches = [] }: { feature: TenantFeatureDefinition; clinicId?: string; clinics?: Clinic[]; branches?: Branch[] }) {
   const { locale } = useI18n()
   const ar = locale === "ar"
+  const canWrite = canWriteTenantFeature(feature.key)
   const client = useQueryClient()
   const [values, setValues] = useState<Record<string, string>>({})
   const [search, setSearch] = useState("")
@@ -293,7 +295,7 @@ export function TenantDomainWorkspacePage({ feature, clinicId, clinics = [], bra
   })
 
   const fields = feature.fields ?? []
-  const rootWriteEndpoints = writeEndpoints.filter(endpoint => (!endpoint.path.includes("{") || (feature.key === "clinic-workspace" && Boolean(clinicId) && endpoint.path.includes("{clinicId}"))) && ["POST", "PATCH", "PUT"].includes(endpoint.method) && !(feature.key === "configuration" && endpoint.path.endsWith("/apply")))
+  const rootWriteEndpoints = writeEndpoints.filter(endpoint => canWrite && (!endpoint.path.includes("{") || (feature.key === "clinic-workspace" && Boolean(clinicId) && endpoint.path.includes("{clinicId}"))) && ["POST", "PATCH", "PUT"].includes(endpoint.method) && !(feature.key === "configuration" && endpoint.path.endsWith("/apply")))
   function fieldsFor(endpoint: TenantFeatureEndpoint): TenantFeatureField[] {
     if (feature.key === "integrations" && /rotate/i.test(endpoint.purpose)) {
       return [{ name: "apiKey", label: "New provider API key (optional)", type: "password" }]
@@ -423,7 +425,7 @@ export function TenantDomainWorkspacePage({ feature, clinicId, clinics = [], bra
   }
 
   const readActions = feature.endpoints.filter(endpoint => endpoint.method === "GET" && endpoint.path.includes("{"))
-  const rowActions = writeEndpoints.filter(endpoint => endpoint.path.includes("{") && !(feature.key === "clinic-workspace" && endpoint.path.includes("{clinicId}")) )
+  const rowActions = writeEndpoints.filter(endpoint => canWrite && endpoint.path.includes("{") && !(feature.key === "clinic-workspace" && endpoint.path.includes("{clinicId}")) )
   const permissionRows = resources.find(resource => resource.endpoint.path.endsWith("/permissions"))?.rows ?? []
   const selectedPermissions = permissionText.split(",").map(value => value.trim()).filter(Boolean)
 
