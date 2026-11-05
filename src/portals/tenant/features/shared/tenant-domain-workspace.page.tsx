@@ -348,7 +348,7 @@ export function TenantDomainWorkspacePage({ feature, clinicId }: { feature: Tena
                   const payload = /membership status/i.test(endpoint.purpose) ? { status: String(row.status ?? "").toLowerCase() === "active" ? "suspended" : "active" } : undefined
                   void operation.mutateAsync({ endpoint, row, payload })
                 }
-              }}>{operation.isPending ? <LoaderCircle className="me-2 size-3.5 animate-spin"/> : /resend/i.test(endpoint.purpose) ? <Send className="me-2 size-3.5"/> : /rotate/i.test(endpoint.purpose) ? <RotateCw className="me-2 size-3.5"/> : endpoint.method === "DELETE" ? <Trash2 className="me-2 size-3.5"/> : <ShieldCheck className="me-2 size-3.5"/>}{operationLabel(endpoint, ar)} · {String(row.name ?? row.email ?? rowId(row)).slice(0, 18)}</Button>)))}</div>}
+              }}>{operation.isPending ? <LoaderCircle className="me-2 size-3.5 animate-spin"/> : /resend/i.test(endpoint.purpose) ? <Send className="me-2 size-3.5"/> : /rotate/i.test(endpoint.purpose) ? <RotateCw className="me-2 size-3.5"/> : endpoint.method === "DELETE" ? <Trash2 className="me-2 size-3.5"/> : <ShieldCheck className="me-2 size-3.5"/>}{operationLabel(endpoint, ar)} · {String(row.name ?? row.email ?? rowId(row)).slice(0, 18)}</Button>))}</div>}
             </CardContent>
           </Card>
         )
