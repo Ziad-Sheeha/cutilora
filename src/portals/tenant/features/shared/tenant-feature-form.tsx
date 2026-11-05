@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, type FormEvent } from "react"
 import { CheckCircle2, ClipboardCheck } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -22,7 +22,7 @@ export function TenantFeatureForm({ feature }: Props) {
 
   if (!feature.fields?.length || !feature.schemaKey) return null
 
-  function submit(event: React.FormEvent<HTMLFormElement>) {
+  function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     const result = validateTenantFeatureForm(
       feature.schemaKey as TenantFeatureSchemaKey,
