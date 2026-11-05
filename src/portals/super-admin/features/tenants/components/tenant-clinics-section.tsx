@@ -24,7 +24,7 @@ export function TenantClinicsSection({ clinics, locale }: { clinics: TenantClini
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-semibold">{clinic.name || "—"}</p>
               <p className="mt-1 text-xs text-muted-foreground">{human(clinic.clinicType)} · {human(clinic.status)}</p>
-              {clinic.branding.coverImageUrl && <AppImage src={resolveAssetUrl(clinic.branding.coverImageUrl)} alt={ar ? "صورة غلاف العيادة" : "Clinic cover"} className="mt-2 h-16 w-full rounded-lg" imageClassName="size-full rounded-lg object-cover"/>}
+              {clinic.branding.coverImageUrl && <AppImage src={resolveAssetUrl(clinic.branding.coverImageUrl)} alt={ar ? "صورة غلاف العيادة" : "Clinic cover"} className="mt-2 h-24 w-full rounded-lg bg-muted/20 sm:h-28" imageClassName="size-full rounded-lg object-contain p-1.5"/>}
             </div>
             <span className="size-8 shrink-0 rounded-lg border" style={{ backgroundColor: clinic.branding.primaryColor || "transparent" }}/>
           </article>
