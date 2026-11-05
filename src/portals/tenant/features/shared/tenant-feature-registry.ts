@@ -240,6 +240,33 @@ export const tenantFeatureRegistry: TenantFeatureDefinition[] = [
     ],
   },
   {
+    key: "organization-profile", group: "Organization", icon: "building-2", schemaKey: "profile",
+    title: { en: "Organization Profile", ar: "ملف المؤسسة" },
+    eyebrow: { en: "ORGANIZATION IDENTITY", ar: "هوية المؤسسة" },
+    description: { en: "Prepare organization identity, legal, contact and registered-address changes. Legal changes require elevated permission and audit review.", ar: "تجهيز تعديلات هوية المؤسسة وبياناتها القانونية ووسائل التواصل والعنوان المسجل. تتطلب التعديلات القانونية صلاحيات مرتفعة ومراجعة تدقيقية." },
+    capabilities: [
+      { en: "Maintain legal and display names, organization type and contact details.", ar: "إدارة الاسم القانوني والاسم التجاري ونوع المؤسسة وبيانات التواصل." },
+      { en: "Maintain registered address and organization-level defaults.", ar: "إدارة العنوان المسجل والقيم الافتراضية للمؤسسة." },
+      { en: "Preview changes locally until the profile API and audit flow are available.", ar: "معاينة التغييرات محلياً لحين توفير API الملف الشخصي ومسار التدقيق." },
+    ],
+    endpoints: [
+      { method: "GET", path: "/api/v1/tenant/profile", purpose: "Read organization profile" },
+      { method: "PATCH", path: "/api/v1/tenant/profile", purpose: "Update organization profile" },
+    ],
+    fields: [
+      { name: "displayName", label: "Display name", required: true },
+      { name: "legalName", label: "Legal name", required: true },
+      { name: "businessType", label: "Organization type", type: "select", required: true, options: [{ label: "Single clinic", value: "single_clinic" }, { label: "Clinic group", value: "clinic_group" }, { label: "Beauty center", value: "beauty_center" }] },
+      { name: "contactEmail", label: "Primary email", type: "email", required: true },
+      { name: "contactPhone", label: "Primary phone", type: "tel", required: true },
+      { name: "website", label: "Website", type: "url" },
+      { name: "countryId", label: "Country ID", required: true },
+      { name: "cityId", label: "City ID", required: true },
+      { name: "addressLine1", label: "Registered address", type: "textarea", required: true },
+    ],
+    note: { en: "The current backend context endpoint is read-only for organization profile. This form only validates a draft and does not submit it.", ar: "سياق المؤسسة المتاح حالياً للقراءة فقط. هذا النموذج يتحقق من المسودة محلياً ولا يرسلها للباك." },
+  },
+  {
     key: "clinic-workspace", group: "Organization", icon: "building-2",
     title: { en: "Clinic Workspace", ar: "مساحة إدارة العيادة" },
     eyebrow: { en: "CLINIC MANAGEMENT", ar: "إدارة العيادات" },
