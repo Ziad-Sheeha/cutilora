@@ -34,6 +34,7 @@ export function TenantFeaturePage() {
     let active = true
     setLoading(true)
     setLoadError(null)
+    setRecords([])
     fetchTenantFeatureRecords(listEndpoint, { page: 1, per_page: 20 })
       .then((result) => {
         if (active) setRecords(result.records)
@@ -75,7 +76,7 @@ export function TenantFeaturePage() {
         <StatusCard
           icon={ServerCog}
           label={ar ? "حالة التكامل" : "Integration status"}
-          value={ar ? "بانتظار الباك" : "Backend pending"}
+          value={listEndpoint ? (ar ? "واجهة بيانات" : "API-backed") : (ar ? "تكامل حسب العقد" : "Contract-driven")}
           description={ar ? "الواجهة والعقد جاهزان للتوصيل" : "UI and API contract are scaffolded"}
         />
         <StatusCard
@@ -123,7 +124,7 @@ export function TenantFeaturePage() {
                 <p className="mt-1 text-xs text-muted-foreground">{ar ? "لا توجد عمليات وهمية" : "No fake requests are made"}</p>
               </div>
               <span className="rounded-full bg-amber-50 px-2.5 py-1 text-[10px] font-bold text-amber-800">
-                {ar ? "قيد التنفيذ" : "Pending"}
+                {listEndpoint ? (ar ? "متصل عند توفر المسار" : "Endpoint configured") : (ar ? "حسب العقد" : "Contract-defined")}
               </span>
             </div>
             <p className="text-sm leading-6 text-muted-foreground">
@@ -209,7 +210,7 @@ export function TenantFeaturePage() {
                     <td className="px-3 py-3 font-mono text-xs" dir="ltr">{endpoint.path}</td>
                     <td className="px-3 py-3 text-xs text-muted-foreground">{endpoint.purpose}</td>
                     <td className="px-3 py-3">
-                      <span className="rounded-full bg-amber-50 px-2 py-1 text-[10px] font-semibold text-amber-800">{ar ? "بانتظار الباك" : "Backend pending"}</span>
+                      <span className="rounded-full bg-amber-50 px-2 py-1 text-[10px] font-semibold text-amber-800">{ar ? "مسار API معرف" : "API contract defined"}</span>
                     </td>
                   </tr>
                 ))}
