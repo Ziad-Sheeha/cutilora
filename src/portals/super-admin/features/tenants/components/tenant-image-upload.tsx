@@ -73,9 +73,9 @@ export function TenantImageUpload({
                 <Button type="button" size="sm" variant="outline" onClick={() => inputRef.current?.click()} disabled={reading}>
                   <UploadCloud className="size-4"/>{replaceLabel}
                 </Button>
-                <Button type="button" size="sm" variant="ghost" onClick={() => { onChange(""); setError("") }} disabled={reading}>
+                {value.startsWith("data:image/") && <Button type="button" size="sm" variant="ghost" onClick={() => { onChange(""); setError("") }} disabled={reading}>
                   <Trash2 className="size-4 text-destructive"/>{removeLabel}
-                </Button>
+                </Button>}
               </div>
             </div>
           </div>
