@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useI18n } from "@/i18n/i18n-provider"
 import { tenantApi } from "../../api/tenant-api"
+import { canManageOrganization } from "../../auth/tenant-permissions"
 import { TenantPageHeading } from "../../components/tenant-page-heading"
 import { ConfirmDialog } from "@/shared/components/dialogs/confirm-dialog"
 
@@ -52,6 +53,7 @@ function bytes(value?: number) {
 export function TenantDocumentsPage() {
   const { locale } = useI18n()
   const ar = locale === "ar"
+  const canWrite = canManageOrganization()
   const qc = useQueryClient()
   const [category, setCategory] = useState("legal")
   const [expiryDate, setExpiryDate] = useState("")
@@ -124,22 +126,22 @@ export function TenantDocumentsPage() {
     { id: "expiry", header: ar ? "تاريخ الانتهاء" : "Expiry date", cell: row => row.expiryDate ?? row.expiresAt ?? "—" },
     { id: "expiryStatus", header: ar ? "حالة الصلاحية" : "Expiry status", cell: row => expiryState(row.expiryDate ?? row.expiresAt, ar) },
     { id: "size", header: ar ? "الحجم" : "Size", cell: row => bytes(row.size) },
-    { id: "actions", header: ar ? "الإجراءات" : "Actions", cell: row => <div className="flex flex-wrap gap-1"><Button size="icon" variant="ghost" title={ar ? "معاينة / تنزيل" : "Preview / download"} disabled={!idOf(row)} onClick={() => void openDocument(row)}><Eye className="size-4"/></Button><Button size="icon" variant="ghost" title={ar ? "استبدال الملف" : "Replace file"} disabled={!idOf(row)} onClick={() => { setReplaceId(idOf(row)); setFile(null); setCategory(row.category ?? row.type ?? "legal"); setExpiryDate(row.expiryDate ?? row.expiresAt ?? ""); setError("") }}><Upload className="size-4"/></Button><Button size="icon" variant="ghost" title={ar ? "اعتماد المستند" : "Mark verified"} disabled={!idOf(row) || verify.isPending || row.verificationStatus === "verified"} onClick={() => verify.mutate(idOf(row))}><BadgeCheck className="size-4"/></Button><Button size="icon" variant="ghost" title={ar ? "أرشفة" : "Archive"} disabled={!idOf(row)} onClick={() => setArchiveId(idOf(row))}><Archive className="size-4"/></Button></div> },
-  ], [ar])
+    ...(canWrite ? [{ id: "actions", header: ar ? "الإجراءات" : "Actions", cell: (row: DocumentRecord) => <div className="flex flex-wrap gap-1"><Button size="icon" variant="ghost" title={ar ? "معاينة / تنزيل" : "Preview / download"} disabled={!idOf(row)} onClick={() => void openDocument(row)}><Eye className="size-4"/></Button><Button size="icon" variant="ghost" title={ar ? "استبدال الملف" : "Replace file"} disabled={!idOf(row)} onClick={() => { setReplaceId(idOf(row)); setFile(null); setCategory(row.category ?? row.type ?? "legal"); setExpiryDate(row.expiryDate ?? row.expiresAt ?? ""); setError("") }}><Upload className="size-4"/></Button><Button size="icon" variant="ghost" title={ar ? "اعتماد المستند" : "Mark verified"} disabled={!idOf(row) || verify.isPending || row.verificationStatus === "verified"} onClick={() => verify.mutate(idOf(row))}><BadgeCheck className="size-4"/></Button><Button size="icon" variant="ghost" title={ar ? "أرشفة" : "Archive"} disabled={!idOf(row)} onClick={() => setArchiveId(idOf(row))}><Archive className="size-4"/></Button></div> }] : []),
+  ], [ar, canWrite])
   return <div className="space-y-6">
     <TenantPageHeading eyebrow={ar ? "ملف المؤسسة" : "ORGANIZATION PROFILE"} title={ar ? "مستندات المؤسسة" : "Organization Documents"} description={ar ? "احفظ مستندات مؤسستك وتابع تصنيفاتها وحالة التحقق وتواريخ الانتهاء." : "Store organization documents and track their categories, verification and expiry dates."}/>
-    <Card><CardContent className="grid gap-4 p-5 md:grid-cols-2 xl:grid-cols-4">
+    {canWrite && <Card><CardContent className="grid gap-4 p-5 md:grid-cols-2 xl:grid-cols-4">
       <div className="md:col-span-2"><Label>{ar ? "الملف" : "Document file"}</Label><Input type="file" accept=".pdf,.png,.jpg,.jpeg,.webp,.doc,.docx,.xls,.xlsx" onChange={e => { setFile(e.target.files?.[0] ?? null); setError("") }} className="mt-2"/></div>
       <div><Label>{ar ? "التصنيف" : "Category"}</Label><Select value={category} onValueChange={setCategory}><SelectTrigger className="mt-2"><SelectValue/></SelectTrigger><SelectContent><SelectItem value="legal">{ar ? "مستندات قانونية" : "Legal"}</SelectItem><SelectItem value="license">{ar ? "تراخيص" : "Licenses"}</SelectItem><SelectItem value="tax">{ar ? "مستندات ضريبية" : "Tax"}</SelectItem><SelectItem value="insurance">{ar ? "تأمين" : "Insurance"}</SelectItem><SelectItem value="other">{ar ? "أخرى" : "Other"}</SelectItem></SelectContent></Select></div>
       <div><Label>{ar ? "تاريخ الانتهاء" : "Expiry date"}</Label><Input type="date" value={expiryDate} onChange={e => setExpiryDate(e.target.value)} className="mt-2"/></div>
       <div className="flex flex-wrap items-end gap-2 md:col-span-2 xl:col-span-4">{replaceId && <p className="w-full text-xs text-muted-foreground">{ar ? `استبدال ملف: ${rows.find(row => idOf(row) === replaceId)?.name ?? rows.find(row => idOf(row) === replaceId)?.fileName ?? "المستند المحدد"}` : `Replacing file: ${rows.find(row => idOf(row) === replaceId)?.name ?? rows.find(row => idOf(row) === replaceId)?.fileName ?? "Selected document"}`}</p>}<Button disabled={!file || upload.isPending} onClick={() => upload.mutate()}><FilePlus2 className="me-2 size-4"/>{upload.isPending ? (ar ? "جارٍ الرفع..." : "Uploading...") : replaceId ? (ar ? "استبدال المستند" : "Replace document") : (ar ? "رفع مستند" : "Upload document")}</Button>{replaceId && <Button variant="outline" onClick={() => { setReplaceId(null); setFile(null); setExpiryDate(""); setCategory("legal") }}>{ar ? "إلغاء الاستبدال" : "Cancel replace"}</Button>}</div>
       {error && <p role="alert" className="text-sm text-destructive md:col-span-2 xl:col-span-4">{error}</p>}
-    </CardContent></Card>
+    </CardContent></Card>}
     <section className="overflow-hidden rounded-2xl border bg-card">
       <div className="flex items-center justify-between gap-3 border-b p-5"><div><h2 className="font-semibold">{ar ? "مكتبة المستندات" : "Document library"}</h2><p className="mt-1 text-sm text-muted-foreground">{ar ? `${rows.length} مستند` : `${rows.length} documents`}</p></div><Button variant="outline" onClick={() => query.refetch()} disabled={query.isFetching}><RefreshCw className={`me-2 size-4 ${query.isFetching ? "animate-spin" : ""}`}/>{ar ? "تحديث" : "Refresh"}</Button></div>
       {query.isError && <p role="alert" className="p-5 text-sm text-destructive">{query.error instanceof Error ? query.error.message : (ar ? "تعذر تحميل المستندات" : "Unable to load documents")}</p>}
       <DataTable columns={columns} data={rows} getRowId={row => idOf(row) || row.fileName || row.name || JSON.stringify(row)} isLoading={query.isLoading} loadingLabel={ar ? "جارٍ تحميل المستندات..." : "Loading documents..."} emptyState={<div className="px-6 py-14 text-center text-sm text-muted-foreground">{ar ? "لا توجد مستندات مضافة حتى الآن." : "No organization documents have been added yet."}</div>}/>
     </section>
-    <ConfirmDialog open={Boolean(archiveId)} title={ar ? "أرشفة المستند" : "Archive document"} description={ar ? "لن يظهر هذا المستند ضمن المستندات النشطة." : "This document will be moved out of the active document library."} confirmLabel={ar ? "أرشفة" : "Archive"} destructive isLoading={archive.isPending} onOpenChange={open => { if (!open) setArchiveId(null) }} onConfirm={() => { if (archiveId) archive.mutate(archiveId) }}/>
+    {canWrite && <ConfirmDialog open={Boolean(archiveId)} title={ar ? "أرشفة المستند" : "Archive document"} description={ar ? "لن يظهر هذا المستند ضمن المستندات النشطة." : "This document will be moved out of the active document library."} confirmLabel={ar ? "أرشفة" : "Archive"} destructive isLoading={archive.isPending} onOpenChange={open => { if (!open) setArchiveId(null) }} onConfirm={() => { if (archiveId) archive.mutate(archiveId) }}/>} 
   </div>
 }
