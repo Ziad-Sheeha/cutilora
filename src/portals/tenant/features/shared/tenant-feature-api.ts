@@ -21,16 +21,16 @@ function toApiPath(path: string) {
 }
 
 function unwrap<T>(response: unknown): TenantFeatureResult<T> {
-  const payload = response as {
-    data?: T
-    pagination?: TenantFeatureResult<T>["pagination"]
-  }
+  const root = response && typeof response === "object" ? response as Record<string, unknown> : {}
+  const nested = root.data && typeof root.data === "object" && !Array.isArray(root.data)
+    ? root.data as Record<string, unknown>
+    : undefined
+  const pagination = (root.pagination ?? root.meta ?? nested?.pagination ?? nested?.meta) as TenantFeatureResult<T>["pagination"]
   return {
-    data: payload?.data ?? (response as T),
-    pagination: payload?.pagination,
+    data: (root.data ?? response) as T,
+    pagination,
   }
 }
-
 function isCollectionPath(path: string) {
   return !/\{[^}]+\}/.test(path) && !/\?.*=\{/.test(path)
 }
@@ -84,17 +84,35 @@ export async function fetchTenantFeatureRecords(
   const { data } = await tenantApi.get(toApiPath(endpoint.path), { params })
   const result = unwrap<unknown>(data)
   const resource = result.data
-  const records = Array.isArray(resource)
-    ? resource as TenantFeatureRecord[]
-    : resource && typeof resource === "object" && "items" in resource && Array.isArray(resource.items)
-      ? resource.items as TenantFeatureRecord[]
-      : resource && typeof resource === "object"
-        ? [resource as TenantFeatureRecord]
-        : []
-
-  return { records, pagination: result.pagination }
+  const nested = resource && typeof resource === "object" && !Array.isArray(resource)
+    ? resource as Record<string, unknown>
+    : undefined
+  const rows = Array.isArray(resource)
+    ? resource
+    : Array.isArray(nested?.items)
+      ? nested.items
+      : Array.isArray(nested?.records)
+        ? nested.records
+        : Array.isArray(nested?.data)
+          ? nested.data
+          : resource && typeof resource === "object"
+            ? [resource]
+            : []
+  const pagination = result.pagination ?? (
+    nested && (nested.total !== undefined || nested.page !== undefined || nested.current_page !== undefined)
+      ? {
+          page: Number(nested.page ?? nested.current_page) || undefined,
+          per_page: Number(nested.per_page ?? nested.perPage) || undefined,
+          total: Number(nested.total) || undefined,
+          total_pages: Number(nested.total_pages ?? nested.last_page) || undefined,
+        }
+      : undefined
+  )
+  return {
+    records: rows as TenantFeatureRecord[],
+    pagination,
+  }
 }
-
 export async function createTenantFeatureRecord(
   endpoint: TenantFeatureEndpoint,
   payload: Record<string, unknown>,
