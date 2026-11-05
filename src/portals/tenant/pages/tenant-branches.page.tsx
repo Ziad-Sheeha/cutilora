@@ -9,6 +9,7 @@ import { TenantEmptyState } from "../components/tenant-empty-state"
 import { TenantPageHeading } from "../components/tenant-page-heading"
 import { TenantStatusPill } from "../components/tenant-status-pill"
 import { createBranch, getBranches, updateBranch } from "../api/tenant-api"
+import { canManageOrganization } from "../auth/tenant-permissions"
 import type { Branch } from "../types/tenant.types"
 import type { TenantOutletContext } from "../layout/tenant-layout"
 import { useI18n } from "@/i18n/i18n-provider"
@@ -17,6 +18,7 @@ export function TenantBranchesPage() {
   const { context, clinics } = useOutletContext<TenantOutletContext>()
   const { locale } = useI18n()
   const ar = locale === "ar"
+  const canWrite = canManageOrganization()
   const [branches, setBranches] = useState<Branch[]>([])
   const [loading, setLoading] = useState(false)
   const [formOpen, setFormOpen] = useState(false)
@@ -112,10 +114,10 @@ export function TenantBranchesPage() {
         title={copy.title}
         description={copy.description}
         action={
-          <Button disabled={!clinicId} onClick={openCreateForm}>
+          canWrite ? <Button disabled={!clinicId} onClick={openCreateForm}>
             <Plus className="size-4" />
             {copy.add}
-          </Button>
+          </Button> : undefined
         }
       />
 
@@ -137,7 +139,7 @@ export function TenantBranchesPage() {
             </div>
           </div>
 
-          {formOpen && <TenantBranchForm branch={editingBranch} onCancel={() => { setFormOpen(false); setEditingBranch(null) }} onSave={saveBranch} />}
+          {canWrite && formOpen && <TenantBranchForm branch={editingBranch} onCancel={() => { setFormOpen(false); setEditingBranch(null) }} onSave={saveBranch} />}
           {error && <p role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}
 
           <Card className="border-white bg-white">
@@ -165,7 +167,7 @@ export function TenantBranchesPage() {
                           <p className="mt-1 truncate text-xs text-muted-foreground">{branch.slug}</p>
                         </div>
                         <TenantStatusPill status={branch.status || "active"} />
-                        <Button type="button" size="icon" variant="ghost" onClick={() => openEditForm(branch)} aria-label={ar ? "تعديل الفرع" : "Edit branch"}><Pencil className="size-4"/></Button>
+                        {canWrite && <Button type="button" size="icon" variant="ghost" onClick={() => openEditForm(branch)} aria-label={ar ? "تعديل الفرع" : "Edit branch"}><Pencil className="size-4"/></Button>}
                       </div>
                       <p className="mt-4 flex items-center gap-2 border-t pt-3 text-xs text-muted-foreground">
                         <Clock3 className="size-3.5" />
@@ -179,7 +181,7 @@ export function TenantBranchesPage() {
                   icon={MapPinned}
                   title={search ? (ar ? "لا توجد نتائج مطابقة" : "No matching branches") : copy.empty}
                   description={search ? (ar ? "جرّب البحث باسم أو معرّف مختلف." : "Try another branch name or slug.") : copy.emptyDescription}
-                  action={<Button size="sm" onClick={openCreateForm}>{copy.add}</Button>}
+                  action={canWrite ? <Button size="sm" onClick={openCreateForm}>{copy.add}</Button> : undefined}
                 />
               )}
             </CardContent>
