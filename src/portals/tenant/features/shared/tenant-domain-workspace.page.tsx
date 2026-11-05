@@ -45,7 +45,7 @@ function toRows(value: unknown): Row[] {
   return []
 }
 function rowId(row: Row) {
-  const value = row.id ?? row._id ?? row.uuid ?? row.membershipId ?? row.membership_id ?? row.userId ?? row.user_id ?? row.invitationId ?? row.invitation_id ?? row.roleId ?? row.role_id ?? row.invoiceId ?? row.invoice_id ?? row.reportId ?? row.report_id ?? row.auditEventId ?? row.audit_event_id ?? row.sessionId ?? row.session_id
+  const value = row.id ?? row._id ?? row.uuid ?? row.membershipId ?? row.membership_id ?? row.userId ?? row.user_id ?? row.invitationId ?? row.invitation_id ?? row.roleId ?? row.role_id ?? row.integrationId ?? row.integration_id ?? row.webhookId ?? row.webhook_id ?? row.invoiceId ?? row.invoice_id ?? row.reportId ?? row.report_id ?? row.auditEventId ?? row.audit_event_id ?? row.sessionId ?? row.session_id
   return value === undefined || value === null ? "" : String(value)
 }
 function label(value: string, ar: boolean) {
