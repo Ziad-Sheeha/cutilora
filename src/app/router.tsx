@@ -22,7 +22,7 @@ function TenantRouteFallback() {
   return <div role="status" aria-live="polite" className="flex min-h-[240px] items-center justify-center text-sm text-muted-foreground">Loading tenant module…</div>
 }
 
-function TenantRoute({ children }: { children: React.ReactNode }) {
+function TenantRoute({ children }: { children: ReactNode }) {
   return <Suspense fallback={<TenantRouteFallback />}>{children}</Suspense>
 }
 
