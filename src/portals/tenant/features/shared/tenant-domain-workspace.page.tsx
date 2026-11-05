@@ -129,6 +129,19 @@ function humanize(key: string, ar: boolean) {
 function display(value: unknown, ar: boolean) {
   if (value === null || value === undefined || value === "") return "—"
   if (typeof value === "boolean") return value ? (ar ? "نعم" : "Yes") : (ar ? "لا" : "No")
+  if (typeof value === "string") {
+    const statuses: Record<string, [string, string]> = {
+      active: ["Active", "نشط"], inactive: ["Inactive", "غير نشط"], suspended: ["Suspended", "موقوف"],
+      pending: ["Pending", "قيد الانتظار"], accepted: ["Accepted", "مقبول"], expired: ["Expired", "منتهي"],
+      revoked: ["Revoked", "ملغي"], verified: ["Verified", "تم التحقق"], rejected: ["Rejected", "مرفوض"],
+      tenant: ["Entire organization", "المؤسسة بالكامل"], clinic: ["Selected clinics", "عيادات محددة"], branch: ["Selected branches", "فروع محددة"],
+      tenant_admin: ["Tenant admin", "مسؤول المؤسسة"], organization_manager: ["Organization manager", "مدير المؤسسة"],
+      clinic_manager: ["Clinic manager", "مدير العيادة"], branch_manager: ["Branch manager", "مدير الفرع"],
+      read_only_analyst: ["Read-only analyst", "محلل للقراءة فقط"],
+    }
+    const normalized = value.toLowerCase()
+    if (statuses[normalized]) return statuses[normalized][ar ? 1 : 0]
+  }
   if (Array.isArray(value)) return value.map(item => typeof item === "object" ? JSON.stringify(item) : String(item)).join(", ")
   if (typeof value === "object") return ar ? "تفاصيل إضافية" : "Additional details"
   return String(value)
