@@ -1,6 +1,7 @@
 import axios, { AxiosError, type AxiosRequestConfig } from "axios"
 import { appEnv } from "@/config/env"
 import { beginLoading, endLoading, pushToast, store } from "@/store"
+import { expireClinicSession, getClinicSessionContext, getClinicToken } from "@/portals/clinic/auth/clinic-auth"
 export type ApiError = { message: string; code?: string; status?: number; errors?: Record<string, string[]>; requestId?: string }
 export function normalizeApiError(error: unknown): ApiError {
  if (axios.isAxiosError(error)) {
@@ -19,12 +20,24 @@ export function normalizeApiError(error: unknown): ApiError {
 }
 let activeRequests = 0
 export const api = axios.create({ baseURL: appEnv.apiBaseUrl.replace(/\/$/, ""), timeout: 20_000, headers: { Accept: "application/json", "Content-Type": "application/json" } })
-api.interceptors.request.use((config) => { activeRequests += 1; store.dispatch(beginLoading()); return config })
+api.interceptors.request.use((config) => {
+ activeRequests += 1
+ store.dispatch(beginLoading())
+ const token = typeof window !== "undefined" ? getClinicToken() : null
+ if (token) config.headers.Authorization = "Bearer " + token
+ const context = typeof window !== "undefined" ? getClinicSessionContext() : null
+ const branchId = store.getState().ui.currentBranchId || context?.branchId
+ if (context?.tenantId) config.headers["X-Tenant-Id"] = context.tenantId
+ if (context?.clinicId) config.headers["X-Clinic-Id"] = context.clinicId
+ if (branchId) config.headers["X-Branch-Id"] = branchId
+ return config
+})
 api.interceptors.response.use(
  (response) => { activeRequests = Math.max(0, activeRequests - 1); store.dispatch(endLoading()); return response },
  (error: AxiosError) => {
   activeRequests = Math.max(0, activeRequests - 1); store.dispatch(endLoading())
   const normalized = normalizeApiError(error)
+  if (normalized.status === 401) expireClinicSession()
   if (normalized.status === 401) store.dispatch(pushToast({ id: crypto.randomUUID(), kind: "warning", title: normalized.message, description: normalized.code }))
   else if (normalized.status !== 422) store.dispatch(pushToast({ id: crypto.randomUUID(), kind: "error", title: normalized.message, description: normalized.code }))
   return Promise.reject(normalized)

@@ -6,6 +6,7 @@ import { DataTable, type DataTableColumn } from "@/components/ui/data-table"
 import { TenantStatusBadge } from "../components/tenant-status-badge"
 import { TenantProfileField, TenantProfileOverview, TenantProfileSection } from "../components/tenant-profile-overview"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { useI18n } from "@/i18n/i18n-provider"
 import { useTenant, useTenantMutations } from "../hooks/use-tenants"
 import { pushToast, store } from "@/store"
@@ -66,6 +67,7 @@ export function TenantDetailsPage() {
   const { locale } = useI18n()
   const ar = locale === "ar"
   const [tab, setTab] = useState("overview")
+  const [suspendDialogOpen, setSuspendDialogOpen] = useState(false)
   const tenantQuery = useTenant(tenantId)
   const mutations = useTenantMutations()
   const labels: Record<string, string> = ar ? {
@@ -94,6 +96,7 @@ export function TenantDetailsPage() {
           </div>
           <div className="flex flex-wrap gap-2 xl:justify-end">
             {tenant.status !== "active" && <Button type="button" className="bg-emerald-600 text-white hover:bg-emerald-500" loading={mutations.updateStatus.isPending} onClick={async () => { try { await mutations.updateStatus.mutateAsync({ id: tenant.id, status: "active" }); store.dispatch(pushToast({ id: crypto.randomUUID(), kind: "success", title: ar ? "تم تفعيل المؤسسة" : "Tenant activated" })); await tenantQuery.refetch() } catch (error) { store.dispatch(pushToast({ id: crypto.randomUUID(), kind: "error", title: ar ? "تعذر تحديث الحالة" : "Could not update status", description: error instanceof Error ? error.message : undefined })) } }}><CheckCircle2 className="size-4"/>{ar ? "تفعيل المؤسسة" : "Activate tenant"}</Button>}
+            {tenant.status === "active" && <Button type="button" variant="outline" className="border-rose-200 text-rose-700 hover:bg-rose-50 hover:text-rose-800" onClick={() => setSuspendDialogOpen(true)}>{ar ? "إيقاف المؤسسة" : "Suspend tenant"}</Button>}
             <Link to={"/super-admin/tenants/" + encodeURIComponent(tenant.id) + "/edit"} className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border bg-background px-4 text-sm font-semibold transition hover:bg-muted"><Building2 className="size-4"/>{ar ? "تعديل البيانات" : "Edit profile"}</Link>
             <Button type="button" variant="outline" onClick={() => tenantQuery.refetch()}><ArrowUpRight className="size-4"/>{ar ? "تحديث الملف" : "Refresh profile"}</Button>
           </div>
@@ -106,5 +109,17 @@ export function TenantDetailsPage() {
       </div>
     </header>
     <Tabs value={tab} onValueChange={setTab} className="space-y-5"><TabsList className="h-auto w-full flex-wrap justify-start rounded-2xl p-1.5 sm:w-fit"><TabsTrigger value="overview" className="gap-2"><Building2 className="size-4"/>{labels.overview}</TabsTrigger><TabsTrigger value="subscription" className="gap-2"><CreditCard className="size-4"/>{labels.subscription}</TabsTrigger><TabsTrigger value="payments" className="gap-2"><WalletCards className="size-4"/>{labels.payments}</TabsTrigger></TabsList><TabsContent value="overview"><TenantProfileOverview tenant={tenant} labels={labels} locale={locale}/></TabsContent><TabsContent value="subscription"><SubscriptionPanel data={tenant.subscription ?? undefined} loading={false} error={null} locale={locale} labels={labels}/></TabsContent><TabsContent value="payments"><PaymentsPanel data={tenant.paymentHistory} loading={false} error={null} locale={locale} labels={labels}/></TabsContent></Tabs>
+    <Dialog open={suspendDialogOpen} onOpenChange={setSuspendDialogOpen}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle>{ar ? "تأكيد إيقاف المؤسسة" : "Suspend tenant?"}</DialogTitle>
+          <DialogDescription>{ar ? "سيتم إيقاف وصول المؤسسة وفق سياسات الباك إند. يمكنك إعادة تفعيلها لاحقاً." : "This will suspend the organization's access according to backend policy. You can reactivate it later."}</DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <Button type="button" variant="outline" onClick={() => setSuspendDialogOpen(false)}>{ar ? "إلغاء" : "Cancel"}</Button>
+          <Button type="button" variant="destructive" loading={mutations.updateStatus.isPending} disabled={mutations.updateStatus.isPending} onClick={async () => { try { await mutations.updateStatus.mutateAsync({ id: tenant.id, status: "suspended" }); store.dispatch(pushToast({ id: crypto.randomUUID(), kind: "success", title: ar ? "تم إيقاف المؤسسة" : "Tenant suspended" })); setSuspendDialogOpen(false); await tenantQuery.refetch() } catch (error) { store.dispatch(pushToast({ id: crypto.randomUUID(), kind: "error", title: ar ? "تعذر تحديث الحالة" : "Could not update status", description: error instanceof Error ? error.message : undefined })) } }}>{ar ? "تأكيد الإيقاف" : "Confirm suspension"}</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   </div>
 }

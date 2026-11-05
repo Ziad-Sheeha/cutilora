@@ -1,56 +1,101 @@
-import { memo } from "react"
-import { ArrowUpRight, FileSpreadsheet, FileText, MoreHorizontal } from "lucide-react"
+import { useMemo, useState } from "react"
+import { Link } from "react-router"
+import { useQuery } from "@tanstack/react-query"
+import { ArrowUpRight, CalendarDays } from "lucide-react"
+import { Card, CardContent } from "@/components/ui/card"
+import { DataTable, type DataTableColumn } from "@/components/ui/data-table"
 import { useI18n } from "@/i18n/i18n-provider"
-type AppointmentTone = "green" | "blue" | "amber"
+import { useAppSelector } from "@/store/hooks"
+import { fetchClinicModuleRecords, type ClinicRecord } from "@/portals/clinic/features/clinic/api/clinic-module.api"
 
-const appointments: {
-  patient: string
-  initials: string
-  service: string
-  provider: string
-  time: string
-  status: "checkedIn" | "confirmed" | "pending"
-  tone: AppointmentTone
-}[] = [
-  {
-    patient: "Olivia Rhye",
-    initials: "OR",
-    service: "Laser hair removal",
-    provider: "Dr. Ahmed",
-    time: "09:30 AM",
-    status: "checkedIn",
-    tone: "green",
-  },
-  {
-    patient: "Phoenix Baker",
-    initials: "PB",
-    service: "Skin consultation",
-    provider: "Dr. Mariam",
-    time: "10:15 AM",
-    status: "confirmed",
-    tone: "blue",
-  },
-  {
-    patient: "Lana Steiner",
-    initials: "LS",
-    service: "Chemical peel",
-    provider: "Dr. Ahmed",
-    time: "11:00 AM",
-    status: "pending",
-    tone: "amber",
-  },
-  {
-    patient: "Demi Wilkinson",
-    initials: "DW",
-    service: "Hydrafacial",
-    provider: "Dr. Nour",
-    time: "11:45 AM",
-    status: "confirmed",
-    tone: "blue",
-  },
-]
-const statusClasses: Record<"green" | "blue" | "amber", string>={green:"bg-emerald-50 text-emerald-700",blue:"bg-sky-50 text-sky-700",amber:"bg-amber-50 text-amber-700"}
-export const AppointmentsTable=memo(function AppointmentsTable(){
- const {t,locale}=useI18n();const d=t.dashboard
- return <section className="overflow-hidden rounded-2xl border bg-card shadow-sm"><div className="flex items-center justify-between border-b px-5 py-4"><div><h2 className="font-semibold">{d.upcomingAppointments}</h2><p className="mt-1 text-xs text-muted-foreground">{d.nextVisits}</p></div><div className="flex items-center gap-2"><button type="button" disabled title={locale==="ar"?"سيتم تفعيل التصدير عند دعم ذلك من الـ API.":"Export will be enabled when the API supports it."} className="inline-flex h-8 items-center gap-1.5 rounded-lg border px-2.5 text-xs font-medium text-muted-foreground opacity-60"><FileText className="size-3.5"/>PDF</button><button type="button" disabled title={locale==="ar"?"سيتم تفعيل التصدير عند دعم ذلك من الـ API.":"Export will be enabled when the API supports it."} className="inline-flex h-8 items-center gap-1.5 rounded-lg border px-2.5 text-xs font-medium text-muted-foreground opacity-60"><FileSpreadsheet className="size-3.5"/>Excel</button><button type="button" className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline">{d.viewAll}<ArrowUpRight className="size-3.5"/></button></div></div><div className="overflow-x-auto"><table className="w-full min-w-[920px] text-start text-sm"><thead className="bg-muted/35 text-[11px] uppercase tracking-[0.08em] text-muted-foreground"><tr><th className="px-5 py-3 text-start font-medium">{d.patient}</th><th className="px-4 py-3 text-start font-medium">{d.service}</th><th className="px-4 py-3 text-start font-medium">{d.provider}</th><th className="px-4 py-3 text-start font-medium">{d.time}</th><th className="px-4 py-3 text-start font-medium">{d.status}</th><th className="px-4 py-3 text-start font-medium">{locale==="ar"?"تاريخ الإنشاء":"Created at"}</th><th className="px-4 py-3 text-start font-medium">{locale==="ar"?"تاريخ التحديث":"Updated at"}</th><th className="px-4 py-3"/></tr></thead><tbody className="divide-y">{appointments.map(appointment=><tr key={appointment.patient} className="border-t border-border/60 transition-colors hover:bg-primary/[0.025]"><td className="px-5 py-3.5"><div className="flex items-center gap-3"><span className="flex size-9 items-center justify-center rounded-full bg-violet-100 text-xs font-semibold text-violet-800">{appointment.initials}</span><span className="font-medium">{appointment.patient}</span></div></td><td className="px-4 py-3.5 text-muted-foreground">{appointment.service}</td><td className="px-4 py-3.5 text-muted-foreground">{appointment.provider}</td><td className="px-4 py-3.5 tabular-nums">{appointment.time}</td><td className="px-4 py-3.5"><span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${statusClasses[appointment.tone]}`}>{t.appointments[appointment.status]}</span></td><td className="px-4 py-3.5 text-xs tabular-nums text-muted-foreground">—</td><td className="px-4 py-3.5 text-xs tabular-nums text-muted-foreground">—</td><td className="px-4 py-3.5"><button type="button" aria-label={t.common.moreActions} className="rounded-lg p-1.5 text-muted-foreground hover:bg-muted"><MoreHorizontal className="size-4"/></button></td></tr>)}</tbody></table></div></section>
-})
+function relatedName(value: unknown) {
+  if (typeof value === "string") return value
+  if (value && typeof value === "object") {
+    const row = value as Record<string, unknown>
+    return String(row.fullName ?? row.full_name ?? row.name ?? row.displayName ?? row.email ?? "—")
+  }
+  return "—"
+}
+function scheduledDate(record: ClinicRecord) {
+  const value = record.scheduledAt ?? record.startsAt ?? record.appointmentAt ?? record.date
+  if (typeof value !== "string") return null
+  const date = new Date(value)
+  return Number.isNaN(date.getTime()) ? null : date
+}
+function rowId(record: ClinicRecord) {
+  const id = record.id ?? record._id ?? record.uuid
+  return typeof id === "string" || typeof id === "number" ? String(id) : JSON.stringify(record)
+}
+
+export const AppointmentsTable = function AppointmentsTable() {
+  const { t, locale } = useI18n()
+  const d = t.dashboard
+  const branchId = useAppSelector((state) => state.ui.currentBranchId)
+  const [page, setPage] = useState(1)
+  const [perPage, setPerPage] = useState(5)
+  const query = useQuery({
+    queryKey: ["clinic-module", "appointments", branchId],
+    queryFn: () => fetchClinicModuleRecords("appointments"),
+    staleTime: 30_000,
+  })
+  const rows = query.data ?? []
+  const columns = useMemo<DataTableColumn<ClinicRecord>[]>(() => [
+    {
+      id: "patient",
+      header: d.patient,
+      cell: (record) => <span className="font-medium">{relatedName(record.patient ?? record.patientName ?? record.patientId)}</span>,
+    },
+    {
+      id: "service",
+      header: d.service,
+      cell: (record) => <span className="text-muted-foreground">{relatedName(record.service ?? record.serviceName ?? record.serviceId)}</span>,
+    },
+    {
+      id: "provider",
+      header: d.provider,
+      cell: (record) => <span className="text-muted-foreground">{relatedName(record.provider ?? record.providerName ?? record.providerId)}</span>,
+    },
+    {
+      id: "scheduledAt",
+      header: d.time,
+      cell: (record) => {
+        const date = scheduledDate(record)
+        return <time className="whitespace-nowrap text-xs tabular-nums">{date ? new Intl.DateTimeFormat(locale === "ar" ? "ar-EG" : "en-GB", { dateStyle: "medium", timeStyle: "short" }).format(date) : "—"}</time>
+      },
+    },
+    {
+      id: "status",
+      header: d.status,
+      cell: (record) => {
+        const status = String(record.status ?? "unknown")
+        const label = t.clinic.statuses[status as keyof typeof t.clinic.statuses] ?? status
+        return <span className="rounded-full bg-muted px-2.5 py-1 text-[11px] font-semibold">{label}</span>
+      },
+    },
+  ], [d, locale, t.clinic.statuses])
+  const totalPages = Math.max(1, Math.ceil(rows.length / perPage))
+  const pageRows = rows.slice((page - 1) * perPage, page * perPage)
+
+  return (
+    <Card className="overflow-hidden">
+      <CardContent className="p-0">
+        <div className="flex items-center justify-between gap-3 border-b px-5 py-4">
+          <div><h2 className="font-semibold">{d.upcomingAppointments}</h2><p className="mt-1 text-xs text-muted-foreground">{d.nextVisits}</p></div>
+          <Link to="/clinic/appointments" className="inline-flex items-center gap-1 text-xs font-semibold text-primary">{d.viewAll}<ArrowUpRight className="size-3.5"/></Link>
+        </div>
+        {query.isError && <div role="alert" className="m-4 rounded-xl border border-destructive/20 bg-destructive/5 px-4 py-3 text-sm text-destructive">{query.error instanceof Error ? query.error.message : (locale === "ar" ? "تعذر تحميل المواعيد" : "Unable to load appointments")}</div>}
+        <DataTable
+          columns={columns}
+          data={pageRows}
+          getRowId={rowId}
+          isLoading={query.isLoading}
+          loadingLabel={locale === "ar" ? "جارٍ تحميل المواعيد..." : "Loading appointments..."}
+          emptyState={<div className="px-5 py-12 text-center"><CalendarDays className="mx-auto size-8 text-muted-foreground/40"/><p className="mt-3 text-sm font-semibold">{locale === "ar" ? "لا توجد مواعيد" : "No appointments found"}</p><p className="mt-1 text-xs text-muted-foreground">{locale === "ar" ? "ستظهر المواعيد هنا عند إرجاعها من الخادم." : "Appointments will appear here when returned by the API."}</p></div>}
+          pagination={{ page, perPage, total: rows.length, totalKnown: true, hasNext: page < totalPages }}
+          onPageChange={setPage}
+          onPerPageChange={(size) => { setPerPage(size); setPage(1) }}
+        />
+      </CardContent>
+    </Card>
+  )
+}

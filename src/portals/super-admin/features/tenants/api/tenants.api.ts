@@ -103,15 +103,45 @@ function normalizePayment(value: unknown): TenantPayment {
     paidAt: nullableText(row.paidAt), failureReason: nullableText(row.failureReason),
   }
 }
-function rowsFrom(payload: unknown): unknown[] {
+interface TenantListEnvelope {
+  rows: unknown[]
+  total: number | null
+  page: number | null
+  perPage: number | null
+  totalTenants: number | null
+  availableStatuses: string[]
+  availablePlans: string[]
+  statusCounts: Record<string, number>
+}
+function numeric(value: unknown): number | null {
+  return typeof value === "number" && Number.isFinite(value) && value >= 0 ? value : null
+}
+function stringArray(value: unknown): string[] {
+  return asArray(value).filter((item): item is string => typeof item === "string")
+}
+function listEnvelope(payload: unknown): TenantListEnvelope {
   const root = object(payload)
   if (!root) throw new Error("UNEXPECTED_RESPONSE")
-  const data = root.data
-  if (Array.isArray(data)) return data
-  const nested = object(data)
-  if (Array.isArray(nested?.data)) return nested.data
-  if (Array.isArray(nested?.items)) return nested.items
-  throw new Error("UNEXPECTED_RESPONSE")
+  const data = object(root.data)
+  const meta = object(root.meta) ?? object(root.pagination) ?? object(data?.meta) ?? object(data?.pagination)
+  const candidates = [
+    root.items, root.records, root.tenants,
+    data?.items, data?.records, data?.tenants, data?.data,
+    root.data,
+  ]
+  const rows = candidates.find(Array.isArray)
+  if (!rows) throw new Error("UNEXPECTED_RESPONSE")
+  const summary = object(root.summary) ?? object(data?.summary) ?? {}
+  return {
+    rows: rows as unknown[],
+    total: numeric(meta?.total ?? meta?.totalItems ?? root.total ?? data?.total),
+    page: numeric(meta?.page ?? meta?.currentPage ?? meta?.current_page ?? root.page ?? data?.page),
+    perPage: numeric(meta?.perPage ?? meta?.per_page ?? meta?.pageSize ?? root.perPage ?? data?.perPage),
+    totalTenants: numeric(summary.totalTenants ?? summary.total ?? root.totalTenants),
+    availableStatuses: stringArray(summary.availableStatuses ?? root.availableStatuses),
+    availablePlans: stringArray(summary.availablePlans ?? root.availablePlans),
+    statusCounts: (object(summary.statusCounts ?? root.statusCounts) ?? {}) as Record<string, number>,
+  }
 }
 interface ApiError { message?: string; error?: { message?: string }; errors?: Record<string, unknown> }
 async function request<T>(path: string, init: RequestInit = {}): Promise<T> {
@@ -136,23 +166,52 @@ function tenantPath(id: string): string { return "/platform/tenants/" + encodeUR
 
 export const tenantsApi = {
   list: async (params: { page: number; perPage: number; search?: string; status?: string; plan?: string }): Promise<TenantListResult> => {
-    const allItems = rowsFrom(await request("/platform/tenants")).map(normalizeTenant)
-    const availableStatuses = Array.from(new Set(allItems.map((tenant) => tenant.status))).sort()
-    const availablePlans = Array.from(new Set(allItems.map((tenant) => tenant.plan).filter(Boolean))).sort()
-    const statusCounts = allItems.reduce<Record<string, number>>((counts, tenant) => {
-      counts[tenant.status] = (counts[tenant.status] ?? 0) + 1
-      return counts
-    }, {})
-    const totalTenants = allItems.length
+    const query = new URLSearchParams({
+      page: String(params.page),
+      per_page: String(params.perPage),
+    })
+    if (params.search?.trim()) query.set("search", params.search.trim())
+    if (params.status) query.set("status", params.status)
+    if (params.plan) query.set("plan", params.plan)
+
+    const envelope = listEnvelope(await request("/platform/tenants?" + query.toString()))
+    const tenants = envelope.rows.map(normalizeTenant)
+    const availableStatuses = envelope.availableStatuses.length
+      ? envelope.availableStatuses
+      : Array.from(new Set(tenants.map((tenant) => tenant.status))).sort()
+    const availablePlans = envelope.availablePlans.length
+      ? envelope.availablePlans
+      : Array.from(new Set(tenants.map((tenant) => tenant.plan).filter(Boolean))).sort()
+    const statusCounts = Object.keys(envelope.statusCounts).length
+      ? envelope.statusCounts
+      : tenants.reduce<Record<string, number>>((counts, tenant) => {
+          counts[tenant.status] = (counts[tenant.status] ?? 0) + 1
+          return counts
+        }, {})
+    const hasServerPagination = envelope.total !== null
     const search = (params.search ?? "").trim().toLocaleLowerCase()
-    const filtered = allItems.filter((tenant) => {
+    const filtered = hasServerPagination ? tenants : tenants.filter((tenant) => {
       const matchesSearch = !search || [tenant.name, tenant.displayName, tenant.legalName, tenant.slug, tenant.contact.email]
         .some((value) => (value ?? "").toLocaleLowerCase().includes(search))
       return matchesSearch && (!params.status || tenant.status === params.status) && (!params.plan || tenant.plan === params.plan)
     })
     const start = (params.page - 1) * params.perPage
-    const items = filtered.slice(start, start + params.perPage)
-    return { items, page: params.page, perPage: params.perPage, total: filtered.length, totalTenants, availableStatuses, availablePlans, statusCounts, totalKnown: true, hasNext: start + params.perPage < filtered.length }
+    const items = hasServerPagination ? filtered : filtered.slice(start, start + params.perPage)
+    const total = hasServerPagination ? envelope.total as number : filtered.length
+    const page = envelope.page ?? params.page
+    const perPage = envelope.perPage ?? params.perPage
+    return {
+      items,
+      page,
+      perPage,
+      total,
+      totalTenants: envelope.totalTenants ?? (hasServerPagination ? total : tenants.length),
+      availableStatuses,
+      availablePlans,
+      statusCounts,
+      totalKnown: true,
+      hasNext: hasServerPagination ? page * perPage < total : start + perPage < filtered.length,
+    }
   },
   get: async (id: string): Promise<Tenant> => {
     const payload = await request<unknown>(tenantPath(id))

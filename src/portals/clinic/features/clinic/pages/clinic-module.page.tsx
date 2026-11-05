@@ -1,64 +1,211 @@
-import { useEffect, useMemo, useState } from "react"
-import { useLocation } from "react-router"
-import { Activity, CalendarDays, Check, ChevronFirst, ChevronLast, ChevronLeft, ChevronRight, FileSpreadsheet, FileText, Eye, Plus, Search, SlidersHorizontal, Trash2, Users, Pencil } from "lucide-react"
+import { useMemo, useState } from "react"
+import { Link, useLocation } from "react-router"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { AlertCircle, Database, Eye, Pencil, Plus, RefreshCw, Search, Trash2, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
+import { DataTable, type DataTableColumn } from "@/components/ui/data-table"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Select } from "@/components/ui/select"
-import { useAppDispatch } from "@/store/hooks"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { ConfirmDialog } from "@/shared/components/dialogs/confirm-dialog"
+import { useAppDispatch, useAppSelector } from "@/store/hooks"
 import { pushToast } from "@/store"
 import { useI18n } from "@/i18n/i18n-provider"
-import { isArabicText, isEnglishText } from "@/shared/validation/language-validation"
+import { createClinicModuleRecord, deleteClinicModuleRecord, fetchClinicModuleRecords, getClinicModuleConfig, getClinicModuleFields, updateClinicModuleRecord, type ClinicModuleKey, type ClinicRecord } from "../api/clinic-module.api"
+import { ClinicModuleForm } from "../components/clinic-module-form"
+import { ClinicModuleRecordDialog } from "../components/clinic-module-record-dialog"
+import { clinicModuleColumnLabel, clinicModuleStatusLabel, clinicModuleText } from "../components/clinic-module.i18n"
 
-type Row = { id: string; name: string; subtitle: string; status: string; date: string; value: string }
-const row=(id:string,name:string,subtitle:string,status:string,date:string,value:string):Row=>({id,name,subtitle,status,date,value})
-const demoRows:Record<string,Row[]> = {
- appointments:[row("APT-1048","Mariam Hassan","Laser hair removal · Dr. Salma","Confirmed","Today, 10:30 AM","EGP 1,200"),row("APT-1047","Omar Adel","Skin consultation · Dr. Youssef","Checked in","Today, 11:00 AM","EGP 650"),row("APT-1046","Nour Ahmed","HydraFacial · Dr. Salma","Pending","Today, 12:30 PM","EGP 1,800"),row("APT-1045","Laila Samir","Botox · Dr. Amr","Completed","Today, 09:00 AM","EGP 3,500")],
- patients:[row("PAT-2048","Mariam Hassan","PAT-002048 · 0100 123 4567","Active","Oct 28, 2026","mariam@email.com"),row("PAT-2047","Omar Adel","PAT-002047 · 0111 234 5678","Active","Oct 27, 2026","omar@email.com"),row("PAT-2046","Nour Ahmed","PAT-002046 · 0109 345 6789","Lead","Oct 22, 2026","nour@email.com"),row("PAT-2045","Laila Samir","PAT-002045 · 0122 456 7890","Inactive","Sep 14, 2026","laila@email.com")],
- "clinical-records":[row("REC-0881","Mariam Hassan","Consultation · Dr. Salma","Dr. Salma","Today","Draft"),row("REC-0880","Omar Adel","Follow-up · Dr. Youssef","Dr. Youssef","Yesterday","Signed"),row("REC-0879","Nour Ahmed","Medical profile · Dr. Amr","Dr. Amr","Oct 30, 2026","Reviewed")],
- services:[row("SRV-101","Laser hair removal","Laser treatments · Full body","60 min","EGP 1,200","Active"),row("SRV-102","HydraFacial","Facial treatments · Premium","45 min","EGP 1,800","Active"),row("SRV-103","Skin consultation","Consultations · Initial","30 min","EGP 650","Active"),row("SRV-104","Chemical peel","Skin treatments · Medium","40 min","EGP 2,400","Draft")],
- packages:[row("PKG-010","Laser 6 Sessions","Laser hair removal · 6 sessions","EGP 5,800","6 months","Active"),row("PKG-009","Glow Membership","Monthly facial · 2 services","EGP 2,400","1 month","Active"),row("PKG-008","HydraFacial 3 Pack","HydraFacial · 3 sessions","EGP 4,800","3 months","Active")],
- billing:[row("INV-2026-1048","INV-2026-1048","Mariam Hassan","Card","Oct 31, 2026","EGP 1,200"),row("INV-2026-1047","INV-2026-1047","Omar Adel","Cash","Oct 31, 2026","EGP 650"),row("INV-2026-1046","INV-2026-1046","Nour Ahmed","Wallet","Oct 30, 2026","EGP 1,800")],
- team:[row("USR-018","Dr. Salma Nabil","Dermatologist · Provider","Main branch","Today","Active"),row("USR-017","Ahmed Fathy","Clinic manager · Admin","Main branch","Today","Active"),row("USR-016","Mona Ali","Receptionist · Staff","New Cairo","Yesterday","Active")],
- reports:[row("RPT-01","Revenue summary","Finance · Monthly","Oct 2026","Clinic Admin","Today"),row("RPT-02","Appointment performance","Operations · Weekly","Week 44","Clinic Admin","Yesterday"),row("RPT-03","Patient retention","Patients · Monthly","Oct 2026","Clinic Admin","Oct 31")],
- notifications:[row("NTF-1048","Appointment reminder","SMS","Mariam Hassan","Today","Delivered"),row("NTF-1047","Booking confirmation","Email","Omar Adel","Today","Delivered"),row("NTF-1046","Payment receipt","SMS","Nour Ahmed","Yesterday","Failed")],
- branches:[row("BR-001","Main branch","Nasr City, Cairo · 5 rooms","Ahmed Fathy","Africa/Cairo","Active"),row("BR-002","New Cairo","New Cairo, Cairo · 4 rooms","Mona Ali","Africa/Cairo","Active"),row("BR-003","Alexandria","Smouha, Alexandria · 5 rooms","Omar Adel","Africa/Cairo","Setup")],
- settings:[row("SET-01","Clinic name","Nova Clinic","Clinic","Today","Nova Clinic"),row("SET-02","Default currency","EGP","Clinic","Today","EGP"),row("SET-03","Default language","English","Clinic","Oct 30, 2026","English")]
+const MODULE_KEYS: readonly ClinicModuleKey[] = ["appointments", "patients", "clinical-records", "services", "packages", "billing", "team", "reports", "notifications", "branches", "settings"]
+const INTERNAL_FIELDS = new Set(["id", "_id", "uuid", "tenantId", "tenant_id", "clinicId", "clinic_id", "branchId", "branch_id"])
+
+function isModuleKey(value: string): value is ClinicModuleKey {
+  return MODULE_KEYS.includes(value as ClinicModuleKey)
 }
-export function ClinicModulePage(){
- const slug=useLocation().pathname.split("/").filter(Boolean).at(-1)??"patients"
- const {t,locale}=useI18n()
- const moduleText=t.clinic.modules[slug as keyof typeof t.clinic.modules]??t.clinic.modules.patients
- const ui=t.clinic.ui
- const [rows,setRows]=useState(()=>demoRows[slug]??demoRows.patients)
- const [query,setQuery]=useState("")
- const [filter,setFilter]=useState<string>(moduleText.filters[0])
- const [page,setPage]=useState(1)
- const [perPage,setPerPage]=useState(10)
- const [modal,setModal]=useState<"create"|"edit"|"view"|null>(null)
- const [selected,setSelected]=useState<Row|null>(null)
- const [form,setForm]=useState<Record<string,string>>({})
- const dispatch=useAppDispatch()
- const filtered=useMemo(()=>rows.filter(item=>[item.id,item.name,item.subtitle,item.status,item.date,item.value].join(" ").toLowerCase().includes(query.toLowerCase())&&(filter===moduleText.filters[0]||item.status.toLowerCase()===(Object.entries(t.clinic.statuses).find(([,translated])=>translated===filter)?.[0]??filter).toLowerCase())),[rows,query,filter,moduleText.filters,t.clinic.statuses])
- const pageCount=Math.max(1,Math.ceil(filtered.length/perPage))
- const pageRows=useMemo(()=>filtered.slice((page-1)*perPage,page*perPage),[filtered,page,perPage])
- useEffect(()=>{setPage(1)},[query,filter,slug,perPage])
- useEffect(()=>{if(page>pageCount)setPage(pageCount)},[page,pageCount])
- const openCreate=()=>{setSelected(null);setForm({});setModal("create")}
- const save=()=>{const name=form[moduleText.fields[0]]?.trim();if(!name){dispatch(pushToast({id:crypto.randomUUID(),kind:"warning",title:ui.required,description:`${moduleText.fields[0]} ${ui.requiredSuffix}`}));return}
-  const neutralField=/email|phone|date|time|price|currency|duration|minutes|number|count|session|gender|language|validity|amount|invoice|id|code|url/i
-  const invalidField=Object.entries(form).find(([field,value])=>value.trim()&&!(modal==="edit"&&selected&&field===moduleText.fields[0]&&value===selected.name)&&!neutralField.test(field)&&!(locale==="ar"?isArabicText(value):isEnglishText(value)))
-  if(invalidField){dispatch(pushToast({id:crypto.randomUUID(),kind:"error",title:locale==="ar"?"لغة الحقل غير صحيحة":"Invalid field language",description:locale==="ar"?"استخدم الحروف العربية فقط في الحقول النصية عند اختيار العربية.":"Use English letters only in text fields when English is selected."}));return}
-  if(modal==="edit"&&selected){setRows(old=>old.map(item=>item.id===selected.id?{...item,name,subtitle:Object.entries(form).slice(1).map(([,v])=>v).filter(Boolean).join(" · ")||item.subtitle}:item));dispatch(pushToast({id:crypto.randomUUID(),kind:"success",title:ui.changesSaved,description:ui.localPreview}))}
-  else{setRows(old=>[{id:`D-${Date.now()}`,name,subtitle:Object.entries(form).slice(1).map(([,v])=>v).filter(Boolean).join(" · ")||ui.newRecord,status:"Draft",date:ui.justNow,value:"—"},...old]);dispatch(pushToast({id:crypto.randomUUID(),kind:"success",title:`${ui.createdToast} ${moduleText.singular}`,description:ui.addedLocal}))}setModal(null)}
- const action=(kind:"edit"|"view",item:Row)=>{setSelected(item);setForm({[moduleText.fields[0]]:item.name});setModal(kind)}
- return <div className="space-y-6">
-  <header className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end"><div><div className="mb-2 flex items-center gap-2 text-xs text-muted-foreground"><span>{ui.breadcrumbClinic}</span><span>/</span><span>{ui.workspace}</span><span>/</span><span className="text-foreground">{moduleText.title}</span></div><h1 className="text-2xl font-bold tracking-tight">{moduleText.title}</h1><p className="mt-1 max-w-2xl text-sm text-muted-foreground">{moduleText.description}</p></div><Button onClick={openCreate}><Plus className="me-2 size-4"/>{moduleText.add}</Button></header>
-  <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">{moduleText.stats.map(([label,value,delta],i)=><div key={label} className="rounded-2xl border bg-card p-5"><div className="flex items-center justify-between"><p className="text-sm text-muted-foreground">{label}</p><span className="rounded-lg bg-primary/10 p-2 text-primary">{i===0?<Activity className="size-4"/>:i===1?<Users className="size-4"/>:<CalendarDays className="size-4"/>}</span></div><p className="mt-3 text-2xl font-bold tabular-nums">{value}</p><p className="mt-1 text-xs text-muted-foreground">{delta}</p></div>)}</div>
-  <section className="overflow-hidden rounded-2xl border bg-card"><div className="flex flex-col gap-3 border-b p-4 sm:flex-row sm:items-center sm:justify-between"><div><h2 className="font-semibold">{moduleText.list}</h2><p className="mt-1 text-xs text-muted-foreground">{filtered.length} {ui.records} · {ui.demoData}</p></div><div className="flex flex-col gap-2 sm:flex-row"><div className="relative"><Search className="absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"/><Input value={query} onChange={e=>setQuery(e.target.value)} placeholder={ui.searchPlaceholder} className="ps-9 sm:w-64"/></div><Select value={filter} onChange={e=>setFilter(e.target.value)} className="sm:w-48">{moduleText.filters.map(f=><option key={f}>{f}</option>)}</Select><Button variant="outline" onClick={()=>dispatch(pushToast({id:crypto.randomUUID(),kind:"info",title:ui.filters,description:ui.filtersInfo}))}><SlidersHorizontal className="me-2 size-4"/>{ui.filters}</Button><Button type="button" variant="outline" disabled title={locale==="ar"?"سيتم تفعيل التصدير عند دعم ذلك من الـ API.":"Export will be enabled when the API supports it."}><FileText className="me-2 size-4"/>PDF</Button><Button type="button" variant="outline" disabled title={locale==="ar"?"سيتم تفعيل التصدير عند دعم ذلك من الـ API.":"Export will be enabled when the API supports it."}><FileSpreadsheet className="me-2 size-4"/>Excel</Button></div></div>
-  <div className="overflow-x-auto"><table className="w-full min-w-[980px] text-sm"><thead className="bg-muted/35 text-start text-[11px] uppercase tracking-[0.08em] text-muted-foreground"><tr>{moduleText.columns.map(c=><th key={c} className="px-5 py-3 text-start font-medium">{c}</th>)}<th className="px-4 py-3 text-start font-medium">{locale==="ar"?"تاريخ الإنشاء":"Created at"}</th><th className="px-4 py-3 text-start font-medium">{locale==="ar"?"تاريخ التحديث":"Updated at"}</th><th className="px-5 py-3 text-end">{ui.actions}</th></tr></thead><tbody>{pageRows.map(item=><tr key={item.id} className="border-t border-border/60 transition-colors hover:bg-primary/[0.025]"><td className="px-5 py-4"><button onClick={()=>action("view",item)} className="text-start font-semibold hover:text-primary">{item.name}</button></td>{[item.subtitle,item.date,item.status,item.value].slice(0,moduleText.columns.length-1).map((v,i)=><td key={i} className="px-5 py-4 text-muted-foreground">{t.clinic.statuses[v as keyof typeof t.clinic.statuses]??v}</td>)}<td className="px-4 py-4 text-xs tabular-nums text-muted-foreground">—</td><td className="px-4 py-4 text-xs tabular-nums text-muted-foreground">—</td><td className="px-5 py-4 text-end"><div className="inline-flex gap-1"><Button size="sm" variant="ghost" onClick={()=>action("view",item)} aria-label={t.common.view}><Eye className="size-4"/></Button><Button size="sm" variant="ghost" onClick={()=>action("edit",item)} aria-label={t.common.edit}><Pencil className="size-4"/></Button><Button size="sm" variant="ghost" onClick={()=>{setRows(old=>old.filter(r=>r.id!==item.id));dispatch(pushToast({id:crypto.randomUUID(),kind:"success",title:ui.removed,description:ui.removedLocal}))}} aria-label={t.common.delete}><Trash2 className="size-4 text-error"/></Button></div></td></tr>)}</tbody></table>{filtered.length===0&&<div className="px-6 py-14 text-center"><Search className="mx-auto size-8 text-muted-foreground"/><p className="mt-3 font-semibold">{ui.noRecords}</p><p className="mt-1 text-sm text-muted-foreground">{ui.tryFilters}</p><Button variant="outline" size="sm" className="mt-4" onClick={()=>{setQuery("");setFilter(moduleText.filters[0])}}>{ui.clearFilters}</Button></div>}</div>
-  <div className="flex flex-col gap-3 border-t px-5 py-3 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between"><div className="flex flex-wrap items-center gap-3"><label className="flex items-center gap-2"><span>{locale==="ar"?"عدد الصفوف":"Rows per page"}</span><select value={perPage} onChange={e=>setPerPage(Number(e.target.value))} className="h-9 rounded-lg border border-border bg-card px-2 text-sm text-foreground">{[10,25,50,100].map(size=><option key={size} value={size}>{size}</option>)}</select></label><span className="tabular-nums">{ui.showing} {filtered.length===0?0:(page-1)*perPage+1}–{Math.min(page*perPage,filtered.length)} {ui.of} {filtered.length} {ui.records}</span></div><div className="flex items-center justify-between gap-3 sm:justify-end"><span>{locale==="ar"?"صفحة":"Page"} {page} {locale==="ar"?"من":"of"} {pageCount}</span><div className="flex gap-1"><Button size="icon" variant="outline" disabled={page===1} onClick={()=>setPage(1)} aria-label={locale==="ar"?"أول صفحة":"First page"}><ChevronFirst className="size-4"/></Button><Button size="icon" variant="outline" disabled={page===1} onClick={()=>setPage(p=>Math.max(1,p-1))} aria-label={locale==="ar"?"السابق":"Previous"}><ChevronLeft className="size-4"/></Button><Button size="icon" variant="outline" disabled={page>=pageCount} onClick={()=>setPage(p=>Math.min(pageCount,p+1))} aria-label={locale==="ar"?"التالي":"Next"}><ChevronRight className="size-4"/></Button><Button size="icon" variant="outline" disabled={page>=pageCount} onClick={()=>setPage(pageCount)} aria-label={locale==="ar"?"آخر صفحة":"Last page"}><ChevronLast className="size-4"/></Button></div></div></div></section>
-  {modal&&<div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/40 p-4" role="presentation" onMouseDown={e=>{if(e.target===e.currentTarget)setModal(null)}}><div role="dialog" aria-modal="true" aria-labelledby="record-dialog-title" className="max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-2xl border bg-card p-6 shadow-2xl"><div className="mb-5 flex items-start justify-between"><div><h3 id="record-dialog-title" className="text-lg font-semibold">{modal==="create"?`${ui.create} ${moduleText.singular}`:modal==="edit"?`${t.common.edit} ${moduleText.singular}`:`${moduleText.singular} ${ui.details}`}</h3><p className="mt-1 text-sm text-muted-foreground">{ui.previewForm}</p></div><button onClick={()=>setModal(null)} aria-label={ui.close}><span aria-hidden="true">×</span></button></div><div className="grid gap-4 sm:grid-cols-2">{moduleText.fields.map((field,i)=><div key={field} className={i===moduleText.fields.length-1?"sm:col-span-2":""}><Label htmlFor={`field-${i}`}>{field}{i===0?" *":""}</Label>{field.toLowerCase().includes("notes")||field.toLowerCase().includes("description")?<Textarea id={`field-${i}`} disabled={modal==="view"} value={form[field]??""} onChange={e=>setForm(old=>({...old,[field]:e.target.value}))}/>:<Input id={`field-${i}`} disabled={modal==="view"} value={form[field]??""} onChange={e=>setForm(old=>({...old,[field]:e.target.value}))} placeholder={field}/>}</div>)}</div>{modal==="view"&&selected&&<div className="mt-4 rounded-xl bg-muted/40 p-3 text-sm"><p><strong>{ui.recordId}:</strong> {selected.id}</p><p className="mt-1"><strong>{ui.status}:</strong> {t.clinic.statuses[selected.status as keyof typeof t.clinic.statuses]??selected.status}</p><p className="mt-1"><strong>{ui.updated}:</strong> {selected.date}</p></div>}<div className="mt-6 flex justify-end gap-2"><Button variant="outline" onClick={()=>setModal(null)}>{ui.close}</Button>{modal!=="view"&&<Button onClick={save}><Check className="me-2 size-4"/>{ui.save} {moduleText.singular}</Button>}</div></div></div>}
- </div>
+function resourceId(record: ClinicRecord): string | null {
+  const id = record.id ?? record._id ?? record.uuid ?? record.code
+  return typeof id === "string" || typeof id === "number" ? String(id) : null
+}
+function recordId(record: ClinicRecord): string {
+  return resourceId(record) ?? JSON.stringify(record)
+}
+function displayValue(value: unknown, locale: "ar" | "en"): string {
+  if (value === null || value === undefined || value === "") return "—"
+  if (typeof value === "boolean") return value ? (locale === "ar" ? "نعم" : "Yes") : (locale === "ar" ? "لا" : "No")
+  if (Array.isArray(value)) return value.map((item) => displayValue(item, locale)).join("، ")
+  return typeof value === "object" ? JSON.stringify(value) : String(value)
+}
+function errorText(error: unknown, fallback: string): string {
+  return error instanceof Error && error.message ? error.message : fallback
+}
+
+export function ClinicModulePage() {
+  const slug = useLocation().pathname.split("/").filter(Boolean).at(-1) ?? "patients"
+  const validKey = isModuleKey(slug)
+  const key = validKey ? slug : "patients"
+  const config = validKey ? getClinicModuleConfig(key) : undefined
+  const fields = useMemo(() => getClinicModuleFields(key), [key])
+  const { t, locale } = useI18n()
+  const moduleText = t.clinic.modules[key]
+  const ui = t.clinic.ui
+  const dispatch = useAppDispatch()
+  const branchId = useAppSelector((state) => state.ui.currentBranchId)
+  const queryClient = useQueryClient()
+  const [search, setSearch] = useState("")
+  const [statusFilter, setStatusFilter] = useState("all")
+  const [page, setPage] = useState(1)
+  const [perPage, setPerPage] = useState(10)
+  const [editing, setEditing] = useState<ClinicRecord | null>(null)
+  const [formOpen, setFormOpen] = useState(false)
+  const [viewRecord, setViewRecord] = useState<ClinicRecord | null>(null)
+  const [deleteRecord, setDeleteRecord] = useState<ClinicRecord | null>(null)
+
+  const recordsQuery = useQuery({
+    queryKey: ["clinic-module", key, branchId],
+    queryFn: () => fetchClinicModuleRecords(key),
+    enabled: Boolean(config),
+    staleTime: 30000,
+  })
+  const invalidate = () => queryClient.invalidateQueries({ queryKey: ["clinic-module", key] })
+  const createMutation = useMutation({
+    mutationFn: (payload: Record<string, unknown>) => createClinicModuleRecord(key, payload),
+    onSuccess: async () => {
+      await invalidate()
+      setFormOpen(false)
+      setEditing(null)
+      dispatch(pushToast({ id: crypto.randomUUID(), kind: "success", title: clinicModuleText("createSuccess", locale) }))
+    },
+  })
+  const updateMutation = useMutation({
+    mutationFn: (input: { id: string; payload: Record<string, unknown>; recordType?: string }) => updateClinicModuleRecord(key, input.id, input.payload, input.recordType),
+    onSuccess: async () => {
+      await invalidate()
+      setFormOpen(false)
+      setEditing(null)
+      dispatch(pushToast({ id: crypto.randomUUID(), kind: "success", title: clinicModuleText("updateSuccess", locale) }))
+    },
+  })
+  const deleteMutation = useMutation({
+    mutationFn: (record: ClinicRecord) => deleteClinicModuleRecord(key, recordId(record)),
+    onSuccess: async () => {
+      await invalidate()
+      setDeleteRecord(null)
+      dispatch(pushToast({ id: crypto.randomUUID(), kind: "success", title: clinicModuleText("deleteSuccess", locale) }))
+    },
+  })
+
+  const records = recordsQuery.data ?? []
+  const statuses = useMemo(() => Array.from(new Set(records.map((record) => String(record.status ?? "")).filter(Boolean))).sort(), [records])
+  const filtered = useMemo(() => {
+    const query = search.trim().toLocaleLowerCase()
+    return records.filter((record) => {
+      const matchesSearch = !query || Object.entries(record).filter(([field]) => !INTERNAL_FIELDS.has(field)).map(([, value]) => displayValue(value, locale)).join(" ").toLocaleLowerCase().includes(query)
+      return matchesSearch && (statusFilter === "all" || String(record.status ?? "") === statusFilter)
+    })
+  }, [records, search, statusFilter, locale])
+  const pageCount = Math.max(1, Math.ceil(filtered.length / perPage))
+  const currentPage = Math.min(page, pageCount)
+  const pageRows = useMemo(() => filtered.slice((currentPage - 1) * perPage, currentPage * perPage), [filtered, currentPage, perPage])
+
+  function openCreate() { setEditing(null); setFormOpen(true) }
+  function openEdit(record: ClinicRecord) {
+    if (!resourceId(record)) {
+      dispatch(pushToast({ id: crypto.randomUUID(), kind: "error", title: clinicModuleText("missingId", locale) }))
+      return
+    }
+    setEditing(record)
+    setFormOpen(true)
+  }
+
+  async function saveRecord(payload: Record<string, unknown>) {
+    try {
+      if (editing) await updateMutation.mutateAsync({ id: recordId(editing), payload, recordType: editing.recordType })
+      else await createMutation.mutateAsync(payload)
+    } catch (error) {
+      dispatch(pushToast({ id: crypto.randomUUID(), kind: "error", title: errorText(error, clinicModuleText("saveError", locale)) }))
+      throw error
+    }
+  }
+  async function confirmDelete() {
+    if (!deleteRecord) return
+    try { await deleteMutation.mutateAsync(deleteRecord) }
+    catch (error) { dispatch(pushToast({ id: crypto.randomUUID(), kind: "error", title: errorText(error, clinicModuleText("delete", locale)) })) }
+  }
+
+  const columns = useMemo<DataTableColumn<ClinicRecord>[]>(() => {
+    const sample = records[0]
+    if (!sample) return []
+    const preferred = ["name", "firstName", "title", "email", "status", "scheduledAt", "createdAt", "created_at"]
+    const keys = Object.keys(sample).filter((field) => !INTERNAL_FIELDS.has(field) && typeof sample[field] !== "object")
+    keys.sort((a, b) => {
+      const ai = preferred.indexOf(a)
+      const bi = preferred.indexOf(b)
+      return (ai < 0 ? 99 : ai) - (bi < 0 ? 99 : bi)
+    })
+    const result: DataTableColumn<ClinicRecord>[] = keys.slice(0, 6).map((field) => ({
+      id: field,
+      header: clinicModuleColumnLabel(field, locale),
+      cell: (record) => {
+        const value = record[field]
+        const text = field === "status" ? clinicModuleStatusLabel(String(value ?? ""), locale) : displayValue(value, locale)
+        return <span className="block max-w-[260px] truncate text-sm" title={text}>{text}</span>
+      },
+    }))
+    result.push({
+      id: "actions",
+      header: clinicModuleText("actions", locale),
+      headerClassName: "text-end",
+      cellClassName: "text-end",
+      cell: (record) => <div className="flex items-center justify-end gap-1">
+        <Button type="button" size="icon" variant="ghost" onClick={() => setViewRecord(record)} aria-label={clinicModuleText("view", locale)} title={clinicModuleText("view", locale)}><Eye className="size-4" /></Button>
+        {config?.update && <Button type="button" size="icon" variant="ghost" onClick={() => openEdit(record)} aria-label={clinicModuleText("edit", locale)} title={clinicModuleText("edit", locale)}><Pencil className="size-4" /></Button>}
+        {config?.remove && <Button type="button" size="icon" variant="ghost" disabled={deleteMutation.isPending || !resourceId(record)} onClick={() => setDeleteRecord(record)} aria-label={clinicModuleText("delete", locale)} title={clinicModuleText("delete", locale)}><Trash2 className="size-4 text-destructive" /></Button>}
+      </div>,
+    })
+    return result
+  }, [records, locale, config, deleteMutation.isPending])
+
+  const saving = createMutation.isPending || updateMutation.isPending
+
+  return <div className="space-y-6">
+    <header className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
+      <div className="min-w-0">
+        <div className="mb-2 flex items-center gap-2 text-xs text-muted-foreground"><span>{ui.breadcrumbClinic}</span><span>/</span><span>{ui.workspace}</span><span>/</span><span className="text-foreground">{moduleText.title}</span></div>
+        <h1 className="text-2xl font-bold tracking-tight">{moduleText.title}</h1>
+        <p className="mt-1 max-w-2xl text-sm text-muted-foreground">{moduleText.description}</p>
+      </div>
+      {config?.create && <Button type="button" onClick={openCreate}><Plus className="me-2 size-4" />{moduleText.add}</Button>}
+    </header>
+
+    {!config ? <Card><CardContent className="p-8 text-center">
+      <Database className="mx-auto size-9 text-muted-foreground" />
+      <h2 className="mt-3 font-semibold">{clinicModuleText("noData", locale)}</h2>
+      <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-muted-foreground">{key === "clinical-records" ? clinicModuleText("clinicalRecordsDescription", locale) : clinicModuleText("noDataDescription", locale)}</p>
+      {key === "clinical-records" && <Link to="/clinic/patients" className="mt-4 inline-flex h-10 items-center rounded-xl border border-input px-4 text-sm font-semibold hover:bg-muted">{clinicModuleText("goToPatients", locale)}</Link>}
+    </CardContent></Card> : <>
+      {formOpen && <ClinicModuleForm key={editing ? recordId(editing) : "new"} fields={fields} record={editing} title={editing ? clinicModuleText("editTitle", locale) : moduleText.add} isSaving={saving} onCancel={() => { setFormOpen(false); setEditing(null) }} onSubmit={saveRecord} />}
+      <section className="overflow-hidden rounded-2xl border bg-card">
+        <div className="flex flex-col gap-3 border-b p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div><h2 className="font-semibold">{moduleText.list}</h2><p className="mt-1 text-xs text-muted-foreground">{filtered.length} {ui.records}</p></div>
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <div className="relative">
+              <Search className="pointer-events-none absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+              <Input value={search} onChange={(event) => { setSearch(event.target.value); setPage(1) }} placeholder={clinicModuleText("search", locale)} aria-label={clinicModuleText("search", locale)} className="ps-9 pe-9 sm:w-64" />
+              {search && <Button type="button" size="icon" variant="ghost" className="absolute end-1 top-1/2 size-8 -translate-y-1/2" onClick={() => { setSearch(""); setPage(1) }} aria-label={ui.clearFilters}><X className="size-4" /></Button>}
+            </div>
+            <Select value={statusFilter} onValueChange={(value) => { setStatusFilter(value); setPage(1) }}>
+              <SelectTrigger aria-label={ui.filters} className="sm:w-48"><SelectValue /></SelectTrigger>
+              <SelectContent><SelectItem value="all">{clinicModuleText("allStatuses", locale)}</SelectItem>{statuses.map((status) => <SelectItem key={status} value={status}>{clinicModuleStatusLabel(status, locale)}</SelectItem>)}</SelectContent>
+            </Select>
+            <Button type="button" variant="outline" onClick={() => void recordsQuery.refetch()} disabled={recordsQuery.isFetching}><RefreshCw className={"me-2 size-4 " + (recordsQuery.isFetching ? "animate-spin" : "")} />{clinicModuleText("refresh", locale)}</Button>
+          </div>
+        </div>
+        {recordsQuery.isError && <div role="alert" className="mx-5 mt-4 flex items-start gap-2 rounded-xl border border-destructive/20 bg-destructive/5 px-4 py-3 text-sm text-destructive"><AlertCircle className="mt-0.5 size-4 shrink-0" />{errorText(recordsQuery.error, clinicModuleText("loadError", locale))}</div>}
+        <DataTable columns={columns} data={pageRows} getRowId={recordId} isLoading={recordsQuery.isLoading} loadingLabel={clinicModuleText("loading", locale)} emptyState={<div className="px-6 py-14 text-center"><Database className="mx-auto size-8 text-muted-foreground/40" /><p className="mt-3 font-semibold">{clinicModuleText("empty", locale)}</p><p className="mt-1 text-sm text-muted-foreground">{clinicModuleText("emptyDescription", locale)}</p></div>} pagination={{ page: currentPage, perPage, total: filtered.length, totalKnown: true, hasNext: currentPage < pageCount }} onPageChange={setPage} onPerPageChange={(size) => { setPerPage(size); setPage(1) }} />
+      </section>
+    </>}
+
+    <ClinicModuleRecordDialog record={viewRecord} onOpenChange={(open) => { if (!open) setViewRecord(null) }} />
+    <ConfirmDialog open={Boolean(deleteRecord)} title={clinicModuleText("deleteTitle", locale)} description={clinicModuleText("deleteDescription", locale)} confirmLabel={clinicModuleText("confirmDelete", locale)} cancelLabel={clinicModuleText("cancel", locale)} destructive isLoading={deleteMutation.isPending} onOpenChange={(open) => { if (!open && !deleteMutation.isPending) setDeleteRecord(null) }} onConfirm={() => void confirmDelete()} />
+  </div>
 }

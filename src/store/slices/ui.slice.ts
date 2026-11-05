@@ -6,7 +6,7 @@ type UiState = { loadingCount: number; toasts: ToastMessage[]; currentBranchId: 
 
 const uiSlice = createSlice({
   name: "ui",
-  initialState: { loadingCount: 0, toasts: [], currentBranchId: "branch-main" } as UiState,
+  initialState: { loadingCount: 0, toasts: [], currentBranchId: null } as UiState,
   reducers: {
     beginLoading(state) { state.loadingCount += 1 },
     endLoading(state) { state.loadingCount = Math.max(0, state.loadingCount - 1) },
