@@ -35,7 +35,7 @@ function toRows(value: unknown): Row[] {
   if (Array.isArray(data)) return data as Row[]
   if (data && typeof data === "object") {
     const record = data as Record<string, unknown>
-    for (const key of ["items", "records", "results", "rows", "data"]) {
+    for (const key of ["items", "records", "results", "rows", "data", "permissions", "users", "memberships", "roles", "invitations", "templates", "invoices", "reports", "sessions", "events", "branches", "documents", "activity"]) {
       if (Array.isArray(record[key])) return record[key] as Row[]
     }
     return [record as Row]
