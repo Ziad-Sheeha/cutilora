@@ -1,4 +1,4 @@
-import { Building2, Globe2, Mail, MapPin, Phone, ShieldCheck } from "lucide-react"
+import { Building2, Globe2, Mail, Phone, ShieldCheck } from "lucide-react"
 import { useOutletContext } from "react-router"
 import { Card, CardContent } from "@/components/ui/card"
 import { useI18n } from "@/i18n/i18n-provider"
@@ -100,19 +100,6 @@ export function TenantOrganizationPage() {
 
       {profileFeature && <TenantFeatureForm feature={profileFeature} initialValues={initialValues} onSave={saveProfile} />}
 
-      <div className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-amber-900">
-        <MapPin className="mt-0.5 size-4 shrink-0" />
-        <div>
-          <p className="text-sm font-semibold">
-            {ar ? "بيانات المؤسسة للعرض فقط حالياً" : "Organization details are read-only for now"}
-          </p>
-          <p className="mt-1 text-xs leading-5 text-amber-800">
-            {ar
-              ? "الباك إند الحالي يوفر قراءة سياق المؤسسة، ولا يوفر endpoint لتعديل ملف المؤسسة من بوابة العميل. لذلك لم أضف زر حفظ غير فعّال."
-              : "The current backend exposes the organization through the tenant context endpoint, but does not provide a tenant-profile update endpoint. This page is intentionally read-only rather than presenting a non-functional save action."}
-          </p>
-        </div>
-      </div>
     </div>
   )
 }
