@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from "react"
 import { useQueries, useMutation, useQueryClient } from "@tanstack/react-query"
-import { Activity, Check, Eye, LoaderCircle, Plus, RefreshCw, RotateCw, Search, Send, ShieldCheck, Trash2, XCircle } from "lucide-react"
+import { Activity, Check, Copy, Eye, LoaderCircle, Plus, RefreshCw, RotateCw, Search, Send, ShieldCheck, Trash2, XCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Card, CardContent } from "@/components/ui/card"
@@ -180,6 +180,7 @@ export function TenantDomainWorkspacePage({ feature, clinicId, clinics = [], bra
   const [actorFilter, setActorFilter] = useState("")
   const [moduleFilter, setModuleFilter] = useState("")
   const [formError, setFormError] = useState("")
+  const [oneTimeCredential, setOneTimeCredential] = useState("")
   const [success, setSuccess] = useState("")
   const [confirm, setConfirm] = useState<{ endpoint: TenantFeatureEndpoint; row?: Row } | null>(null)
   const [details, setDetails] = useState<{ title: string; data: unknown } | null>(null)
@@ -242,9 +243,11 @@ export function TenantDomainWorkspacePage({ feature, clinicId, clinics = [], bra
       setSelectedOperation(null)
       if (feature.key === "configuration" && variables.endpoint.path.endsWith("/apply")) setPendingPreview(null)
       await client.invalidateQueries({ queryKey: ["tenant-domain", feature.key] })
-      const result = unwrap(data) as { url?: string; downloadUrl?: string; exportUrl?: string } | undefined
+      const result = unwrap(data) as { url?: string; downloadUrl?: string; exportUrl?: string; secret?: string; apiKey?: string; token?: string; credential?: string; credentials?: { apiKey?: string } } | undefined
       const url = result?.url ?? result?.downloadUrl ?? result?.exportUrl
       if (url && /download|export/i.test(variables.endpoint.purpose)) window.open(url, "_blank", "noopener,noreferrer")
+      const issuedCredential = result?.secret ?? result?.apiKey ?? result?.token ?? result?.credential ?? result?.credentials?.apiKey
+      if (issuedCredential && /connect|rotate/i.test(variables.endpoint.purpose)) setOneTimeCredential(issuedCredential)
     },
     onError: error => {
       setSuccess("")
@@ -382,6 +385,7 @@ export function TenantDomainWorkspacePage({ feature, clinicId, clinics = [], bra
   return (
     <div className="space-y-6">
       <TenantPageHeading eyebrow={feature.eyebrow[ar ? "ar" : "en"]} title={feature.title[ar ? "ar" : "en"]} description={feature.description[ar ? "ar" : "en"]} />
+      {oneTimeCredential && <Card className="border-amber-300 bg-amber-50/50"><CardContent className="flex flex-col gap-3 p-4 sm:flex-row sm:items-end"><div className="min-w-0 flex-1"><p className="text-sm font-semibold">{ar ? "بيانات اتصال جديدة — احفظها الآن" : "New connection credential — save it now"}</p><p className="mt-1 text-xs text-muted-foreground">{ar ? "لن يتم عرض هذه القيمة مرة أخرى بعد إغلاق هذا التنبيه." : "This value will not be shown again after dismissing this notice."}</p><Input type="password" readOnly value={oneTimeCredential} className="mt-2 font-mono"/></div><Button type="button" variant="outline" onClick={() => { void navigator.clipboard?.writeText(oneTimeCredential) }}><Copy className="me-2 size-4"/>{ar ? "نسخ" : "Copy"}</Button><Button type="button" variant="ghost" onClick={() => setOneTimeCredential("")}>{ar ? "إغلاق" : "Dismiss"}</Button></CardContent></Card>}
       {(formError || success) && <div role={formError ? "alert" : "status"} className={formError ? "rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive" : "rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800"}>{formError || success}</div>}
       <div className="flex flex-col gap-3">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
