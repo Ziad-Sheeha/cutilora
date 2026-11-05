@@ -190,6 +190,10 @@ export function TenantDomainWorkspacePage({ feature, clinicId }: { feature: Tena
       { name: "actorId", label: "Actor", type: "text" }, { name: "action", label: "Action", type: "text" },
       { name: "module", label: "Module", type: "text" },
     ]
+    if (feature.key === "insights" && endpoint.path.endsWith("/exports")) return [
+      { name: "from", label: "From date", type: "date" }, { name: "to", label: "To date", type: "date" },
+      { name: "format", label: "Export format", type: "select", required: true, options: [{ label: "Excel", value: "xlsx" }, { label: "CSV", value: "csv" }, { label: "PDF", value: "pdf" }] },
+    ]
     return fields
   }
   function columnsFor(rows: Row[]): DataTableColumn<Row>[] {
@@ -213,14 +217,7 @@ export function TenantDomainWorkspacePage({ feature, clinicId }: { feature: Tena
   async function submitForm(event: FormEvent<HTMLFormElement>, endpoint: TenantFeatureEndpoint, row?: Row) {
     event.preventDefault()
     setFormError("")
-    const activeFields = selectedOperation ? [
-      ...(feature.key === "roles" && /permissions/i.test(endpoint.path) ? [{ name: "permissions", label: "Permissions", type: "textarea" as const, required: true }] : []),
-      ...(feature.key === "users" && /scopes/i.test(endpoint.path) ? [
-        { name: "clinicIds", label: "Clinic access", type: "textarea" as const },
-        { name: "branchIds", label: "Branch access", type: "textarea" as const },
-      ] : []),
-      ...(feature.key === "roles" && !/permissions/i.test(endpoint.path) ? fields : []),
-    ] : fieldsFor(endpoint)
+    const activeFields = fieldsFor(endpoint)
     if (feature.key === "roles" && /permissions/i.test(endpoint.path)) {
       const permissions = permissionText.split(/[\n,]/).map(value => value.trim()).filter(Boolean)
       if (!permissions.length) { setFormError(ar ? "اختر صلاحية واحدة على الأقل." : "Select at least one permission."); return }
@@ -284,7 +281,7 @@ export function TenantDomainWorkspacePage({ feature, clinicId }: { feature: Tena
                 } else void openDetails(endpoint, row)
               }}><Eye className="me-2 size-3.5"/>{/download/i.test(endpoint.purpose) ? (ar ? "تنزيل" : "Download") : (ar ? "تفاصيل" : "Details")} · {String(row.name ?? row.email ?? rowId(row)).slice(0, 20)}</Button>))}</div>}
               {matchingRowActions.length > 0 && rows.length > 0 && <div className="mt-4 flex flex-wrap gap-2">{rows.slice(0, 12).flatMap(row => matchingRowActions.map(endpoint => <Button key={endpoint.path + rowId(row)} size="sm" variant={endpoint.method === "DELETE" || /revoke|disconnect/i.test(endpoint.purpose) ? "destructive" : "outline"} disabled={!rowId(row) && !row.membershipId && !row.userId || operation.isPending} onClick={() => {
-                if (endpoint.method === "PATCH" || endpoint.method === "PUT") {
+                if (endpoint.method === "PATCH" || endpoint.method === "PUT" || (endpoint.method === "POST" && endpoint.path.endsWith("/exports"))) {
                   setSelectedOperation({ endpoint, row })
                   setValues(Object.fromEntries(Object.entries(row).filter(([key, value]) => typeof value === "string" || typeof value === "number").map(([key, value]) => [key, String(value)])))
                   setPermissionText(Array.isArray(row.permissions) ? row.permissions.map(String).join(", ") : "")
@@ -345,7 +342,7 @@ export function TenantDomainWorkspacePage({ feature, clinicId }: { feature: Tena
             feature.key === "users" && /scopes/i.test(selectedOperation.endpoint.path) ? <>
               <div><Label>{ar ? "معرفات العيادات المسموح بها" : "Allowed clinic IDs"}</Label><Textarea value={values.clinicIds ?? ""} onChange={event => setValues(current => ({ ...current, clinicIds: event.target.value }))}/></div>
               <div><Label>{ar ? "معرفات الفروع المسموح بها" : "Allowed branch IDs"}</Label><Textarea value={values.branchIds ?? ""} onChange={event => setValues(current => ({ ...current, branchIds: event.target.value }))}/></div>
-            </> : fields.map(field => <div key={field.name}><Label>{ar ? ({ name: "الاسم", description: "الوصف", scope: "نطاق الوصول" } as Record<string, string>)[field.name] ?? field.label : field.label}</Label><Input value={values[field.name] ?? ""} onChange={event => setValues(current => ({ ...current, [field.name]: event.target.value }))}/></div>)}
+            </> : fieldsFor(selectedOperation.endpoint).map(field => <div key={field.name}><Label>{ar ? ({ name: "الاسم", description: "الوصف", scope: "نطاق الوصول", from: "من تاريخ", to: "إلى تاريخ", format: "صيغة التصدير" } as Record<string, string>)[field.name] ?? field.label : field.label}</Label>{field.type === "select" ? <Select value={values[field.name] ?? ""} onValueChange={value => setValues(current => ({ ...current, [field.name]: value }))}><SelectTrigger><SelectValue placeholder={ar ? "اختر..." : "Select..."}/></SelectTrigger><SelectContent>{field.options?.map(option => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}</SelectContent></Select> : <Input type={field.type ?? "text"} value={values[field.name] ?? ""} onChange={event => setValues(current => ({ ...current, [field.name]: event.target.value }))}/>}</div>)}
           <div className="sm:col-span-2"><Button type="submit" disabled={operation.isPending}>{operation.isPending ? <LoaderCircle className="me-2 size-4 animate-spin"/> : <Check className="me-2 size-4"/>}{ar ? "حفظ التغييرات" : "Save changes"}</Button></div>
         </form>
       </CardContent></Card>}
