@@ -164,7 +164,6 @@ export function TenantFeaturePage() {
         <TenantFeatureForm feature={feature} onSave={(payload) => saveMutation.mutateAsync(payload)} />
       )}
 
-}
     </div>
   )
 }
