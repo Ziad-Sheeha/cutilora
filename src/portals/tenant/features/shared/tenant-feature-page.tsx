@@ -46,7 +46,6 @@ export function TenantFeaturePage() {
   const queryClient = useQueryClient()
   const key = section ? featureParam + "/" + section : featureParam || ""
   const feature = getTenantFeature(key)
-  if (key === "documents") return <TenantDocumentsPage />
   const [search, setSearch] = useState("")
   const [debouncedSearch, setDebouncedSearch] = useState("")
   const [page, setPage] = useState(1)
@@ -109,6 +108,8 @@ export function TenantFeaturePage() {
       cell: (record) => <span className="block max-w-[260px] truncate text-sm" title={displayValue(record[field])}>{displayValue(record[field])}</span>,
     }))
   }, [records])
+
+  if (key === "documents") return <TenantDocumentsPage />
 
   if (!feature) {
     return <Card><CardContent className="p-10 text-center"><h2 className="text-lg font-semibold">{ar ? "الصفحة غير موجودة" : "Page not found"}</h2><p className="mt-2 text-sm text-muted-foreground">{key}</p></CardContent></Card>
