@@ -153,7 +153,7 @@ export function TenantOrganizationPage() {
         <div><Label>{copy.businessType} *</Label><Select value={values.businessType} onValueChange={value => update("businessType", value)}><SelectTrigger className="mt-2"><SelectValue placeholder={copy.choose}/></SelectTrigger><SelectContent><SelectItem value="single_clinic">{copy.single}</SelectItem><SelectItem value="clinic_group">{copy.group}</SelectItem><SelectItem value="beauty_center">{copy.beauty}</SelectItem></SelectContent></Select></div>
         <ProfileField label={copy.email} type="email" value={values.contactEmail} error={errors.contactEmail} onChange={value => update("contactEmail", value)}/>
         <ProfileField label={copy.phone} type="tel" value={values.contactPhone} error={errors.contactPhone} onChange={value => update("contactPhone", value)}/>
-        <ProfileField label={copy.website} value={values.website} error={errors.website} onChange={value => update("website", value)}/>
+        <ProfileField label={copy.website} value={values.website} error={errors.website} onChange={value => update("website", value)} required={false}/>
         <div><Label>{copy.country} *</Label><Select value={values.countryId} onValueChange={value => { update("countryId", value); update("cityId", "") }}><SelectTrigger className="mt-2"><SelectValue placeholder={countriesQuery.isLoading ? (ar ? "جارٍ التحميل..." : "Loading...") : copy.choose}/></SelectTrigger><SelectContent>{countryOptions.map(item => <SelectItem key={item.id} value={item.id}>{ar ? item.name_ar || item.name_en : item.name_en}</SelectItem>)}</SelectContent></Select>{errors.countryId && <p className="mt-1 text-xs text-destructive">{errors.countryId}</p>}</div>
         <div><Label>{copy.city} *</Label><Select value={values.cityId} onValueChange={value => update("cityId", value)} disabled={!values.countryId || citiesQuery.isLoading}><SelectTrigger className="mt-2"><SelectValue placeholder={!values.countryId ? (ar ? "اختر الدولة أولاً" : "Choose a country first") : copy.choose}/></SelectTrigger><SelectContent>{cityOptions.map(item => <SelectItem key={item.id} value={item.id}>{ar ? item.name_ar || item.name_en : item.name_en}</SelectItem>)}</SelectContent></Select>{errors.cityId && <p className="mt-1 text-xs text-destructive">{errors.cityId}</p>}</div>
         <div className="sm:col-span-2"><Label>{copy.address} *</Label><Textarea value={values.addressLine1} onChange={event => update("addressLine1", event.target.value)} className="mt-2" aria-invalid={Boolean(errors.addressLine1)}/>{errors.addressLine1 && <p className="mt-1 text-xs text-destructive">{errors.addressLine1}</p>}</div>
@@ -164,8 +164,8 @@ export function TenantOrganizationPage() {
     </CardContent></Card>
   </div>
 }
-function ProfileField({ label, value, error, onChange, type = "text" }: { label: string; value: string; error?: string; onChange: (value: string) => void; type?: "text" | "email" | "tel" }) {
-  return <div><Label>{label} *</Label><Input type={type} value={value} onChange={event => onChange(event.target.value)} className="mt-2" aria-invalid={Boolean(error)}/>{error && <p className="mt-1 text-xs text-destructive">{error}</p>}</div>
+function ProfileField({ label, value, error, onChange, type = "text", required = true }: { label: string; value: string; error?: string; onChange: (value: string) => void; type?: "text" | "email" | "tel"; required?: boolean }) {
+  return <div><Label>{label}{required ? " *" : ""}</Label><Input type={type} value={value} onChange={event => onChange(event.target.value)} className="mt-2" aria-invalid={Boolean(error)}/>{error && <p className="mt-1 text-xs text-destructive">{error}</p>}</div>
 }
 function ProfileValue({ label, value }: { label: string; value: string }) {
   return <div><p className="text-xs text-muted-foreground">{label}</p><p className="mt-1 text-sm font-semibold capitalize">{value}</p></div>
