@@ -14,6 +14,7 @@ export const tenantFeatureRegistry: TenantFeatureDefinition[] = [
     endpoints: [
       { method: "GET", path: "/api/v1/tenant/users", purpose: "Users directory" },
       { method: "GET", path: "/api/v1/tenant/memberships", purpose: "Organization memberships" },
+      { method: "GET", path: "/api/v1/tenant/memberships/{membershipId}/history", purpose: "Membership access history" },
       { method: "PATCH", path: "/api/v1/tenant/memberships/{membershipId}", purpose: "Update membership status and role" },
       { method: "PUT", path: "/api/v1/tenant/users/{userId}/scopes", purpose: "Assign clinic and branch scopes" },
     ],
@@ -180,6 +181,7 @@ export const tenantFeatureRegistry: TenantFeatureDefinition[] = [
       { method: "POST", path: "/api/v1/tenant/integrations/{id}/rotate", purpose: "Rotate credentials" },
       { method: "DELETE", path: "/api/v1/tenant/integrations/{id}", purpose: "Disconnect provider" },
       { method: "GET", path: "/api/v1/tenant/webhooks", purpose: "Webhook endpoints" },
+      { method: "GET", path: "/api/v1/tenant/webhooks/{webhookId}/deliveries", purpose: "Webhook delivery attempts" },
       { method: "POST", path: "/api/v1/tenant/webhooks", purpose: "Register webhook" },
     ],
     fields: [
