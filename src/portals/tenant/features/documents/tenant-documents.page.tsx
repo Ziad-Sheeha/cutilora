@@ -82,8 +82,8 @@ export function TenantDocumentsPage() {
       body.append("category", category)
       if (expiryDate) body.append("expiryDate", expiryDate)
       const response = replaceId
-        ? await tenantApi.put(`${root}/${encodeURIComponent(replaceId)}/file`, body, {})
-        : await tenantApi.post(root, body, { headers: { "Content-Type": "multipart/form-data" } })
+        ? await tenantApi.put(`${root}/${encodeURIComponent(replaceId)}/file`, body)
+        : await tenantApi.post(root, body)
       return unwrap(response)
     },
     onSuccess: async () => {
