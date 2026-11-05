@@ -24,6 +24,7 @@ import { TenantDomainWorkspacePage } from "./tenant-domain-workspace.page"
 import type { TenantOutletContext } from "../../layout/tenant-layout"
 
 const PAGE_SIZE = 10
+const domainWorkspaceKeys = new Set(["users", "invitations", "roles", "configuration", "catalog", "finance", "subscription", "integrations", "insights", "governance", "settings/preferences", "settings/notifications", "settings/security", "clinic-workspace"])
 const hiddenKeys = new Set(["id", "_id", "tenantId", "tenant_id", "createdAt", "updatedAt", "created_at", "updated_at"])
 function humanize(value: string, ar = false) {
   if (ar) {
@@ -109,7 +110,7 @@ export function TenantFeaturePage() {
         search: debouncedSearch || undefined,
       })
     },
-    enabled: Boolean(feature && listEndpoint && key !== "documents"),
+    enabled: Boolean(feature && listEndpoint && key !== "documents" && !domainWorkspaceKeys.has(key)),
     staleTime: 30_000,
   })
   const saveMutation = useMutation({
