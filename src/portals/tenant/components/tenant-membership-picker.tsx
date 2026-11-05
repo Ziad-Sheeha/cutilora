@@ -17,7 +17,6 @@ export function TenantMembershipPicker({
   selectedTenantId,
   loading,
   error,
-  title,
   continueLabel,
   onSelect,
   onContinue,
@@ -26,6 +25,9 @@ export function TenantMembershipPicker({
     <div className="space-y-3">
       {memberships.map((membership) => {
         const selected = selectedTenantId === membership.tenant
+        const tenantLabel = membership.tenant.length > 10
+          ? "•••" + membership.tenant.slice(-6)
+          : membership.tenant
         return (
           <button
             key={membership.tenant}
@@ -42,7 +44,7 @@ export function TenantMembershipPicker({
               <Building2 className="size-5" />
             </span>
             <span className="min-w-0 flex-1">
-              <span className="block truncate text-sm font-semibold">{membership.tenant}</span>
+              <span className="block truncate text-sm font-semibold">{tenantLabel}</span>
               <span className="mt-1 block text-xs capitalize text-muted-foreground">
                 {membership.role.replaceAll("_", " ")}
               </span>

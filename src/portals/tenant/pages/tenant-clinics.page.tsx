@@ -68,6 +68,7 @@ export function TenantClinicsPage() {
   }
 
   async function saveClinic(payload: Record<string, unknown>) {
+    setError("")
     try {
       if (editingClinic) {
         await updateClinic(editingClinic._id, payload)
@@ -76,6 +77,7 @@ export function TenantClinicsPage() {
       }
       await refresh()
       setFormOpen(false)
+      setError("")
       setSuccess(copy.saved)
     } catch (e) {
       const message = e instanceof Error ? e.message : "Unable to save clinic"
