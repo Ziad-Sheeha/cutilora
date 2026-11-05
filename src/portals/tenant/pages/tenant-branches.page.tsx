@@ -57,10 +57,12 @@ export function TenantBranchesPage() {
       }
 
   useEffect(() => {
-    if (!clinicId) {
-      setBranches([])
-      return
-    }
+    setBranches([])
+    setFormOpen(false)
+    setEditingBranch(null)
+    setSearch("")
+    setError("")
+    if (!clinicId) return
     let active = true
     setLoading(true)
     setError("")
