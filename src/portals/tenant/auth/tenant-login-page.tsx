@@ -6,7 +6,13 @@ import { Card, CardContent } from "@/components/ui/card"
 import { apiPost } from "@/lib/api"
 import { useI18n } from "@/i18n/i18n-provider"
 import { getTenantContext, getTenantContextFor } from "../api/tenant-api"
-import type { TenantLoginResponse, TenantMembership, TenantUser } from "../types/tenant.types"
+import type {
+  TenantLoginMembership,
+  TenantLoginResponse,
+  TenantMembership,
+  TenantResourceReference,
+  TenantUser,
+} from "../types/tenant.types"
 import { saveTenantSession } from "./tenant-session"
 import { TenantLoginForm } from "../components/tenant-login-form"
 import { TenantMembershipPicker } from "../components/tenant-membership-picker"
@@ -18,6 +24,32 @@ type PendingLogin = {
 }
 
 const tenantRoles = ["tenant_owner", "tenant_admin"]
+
+function getResourceId(reference: TenantResourceReference): string | null {
+  if (typeof reference === "string") return reference
+  if (!reference || typeof reference !== "object") return null
+  return reference._id || reference.id || null
+}
+
+function normalizeMembership(
+  membership: TenantLoginMembership,
+): TenantMembership | null {
+  const tenantId = getResourceId(membership.tenant)
+  if (!tenantId) return null
+
+  const clinicId = getResourceId(membership.clinic)
+  const tenantName =
+    typeof membership.tenant === "object" && membership.tenant
+      ? membership.tenant.displayName || membership.tenant.name
+      : undefined
+
+  return {
+    ...membership,
+    tenant: tenantId,
+    tenantName,
+    clinic: clinicId,
+  }
+}
 
 export function TenantLoginPage() {
   const { locale } = useI18n()
@@ -105,10 +137,13 @@ export function TenantLoginPage() {
         email,
         password,
       })
-      const memberships = response.data.memberships.filter(
-        (membership) =>
-          tenantRoles.includes(membership.role) && membership.scope === "tenant",
-      )
+      const memberships = response.data.memberships
+        .filter(
+          (membership) =>
+            tenantRoles.includes(membership.role) && membership.scope === "tenant",
+        )
+        .map(normalizeMembership)
+        .filter((membership): membership is TenantMembership => membership !== null)
 
       if (!memberships.length) {
         setError(copy.noAccess)
