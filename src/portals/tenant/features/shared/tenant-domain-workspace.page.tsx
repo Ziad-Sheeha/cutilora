@@ -14,6 +14,7 @@ import { tenantApi } from "../../api/tenant-api"
 import { TenantPageHeading } from "../../components/tenant-page-heading"
 import { ConfirmDialog } from "@/shared/components/dialogs/confirm-dialog"
 import type { TenantFeatureDefinition, TenantFeatureEndpoint, TenantFeatureField } from "./tenant-feature.types"
+import type { Branch, Clinic } from "../../types/tenant.types"
 import { getTenantFieldErrors, validateTenantFeatureForm, type TenantFeatureSchemaKey } from "./tenant-feature-schemas"
 
 type Row = Record<string, unknown> & { id?: string; _id?: string; uuid?: string }
@@ -114,7 +115,7 @@ function operationLabel(endpoint: TenantFeatureEndpoint, ar: boolean) {
   return endpoint.purpose
 }
 
-export function TenantDomainWorkspacePage({ feature, clinicId }: { feature: TenantFeatureDefinition; clinicId?: string }) {
+export function TenantDomainWorkspacePage({ feature, clinicId, clinics = [], branches = [] }: { feature: TenantFeatureDefinition; clinicId?: string; clinics?: Clinic[]; branches?: Branch[] }) {
   const { locale } = useI18n()
   const ar = locale === "ar"
   const client = useQueryClient()
@@ -128,6 +129,8 @@ export function TenantDomainWorkspacePage({ feature, clinicId }: { feature: Tena
   const [details, setDetails] = useState<{ title: string; data: unknown } | null>(null)
   const [selectedOperation, setSelectedOperation] = useState<SelectedOperation | null>(null)
   const [permissionText, setPermissionText] = useState("")
+  const [selectedClinicIds, setSelectedClinicIds] = useState<string[]>([])
+  const [selectedBranchIds, setSelectedBranchIds] = useState<string[]>([])
   const [pendingPreview, setPendingPreview] = useState<{ payload: Record<string, unknown>; preview: Record<string, unknown> } | null>(null)
   const getEndpoints = feature.endpoints.filter(endpoint => endpoint.method === "GET" && !endpoint.path.includes("{"))
   const writeEndpoints = feature.endpoints.filter(endpoint => endpoint.method !== "GET")
@@ -243,9 +246,7 @@ export function TenantDomainWorkspacePage({ feature, clinicId }: { feature: Tena
       return
     }
     if (feature.key === "users" && /scopes/i.test(endpoint.path)) {
-      const clinicIds = String(values.clinicIds ?? "").split(",").map(value => value.trim()).filter(Boolean)
-      const branchIds = String(values.branchIds ?? "").split(",").map(value => value.trim()).filter(Boolean)
-      await operation.mutateAsync({ endpoint, row, payload: { clinicIds, branchIds } })
+      await operation.mutateAsync({ endpoint, row, payload: { clinicIds: selectedClinicIds, branchIds: selectedBranchIds } })
       return
     }
     const customPayload = (feature.key === "subscription" && endpoint.path.endsWith("/change-request")) ||
@@ -343,6 +344,8 @@ export function TenantDomainWorkspacePage({ feature, clinicId }: { feature: Tena
                   setSelectedOperation({ endpoint, row })
                   setValues(Object.fromEntries(Object.entries(row).filter(([key, value]) => typeof value === "string" || typeof value === "number").map(([key, value]) => [key, String(value)])))
                   setPermissionText(Array.isArray(row.permissions) ? row.permissions.map(String).join(", ") : "")
+                  setSelectedClinicIds(Array.isArray(row.clinicIds ?? row.clinic_ids) ? ((row.clinicIds ?? row.clinic_ids) as unknown[]).map(String) : [])
+                  setSelectedBranchIds(Array.isArray(row.branchIds ?? row.branch_ids) ? ((row.branchIds ?? row.branch_ids) as unknown[]).map(String) : [])
                 } else if (endpoint.method === "DELETE" || /revoke|disconnect/i.test(endpoint.purpose)) setConfirm({ endpoint, row })
                 else {
                   const payload = /membership status/i.test(endpoint.purpose) ? { status: String(row.status ?? "").toLowerCase() === "active" ? "suspended" : "active" } : undefined
@@ -406,8 +409,8 @@ export function TenantDomainWorkspacePage({ feature, clinicId }: { feature: Tena
               })}/><span><span className="font-medium">{title}</span>{title !== code && <span className="mt-1 block text-xs text-muted-foreground">{code}</span>}</span></label> : null
             })}</div> : <Textarea value={permissionText} onChange={event => setPermissionText(event.target.value)} rows={4} placeholder={ar ? "أدخل معرفات الصلاحيات مفصولة بفواصل" : "Enter permission keys separated by commas"}/>}</div> :
             feature.key === "users" && /scopes/i.test(selectedOperation.endpoint.path) ? <>
-              <div><Label>{ar ? "معرفات العيادات المسموح بها" : "Allowed clinic IDs"}</Label><Textarea value={values.clinicIds ?? ""} onChange={event => setValues(current => ({ ...current, clinicIds: event.target.value }))}/></div>
-              <div><Label>{ar ? "معرفات الفروع المسموح بها" : "Allowed branch IDs"}</Label><Textarea value={values.branchIds ?? ""} onChange={event => setValues(current => ({ ...current, branchIds: event.target.value }))}/></div>
+              <div><Label>{ar ? "العيادات المسموح بها" : "Allowed clinics"}</Label><div className="mt-2 space-y-2 rounded-xl border p-3">{clinics.map(clinic => <label key={clinic._id} className="flex items-center gap-2 text-sm"><Checkbox checked={selectedClinicIds.includes(clinic._id)} onChange={event => setSelectedClinicIds(current => event.target.checked ? [...new Set([...current, clinic._id])] : current.filter(id => id !== clinic._id))}/>{clinic.name}</label>)}</div></div>
+              <div><Label>{ar ? "الفروع المسموح بها" : "Allowed branches"}</Label><div className="mt-2 space-y-2 rounded-xl border p-3">{branches.map(branch => <label key={branch._id} className="flex items-center gap-2 text-sm"><Checkbox checked={selectedBranchIds.includes(branch._id)} onChange={event => setSelectedBranchIds(current => event.target.checked ? [...new Set([...current, branch._id])] : current.filter(id => id !== branch._id))}/>{branch.name}</label>)}</div></div>
             </> : fieldsFor(selectedOperation.endpoint).map(field => <div key={field.name}><Label>{ar ? ({ name: "الاسم", description: "الوصف", scope: "نطاق الوصول", from: "من تاريخ", to: "إلى تاريخ", format: "صيغة التصدير" } as Record<string, string>)[field.name] ?? field.label : field.label}</Label>{field.type === "select" ? <Select value={values[field.name] ?? ""} onValueChange={value => setValues(current => ({ ...current, [field.name]: value }))}><SelectTrigger><SelectValue placeholder={ar ? "اختر..." : "Select..."}/></SelectTrigger><SelectContent>{field.options?.map(option => <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>)}</SelectContent></Select> : <Input type={field.type ?? "text"} value={values[field.name] ?? ""} onChange={event => setValues(current => ({ ...current, [field.name]: event.target.value }))}/>}</div>)}
           <div className="sm:col-span-2"><Button type="submit" disabled={operation.isPending}>{operation.isPending ? <LoaderCircle className="me-2 size-4 animate-spin"/> : <Check className="me-2 size-4"/>}{ar ? "حفظ التغييرات" : "Save changes"}</Button></div>
         </form>
