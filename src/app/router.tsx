@@ -1,4 +1,4 @@
-import { lazy, Suspense } from "react"
+import { lazy, Suspense, type ReactNode } from "react"
 import { createBrowserRouter, Navigate } from "react-router"
 import { LandingPage } from "@/app/pages/landing-page"
 import { ClinicLayout } from "@/portals/clinic/layout/clinic-layout"
