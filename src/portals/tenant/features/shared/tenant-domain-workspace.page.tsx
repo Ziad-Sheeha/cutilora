@@ -196,7 +196,7 @@ export function TenantDomainWorkspacePage({ feature, clinicId, clinics = [], bra
   const writeEndpoints = feature.endpoints.filter(endpoint => endpoint.method !== "GET")
   const resourcesQuery = useQueries({
     queries: getEndpoints.map(endpoint => ({
-      queryKey: ["tenant-domain", feature.key, endpoint.path, search, page, perPage, dateFrom, dateTo, actorFilter, moduleFilter],
+      queryKey: ["tenant-domain", feature.key, endpoint.path, clinicId, search, page, perPage, dateFrom, dateTo, actorFilter, moduleFilter],
       queryFn: async () => {
         const resolvedEndpointPath = resolvePath(endpoint.path, feature.key === "clinic-workspace" ? { clinicId, id: clinicId } : undefined)
         const response = await tenantApi.get(apiPath(resolvedEndpointPath), { params: {
@@ -221,7 +221,7 @@ export function TenantDomainWorkspacePage({ feature, clinicId, clinics = [], bra
         const rows = isSummaryResource && record && !Array.isArray(record.items) && !Array.isArray(record.records) ? [] : toRows(data)
         return { rows, summary, pagination }
       },
-      enabled: !(dateFrom && dateTo && dateFrom > dateTo),
+      enabled: !(dateFrom && dateTo && dateFrom > dateTo) && (feature.key !== "clinic-workspace" || Boolean(clinicId)),
       staleTime: 20_000,
     })),
   })
