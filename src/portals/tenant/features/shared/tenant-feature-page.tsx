@@ -72,7 +72,7 @@ export function TenantFeaturePage() {
         search: debouncedSearch || undefined,
       })
     },
-    enabled: Boolean(feature && listEndpoint),
+    enabled: Boolean(feature && listEndpoint && key !== "documents"),
     staleTime: 30_000,
   })
   const saveMutation = useMutation({
