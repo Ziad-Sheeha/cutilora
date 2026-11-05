@@ -140,7 +140,7 @@ function listEnvelope(payload: unknown): TenantListEnvelope {
     totalTenants: numeric(summary.totalTenants ?? summary.total ?? root.totalTenants),
     availableStatuses: stringArray(summary.availableStatuses ?? root.availableStatuses),
     availablePlans: stringArray(summary.availablePlans ?? root.availablePlans),
-    statusCounts: object(summary.statusCounts ?? root.statusCounts) as Record<string, number> ?? {},
+    statusCounts: (object(summary.statusCounts ?? root.statusCounts) ?? {}) as Record<string, number>,
   }
 }
 interface ApiError { message?: string; error?: { message?: string }; errors?: Record<string, unknown> }
