@@ -21,10 +21,9 @@ All seven routes from the supplied Postman collection are represented in the API
 - `PATCH /platform/tenants/{tenantId}`: partial tenant profile update.
 - `PUT /platform/tenants/{tenantId}/subscription`: create or replace subscription.
 - `POST /platform/tenants/{tenantId}/subscription/payments`: record a subscription payment.
-- `GET /platform/tenants/{tenantId}/subscription`: read subscription details.
-- `GET /platform/tenants/{tenantId}/subscription/payments`: read payment history.
+- `GET /platform/tenants/{tenantId}`: returns tenant details with `subscription` and its `paymentHistory` embedded in the same response.
 
-The three write endpoints for profile, subscription, and payment are exposed through typed query mutations, but their write forms must use the exact request schemas from the collection. The provided subscription/payment examples are response-shaped examples, not sufficient proof of required request fields. The create example also needs confirmation of how the owner payload is represented.
+The backend exposes profile update, subscription upsert, and payment recording as write operations. Subscription and payment reads are not separate routes; both are included in the tenant details response. The create contract requires `owner.name`, `owner.email`, and a password between 12 and 128 characters.
 
 ## Tenant create and edit workflow
 
@@ -36,13 +35,13 @@ Create and edit share the dedicated page flow:
 - Shared UI primitives are used for inputs, textareas, buttons, checkboxes, cards and selects. Geographic selectors reuse the Geo Location feature and cascade country → governorate → city → district.
 - Form mapping is isolated in `types/tenant-form.types.ts`; reusable field and section presentation lives in `components/`.
 
-The create flow sends an `owner` object containing `name`, `email`, and `password`. Password confirmation is client-side only and is never sent. This shape follows the required owner fields requested for the frontend; confirm exact backend validation keys if the server reports a mismatch.
+The create flow sends an `owner` object containing `name`, `email`, and `password`. Password confirmation is client-side only and is never sent. The password must be 12–128 characters.
 
 ## Form UX, image handling, and PDF export
 
 - Required identity fields are visibly marked and validated before the user can unlock the next step. The final review step allows jumping back to any completed section before submission.
 - Business type, industry, timezone, organization language, currency, date format, and week start use the shared SelectMenu. Geographic fields use the shared searchable cascading selectors.
-- Logo and cover uploads accept PNG, JPEG, and WebP up to 5 MB. The browser reads each selected file as a base64 data URI for preview; newly selected images are sent in the existing `branding.logoUrl` and `branding.coverImageUrl` fields. Existing server image URLs are previewed but omitted from PATCH unless the user replaces or removes them.
+- Logo and cover uploads accept PNG, JPEG, and WebP up to 2 MB. The browser reads each selected file as a base64 data URI; newly selected images are sent as `branding.logoBase64` and `branding.coverImageBase64`. The backend stores the files and returns relative `logoUrl` and `coverImageUrl` paths. Existing server image URLs are previewed but omitted from PATCH unless the user replaces or removes them.
 - After a successful create/update, a confirmation dialog offers a print-ready organization profile. The PDF is generated entirely in the browser using the print stylesheet; choose Save as PDF in the browser print destination. No PDF API or server endpoint is used.
 
 ## Reusable international phone input
@@ -59,13 +58,12 @@ The create flow sends an `owner` object containing `name`, `email`, and `passwor
 - Empty strings and null nested fields are rendered as unavailable values rather than fabricated content.
 - Only the `active` status and `starter` plan are offered as explicit filters because those are the only concrete enum values present in the supplied examples. Other values returned by the API remain visible.
 - Activation is exposed because the status endpoint example explicitly documents `active`. Other status transitions are intentionally not invented.
-- The supplied list example does not include pagination metadata or query parameters. Directory search, status/plan filtering, and page slicing therefore run client-side over the returned collection.
+- The backend list endpoint returns the tenant collection without pagination metadata or query parameters. Directory search, status filtering, and page slicing therefore run client-side. The list response does not include subscription documents, so plan information is only available on tenant details.
 - No payment creation or subscription mutation is exposed; the provided payment object is treated as a payment record, not assumed to be a create request.
 - The UI does not display internal database IDs in the directory table.
 
 ## Follow-up contract details to confirm
 
-1. Server-side list query parameters and pagination metadata.
-2. Allowed tenant status and plan enum values.
-3. Whether tenant update, suspension, and deletion endpoints exist.
-4. Whether payment history is always returned as `data[]` or has a paginated envelope.
+1. Server-side list query parameters and pagination metadata are not currently implemented.
+2. Tenant status is `active` or `suspended`; subscription status and plan are separate concepts.
+3. Tenant deletion and dedicated subscription/payment read endpoints are not implemented.
