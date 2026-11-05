@@ -25,7 +25,8 @@ function unwrap<T>(response: unknown): T {
 function idOf(row: DocumentRecord) { return String(row.id ?? row._id ?? "") }
 function expiryState(value?: string, ar = false) {
   if (!value) return ar ? "غير محدد" : "Not set"
-  const date = new Date(value)
+  const parts = value.slice(0, 10).split("-").map(Number)
+  const date = parts.length === 3 && parts.every(Number.isFinite) ? new Date(parts[0], parts[1] - 1, parts[2]) : new Date(value)
   if (Number.isNaN(date.getTime())) return value
   const days = Math.ceil((date.getTime() - Date.now()) / 86_400_000)
   if (days < 0) return ar ? "منتهي" : "Expired"
@@ -67,7 +68,7 @@ export function TenantDocumentsPage() {
       body.append("category", category)
       if (expiryDate) body.append("expiryDate", expiryDate)
       const response = replaceId
-        ? await tenantApi.put(`${root}/${encodeURIComponent(replaceId)}/file`, body, { headers: { "Content-Type": "multipart/form-data" } })
+        ? await tenantApi.put(`${root}/${encodeURIComponent(replaceId)}/file`, body, {})
         : await tenantApi.post(root, body, { headers: { "Content-Type": "multipart/form-data" } })
       return unwrap(response)
     },
@@ -116,7 +117,7 @@ export function TenantDocumentsPage() {
   return <div className="space-y-6">
     <TenantPageHeading eyebrow={ar ? "ملف المؤسسة" : "ORGANIZATION PROFILE"} title={ar ? "مستندات المؤسسة" : "Organization Documents"} description={ar ? "احفظ مستندات مؤسستك وتابع تصنيفاتها وحالة التحقق وتواريخ الانتهاء." : "Store organization documents and track their categories, verification and expiry dates."}/>
     <Card><CardContent className="grid gap-4 p-5 md:grid-cols-2 xl:grid-cols-4">
-      <div className="md:col-span-2"><Label>{ar ? "الملف" : "Document file"}</Label><Input type="file" accept=".pdf,.png,.jpg,.jpeg,.webp,.doc,.docx,.xls,.xlsx" onChange={e => setFile(e.target.files?.[0] ?? null)} className="mt-2"/></div>
+      <div className="md:col-span-2"><Label>{ar ? "الملف" : "Document file"}</Label><Input type="file" accept=".pdf,.png,.jpg,.jpeg,.webp,.doc,.docx,.xls,.xlsx" onChange={e => { setFile(e.target.files?.[0] ?? null); setError("") }} className="mt-2"/></div>
       <div><Label>{ar ? "التصنيف" : "Category"}</Label><Select value={category} onValueChange={setCategory}><SelectTrigger className="mt-2"><SelectValue/></SelectTrigger><SelectContent><SelectItem value="legal">{ar ? "مستندات قانونية" : "Legal"}</SelectItem><SelectItem value="license">{ar ? "تراخيص" : "Licenses"}</SelectItem><SelectItem value="tax">{ar ? "مستندات ضريبية" : "Tax"}</SelectItem><SelectItem value="insurance">{ar ? "تأمين" : "Insurance"}</SelectItem><SelectItem value="other">{ar ? "أخرى" : "Other"}</SelectItem></SelectContent></Select></div>
       <div><Label>{ar ? "تاريخ الانتهاء" : "Expiry date"}</Label><Input type="date" value={expiryDate} onChange={e => setExpiryDate(e.target.value)} className="mt-2"/></div>
       <div className="flex flex-wrap items-end gap-2 md:col-span-2 xl:col-span-4"><Button disabled={!file || upload.isPending} onClick={() => upload.mutate()}><FilePlus2 className="me-2 size-4"/>{upload.isPending ? (ar ? "جارٍ الرفع..." : "Uploading...") : replaceId ? (ar ? "استبدال المستند" : "Replace document") : (ar ? "رفع مستند" : "Upload document")}</Button>{replaceId && <Button variant="outline" onClick={() => { setReplaceId(null); setFile(null) }}>{ar ? "إلغاء الاستبدال" : "Cancel replace"}</Button>}</div>
