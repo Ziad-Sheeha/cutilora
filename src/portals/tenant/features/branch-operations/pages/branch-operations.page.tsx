@@ -24,7 +24,6 @@ import {
   updateBranchSettings,
   type BranchActivity,
   type BranchHoliday,
-  type BranchSettings,
   type BusinessHoursDay,
 } from "../api/branch-operations.api"
 
