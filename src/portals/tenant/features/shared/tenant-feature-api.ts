@@ -77,6 +77,17 @@ export function getTenantFeatureCreateEndpoint(feature: TenantFeatureDefinition)
   )
 }
 
+export function getTenantFeatureWriteEndpoint(feature: TenantFeatureDefinition) {
+  const list = getTenantFeatureListEndpoint(feature)
+  if (!list) return undefined
+  const basePath = list.path.split("?")[0]
+  return feature.endpoints.find((endpoint) =>
+    (endpoint.method === "POST" || endpoint.method === "PATCH" || endpoint.method === "PUT") &&
+    endpoint.path.split("?")[0] === basePath &&
+    !/\\{[^}]+\\}/.test(endpoint.path),
+  )
+}
+
 export async function fetchTenantFeatureRecords(
   endpoint: TenantFeatureEndpoint,
   params: Record<string, string | number | undefined> = {},
