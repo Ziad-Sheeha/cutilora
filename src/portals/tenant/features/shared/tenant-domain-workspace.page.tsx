@@ -120,8 +120,8 @@ function humanize(key: string, ar: boolean) {
     emailEnabled: ["Email notifications", "إشعارات البريد"], inAppEnabled: ["In-app notifications", "إشعارات داخل التطبيق"],
     securityAlerts: ["Security alerts", "تنبيهات الأمان"], billingAlerts: ["Billing alerts", "تنبيهات الفوترة"], membershipAlerts: ["Membership alerts", "تنبيهات العضويات"],
     action: ["Action", "الإجراء"], actor: ["Performed by", "المنفذ"], module: ["Module", "الوحدة"], timezone: ["Timezone", "المنطقة الزمنية"],
-    invoiceStatus: ["Invoice status", "حالة الفاتورة"], billingCycle: ["Billing cycle", "دورة الفوترة"], renewalDate: ["Renewal date", "تاريخ التجديد"],
-    verificationStatus: ["Verification", "حالة التحقق"], expiryDate: ["Expiry date", "تاريخ الانتهاء"], lastActivityAt: ["Last activity", "آخر نشاط"],
+    invoiceStatus: ["Invoice status", "حالة الفاتورة"], billingCycle: ["Billing cycle", "دورة الفوترة"],
+    verificationStatus: ["Verification", "حالة التحقق"], expiryDate: ["Expiry date", "تاريخ الانتهاء"],
   }
   if (dictionary[key]) return dictionary[key][ar ? 1 : 0]
   return key.replace(/([a-z0-9])([A-Z])/g, "$1 $2").replace(/[_-]/g, " ").replace(/^./, x => x.toUpperCase())
@@ -530,8 +530,7 @@ export function TenantDomainWorkspacePage({ feature, clinicId, clinics = [], bra
                 emailEnabled: "إشعارات البريد الإلكتروني", inAppEnabled: "إشعارات داخل التطبيق", securityAlerts: "تنبيهات الأمان",
                 billingAlerts: "تنبيهات الفوترة", membershipAlerts: "تنبيهات العضويات", requestedPlan: "الخطة المطلوبة",
                 billingCycle: "دورة الفوترة", reason: "سبب الطلب", url: "رابط HTTPS", events: "الأحداث المشترك بها",
-                from: "من تاريخ", to: "إلى تاريخ", actorId: "المنفذ", action: "الإجراء", module: "الوحدة", emailEnabled: "إشعارات البريد الإلكتروني",
-                inAppEnabled: "إشعارات داخل التطبيق", securityAlerts: "تنبيهات الأمان", billingAlerts: "تنبيهات الفوترة", membershipAlerts: "تنبيهات العضويات",
+                from: "من تاريخ", to: "إلى تاريخ", actorId: "المنفذ", action: "الإجراء", module: "الوحدة",
               } as Record<string, string>)[field.name] ?? field.label : field.label}{field.required ? " *" : ""}</Label>
               {field.type === "select" ? <Select value={values[field.name] ?? ""} onValueChange={value => setValues(current => ({ ...current, [field.name]: value }))}><SelectTrigger id={`tenant-op-${feature.key}-${field.name}`}><SelectValue placeholder={ar ? "اختر..." : "Select..."}/></SelectTrigger><SelectContent>{field.options?.map(option => <SelectItem key={option.value} value={option.value}>{ar ? ({
                 tenant_admin: "مسؤول المؤسسة", organization_manager: "مدير المؤسسة", read_only_analyst: "محلل للقراءة فقط",
