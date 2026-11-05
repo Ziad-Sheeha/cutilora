@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react"
-import { CheckCircle2, ClipboardCheck } from "lucide-react"
+import { AlertCircle, CheckCircle2, ClipboardCheck, LoaderCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Field, FieldError } from "@/components/ui/field"
@@ -10,15 +10,16 @@ import { Textarea } from "@/components/ui/textarea"
 import { useI18n } from "@/i18n/i18n-provider"
 import type { TenantFeatureDefinition } from "./tenant-feature.types"
 import { getTenantFieldErrors, validateTenantFeatureForm, type TenantFeatureSchemaKey } from "./tenant-feature-schemas"
+import { createTenantFeatureRecord, getTenantFeatureCreateEndpoint } from "./tenant-feature-api"
 
-type Props = { feature: TenantFeatureDefinition }
+type Props = { feature: TenantFeatureDefinition; onCreated?: () => void }
 
-export function TenantFeatureForm({ feature }: Props) {
+export function TenantFeatureForm({ feature, onCreated }: Props) {
   const { locale } = useI18n()
   const ar = locale === "ar"
   const [values, setValues] = useState<Record<string, string>>({})
   const [errors, setErrors] = useState<Record<string, string>>({})
-  const [validated, setValidated] = useState(false)
+  const [validated, setValidated] = useState(false)\n  const [submitting, setSubmitting] = useState(false)\n  const [serverError, setServerError] = useState<string | null>(null)\n  const createEndpoint = getTenantFeatureCreateEndpoint(feature)
 
   if (!feature.fields?.length || !feature.schemaKey) return null
 
@@ -86,7 +87,7 @@ export function TenantFeatureForm({ feature }: Props) {
     return labels[value] || fallback
   }
 
-  function submit(event: FormEvent<HTMLFormElement>) {
+  async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     const result = validateTenantFeatureForm(
       feature.schemaKey as TenantFeatureSchemaKey,
@@ -111,7 +112,7 @@ export function TenantFeatureForm({ feature }: Props) {
           <div>
             <h3 className="font-semibold">{ar ? "نموذج وتجهيز التحقق" : "Form & validation scaffold"}</h3>
             <p className="mt-1 text-xs leading-5 text-muted-foreground">
-              {ar ? "النموذج جاهز للتحقق محلياً. لن يتم إرسال أو حفظ أي بيانات قبل تنفيذ Endpoint الباك." : "The form validates locally. Nothing is submitted or persisted until the backend endpoint is implemented."}
+              {createEndpoint ? (ar ? "سيتم إرسال البيانات إلى واجهة الباك بعد اجتياز التحقق المحلي." : "Validated data will be submitted to the backend endpoint.") : (ar ? "النموذج مخصص للتحقق المحلي فقط؛ لا يوجد Endpoint إنشاء معرّف لهذه الوحدة." : "This form is validation-only because no create endpoint is defined for this module.")}
             </p>
           </div>
         </div>
@@ -183,7 +184,7 @@ export function TenantFeatureForm({ feature }: Props) {
             {validated && (
               <span role="status" className="inline-flex items-center gap-2 text-xs font-medium text-emerald-700">
                 <CheckCircle2 className="size-4" />
-                {ar ? "البيانات اجتازت التحقق المحلي — لم يتم الحفظ" : "Local validation passed — nothing was saved"}
+                {createEndpoint ? (ar ? "تم الحفظ بنجاح" : "Saved successfully") : (ar ? "البيانات اجتازت التحقق المحلي — لم يتم الحفظ" : "Local validation passed — nothing was saved")}
               </span>
             )}
           </div>
