@@ -30,6 +30,7 @@ type Props = {
 const clinicFilterRoutes = [
   "/tenant",
   "/tenant/branches",
+  "/tenant/clinic-workspace",
   "/tenant/users",
   "/tenant/invitations",
   "/tenant/finance",
