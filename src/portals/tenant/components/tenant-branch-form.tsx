@@ -40,7 +40,7 @@ export function TenantBranchForm({ onCancel, onSave }: Props) {
     event.preventDefault()
     const validation = branchFormSchema.safeParse({ name, slug, address, timezone })
     if (!validation.success) {
-      setErrors(getTenantFieldErrors(validation.error))
+      setErrors(getTenantFieldErrors(validation.error, ar ? "ar" : "en"))
       return
     }
 
