@@ -40,6 +40,7 @@ export function TenantLoginPage() {
         showPassword: "إظهار كلمة المرور",
         hidePassword: "إخفاء كلمة المرور",
         choose: "اختر المؤسسة التي تريد إدارتها",
+        chooseDescription: "حسابك لديه صلاحية إدارة أكثر من مؤسسة. اختر مساحة العمل التي تريد فتحها.",
         continue: "متابعة إلى مساحة العمل",
         noAccess: "هذه البوابة مخصصة لمالك المؤسسة أو مسؤولها.",
         back: "العودة إلى الرئيسية",
@@ -61,6 +62,7 @@ export function TenantLoginPage() {
         showPassword: "Show password",
         hidePassword: "Hide password",
         choose: "Choose the organization you want to manage",
+        chooseDescription: "Your account can manage more than one organization. Choose the workspace you want to open.",
         continue: "Continue to workspace",
         noAccess: "This portal is for organization owners and administrators.",
         back: "Back to home",
@@ -199,7 +201,7 @@ export function TenantLoginPage() {
               {pending ? copy.choose : copy.title}
             </h2>
             <p className="mt-2 text-sm leading-6 text-muted-foreground">
-              {pending ? copy.noAccess : copy.description}
+              {pending ? copy.chooseDescription : copy.description}
             </p>
           </div>
 
