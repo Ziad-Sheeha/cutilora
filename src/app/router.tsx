@@ -26,6 +26,7 @@ const TenantClinicsPage = lazy(() => import("@/portals/tenant/pages/tenant-clini
 const TenantBranchesPage = lazy(() => import("@/portals/tenant/pages/tenant-branches.page").then((module) => ({ default: module.TenantBranchesPage })))
 const TenantOrganizationPage = lazy(() => import("@/portals/tenant/pages/tenant-organization.page").then((module) => ({ default: module.TenantOrganizationPage })))
 const TenantFeaturePage = lazy(() => import("@/portals/tenant/features/shared/tenant-feature-page").then((module) => ({ default: module.TenantFeaturePage })))
+const BranchOperationsPage = lazy(() => import("@/portals/tenant/features/branch-operations/pages/branch-operations.page").then((module) => ({ default: module.BranchOperationsPage })))
 
 function TenantRouteFallback() {
   return <div role="status" aria-live="polite" className="flex min-h-[240px] items-center justify-center text-sm text-muted-foreground">Loading tenant module…</div>
@@ -83,6 +84,7 @@ export const router = createBrowserRouter([
         { path: "clinics", element: <TenantRoute><TenantClinicsPage /></TenantRoute> },
         { path: "branches", element: <TenantRoute><TenantBranchesPage /></TenantRoute> },
         { path: "organization", element: <TenantRoute><TenantOrganizationPage /></TenantRoute> },
+        { path: "branch-operations", element: <TenantRoute><BranchOperationsPage /></TenantRoute> },
         { path: ":feature/:section", element: <TenantRoute><TenantFeaturePage /></TenantRoute> },
         { path: ":feature", element: <TenantRoute><TenantFeaturePage /></TenantRoute> },
       ],
