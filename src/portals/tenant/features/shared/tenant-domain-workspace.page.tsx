@@ -228,16 +228,28 @@ export function TenantDomainWorkspacePage({ feature, clinicId, clinics = [], bra
   const resources: Resource[] = getEndpoints.map((endpoint, index) => ({
     endpoint, rows: resourcesQuery[index]?.data?.rows ?? [], summary: resourcesQuery[index]?.data?.summary ?? null, pagination: resourcesQuery[index]?.data?.pagination,
   }))
+  const clinicProfileResource = resources.find(resource => resource.endpoint.path.endsWith("/clinics/{clinicId}"))
+  const clinicSettingsResource = resources.find(resource => resource.endpoint.path.endsWith("/clinics/{clinicId}/settings"))
   const preferenceResource = resources.find(resource => resource.endpoint.path.endsWith("/preferences") || resource.endpoint.path.endsWith("/notification-preferences"))
   const billingProfileResource = resources.find(resource => resource.endpoint.path.endsWith("/billing-profile"))
   useEffect(() => {
-    if (feature.key !== "settings/preferences" && feature.key !== "settings/notifications" && feature.key !== "subscription") return
     if (Object.keys(values).length) return
-    const source = feature.key === "settings/preferences" || feature.key === "settings/notifications" ? preferenceResource?.summary : billingProfileResource?.summary
+    let source: Record<string, unknown> | null = null
+    if (feature.key === "clinic-workspace") {
+      const profile = clinicProfileResource?.summary
+      const settings = clinicSettingsResource?.summary
+      if (!profile && !settings) return
+      const contact = profile?.contact && typeof profile.contact === "object" ? profile.contact as Record<string, unknown> : {}
+      source = { ...profile, ...settings, email: contact.email ?? profile?.email, phone: contact.phone ?? profile?.phone }
+    } else if (feature.key === "settings/preferences" || feature.key === "settings/notifications") {
+      source = preferenceResource?.summary ?? null
+    } else if (feature.key === "subscription") {
+      source = billingProfileResource?.summary ?? null
+    } else return
     if (!source) return
-    const next = Object.fromEntries(Object.entries(source).filter(([key, value]) => !hidden.has(key) && !sensitive.test(key) && (typeof value === "string" || typeof value === "number" || typeof value === "boolean")).map(([key, value]) => [key, String(value)]))
-    if (Object.keys(next).length) setValues(next)
-  }, [feature.key, preferenceResource?.summary, billingProfileResource?.summary, values])
+    const nextValues = Object.fromEntries(Object.entries(source).filter(([key, value]) => !hidden.has(key) && !sensitive.test(key) && (typeof value === "string" || typeof value === "number" || typeof value === "boolean")).map(([key, value]) => [key, String(value)]))
+    if (Object.keys(nextValues).length) setValues(nextValues)
+  }, [feature.key, clinicProfileResource?.summary, clinicSettingsResource?.summary, preferenceResource?.summary, billingProfileResource?.summary, values])
   const busy = resourcesQuery.some(query => query.isLoading)
   const hasError = resourcesQuery.find(query => query.isError)?.error
 
