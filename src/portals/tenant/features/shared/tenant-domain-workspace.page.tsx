@@ -218,7 +218,7 @@ export function TenantDomainWorkspacePage({ feature }: { feature: TenantFeatureD
       setFormError(ar ? "صيغة البيانات غير صحيحة." : "The submitted data is not valid.")
       return
     }
-    await operation.mutateAsync({ endpoint: formEndpoint, payload })
+    await operation.mutateAsync({ endpoint, payload })
     setValues({})
   }
 
@@ -234,6 +234,26 @@ export function TenantDomainWorkspacePage({ feature }: { feature: TenantFeatureD
   const readActions = feature.endpoints.filter(endpoint => endpoint.method === "GET" && endpoint.path.includes("{"))
   const rowActions = writeEndpoints.filter(endpoint => endpoint.path.includes("{"))
   const showGenericPayload = !fields.length && Boolean(formEndpoint)
+  function fieldsFor(endpoint: TenantFeatureEndpoint) {
+    if (feature.key === "subscription" && endpoint.path.endsWith("/change-request")) return [
+      { name: "requestedPlan", label: "Requested plan", type: "select" as const, required: true, options: [{ label: "Starter", value: "starter" }, { label: "Growth", value: "growth" }, { label: "Enterprise", value: "enterprise" }] },
+      { name: "billingCycle", label: "Billing cycle", type: "select" as const, required: true, options: [{ label: "Monthly", value: "monthly" }, { label: "Yearly", value: "yearly" }] },
+      { name: "reason", label: "Reason", type: "textarea" as const },
+    ]
+    if (feature.key === "integrations" && endpoint.path.endsWith("/webhooks")) return [
+      { name: "name", label: "Webhook name", type: "text" as const, required: true },
+      { name: "url", label: "HTTPS endpoint URL", type: "url" as const, required: true },
+      { name: "events", label: "Subscribed events (comma separated)", type: "text" as const, required: true },
+    ]
+    if (feature.key === "governance" && endpoint.path.endsWith("/exports")) return [
+      { name: "from", label: "From date", type: "date" as const },
+      { name: "to", label: "To date", type: "date" as const },
+      { name: "actorId", label: "Actor", type: "text" as const },
+      { name: "action", label: "Action", type: "text" as const },
+      { name: "module", label: "Module", type: "text" as const },
+    ]
+    return fields
+  }
 
   return (
     <div className="space-y-6">
@@ -265,7 +285,7 @@ export function TenantDomainWorkspacePage({ feature }: { feature: TenantFeatureD
               ) : !isSummary && !resourcesQuery[index]?.isLoading ? (
                 <p className="rounded-xl border border-dashed py-8 text-center text-sm text-muted-foreground">{ar ? "لا توجد سجلات حالياً." : "No records yet."}</p>
               ) : null}
-              {readActions.length > 0 && rows.length > 0 && <div className="mt-3 flex flex-wrap gap-2">{rows.slice(0, 8).flatMap(row => readActions.map(endpoint => <Button key={endpoint.path + rowId(row)} size="sm" variant="outline" onClick={() => {
+              {matchingReadActions.length > 0 && rows.length > 0 && <div className="mt-3 flex flex-wrap gap-2">{rows.slice(0, 8).flatMap(row => matchingReadActions.map(endpoint => <Button key={endpoint.path + rowId(row)} size="sm" variant="outline" onClick={() => {
                 if (/download/i.test(endpoint.purpose)) {
                   void tenantApi.get(apiPath(resolvePath(endpoint.path, row))).then(response => {
                     const result = unwrap(response.data) as { url?: string; downloadUrl?: string }
@@ -275,9 +295,9 @@ export function TenantDomainWorkspacePage({ feature }: { feature: TenantFeatureD
                   }).catch(error => setFormError(error instanceof Error ? error.message : (ar ? "تعذر التنزيل." : "Unable to download.")))
                 } else void openDetails(endpoint, row)
               }}><Eye className="me-2 size-3.5"/>{/download/i.test(endpoint.purpose) ? (ar ? "تنزيل" : "Download") : (ar ? "تفاصيل" : "Details")} · {String(row.name ?? row.email ?? rowId(row)).slice(0, 20)}</Button>))}</div>}
-              {rowActions.length > 0 && rows.length > 0 && (
+              {matchingRowActions.length > 0 && rows.length > 0 && (
                 <div className="mt-4 flex flex-wrap gap-2">
-                  {rows.slice(0, 12).flatMap(row => rowActions.map(endpoint => (
+                  {rows.slice(0, 12).flatMap(row => matchingRowActions.map(endpoint => (
                     <Button key={endpoint.path + rowId(row)} size="sm" variant={endpoint.method === "DELETE" || /revoke|disconnect/i.test(endpoint.purpose) ? "destructive" : "outline"} disabled={!rowId(row) && !row.membershipId && !row.userId || operation.isPending} onClick={() => {
                       const risky = endpoint.method === "DELETE" || /revoke|disconnect/i.test(endpoint.purpose)
                       if (risky) setConfirm({ endpoint, row })
@@ -315,7 +335,7 @@ export function TenantDomainWorkspacePage({ feature }: { feature: TenantFeatureD
                 : field.type === "textarea" ? <Textarea id={`tenant-op-${field.name}`} value={values[field.name] ?? ""} onChange={event => setValues(current => ({ ...current, [field.name]: event.target.value }))}/>
                 : <Input id={`tenant-op-${field.name}`} type={field.type ?? "text"} value={values[field.name] ?? ""} onChange={event => setValues(current => ({ ...current, [field.name]: event.target.value }))}/>}
               </div>)}
-              {showGenericPayload && <div className="sm:col-span-2"><Label>{ar ? "بيانات العملية" : "Operation data"}</Label><Textarea value={payloadText} onChange={event => setPayloadText(event.target.value)} rows={5} className="mt-2 font-mono text-xs"/></div>}
+              {showGenericPayload && activeFields.length === 0 && <div className="sm:col-span-2"><Label>{ar ? "تفاصيل الإجراء" : "Additional details"}</Label><Textarea value={payloadText} onChange={event => setPayloadText(event.target.value)} rows={4} className="mt-2"/></div>}
               <div className="flex flex-wrap items-center gap-2 sm:col-span-2"><Button type="submit" disabled={operation.isPending}>{operation.isPending ? <LoaderCircle className="me-2 size-4 animate-spin"/> : <Check className="me-2 size-4"/>}{operationLabel(formEndpoint, ar)}</Button><Button type="button" variant="outline" onClick={() => setValues({})}>{ar ? "مسح الحقول" : "Clear fields"}</Button></div>
             </form>
           </CardContent>
