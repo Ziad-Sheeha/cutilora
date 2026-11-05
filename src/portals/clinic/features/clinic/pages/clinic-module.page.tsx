@@ -22,9 +22,12 @@ const INTERNAL_FIELDS = new Set(["id", "_id", "uuid", "tenantId", "tenant_id", "
 function isModuleKey(value: string): value is ClinicModuleKey {
   return MODULE_KEYS.includes(value as ClinicModuleKey)
 }
-function recordId(record: ClinicRecord): string {
+function resourceId(record: ClinicRecord): string | null {
   const id = record.id ?? record._id ?? record.uuid ?? record.code
-  return typeof id === "string" || typeof id === "number" ? String(id) : JSON.stringify(record)
+  return typeof id === "string" || typeof id === "number" ? String(id) : null
+}
+function recordId(record: ClinicRecord): string {
+  return resourceId(record) ?? JSON.stringify(record)
 }
 function displayValue(value: unknown, locale: "ar" | "en"): string {
   if (value === null || value === undefined || value === "") return "—"
@@ -105,7 +108,14 @@ export function ClinicModulePage() {
   const pageRows = useMemo(() => filtered.slice((currentPage - 1) * perPage, currentPage * perPage), [filtered, currentPage, perPage])
 
   function openCreate() { setEditing(null); setFormOpen(true) }
-  function openEdit(record: ClinicRecord) { setEditing(record); setFormOpen(true) }
+  function openEdit(record: ClinicRecord) {
+    if (!resourceId(record)) {
+      dispatch(pushToast({ id: crypto.randomUUID(), kind: "error", title: clinicModuleText("missingId", locale) }))
+      return
+    }
+    setEditing(record)
+    setFormOpen(true)
+  }
 
   async function saveRecord(payload: Record<string, unknown>) {
     try {
@@ -149,7 +159,7 @@ export function ClinicModulePage() {
       cell: (record) => <div className="flex items-center justify-end gap-1">
         <Button type="button" size="icon" variant="ghost" onClick={() => setViewRecord(record)} aria-label={clinicModuleText("view", locale)} title={clinicModuleText("view", locale)}><Eye className="size-4" /></Button>
         {config?.update && <Button type="button" size="icon" variant="ghost" onClick={() => openEdit(record)} aria-label={clinicModuleText("edit", locale)} title={clinicModuleText("edit", locale)}><Pencil className="size-4" /></Button>}
-        {config?.remove && <Button type="button" size="icon" variant="ghost" disabled={deleteMutation.isPending} onClick={() => setDeleteRecord(record)} aria-label={clinicModuleText("delete", locale)} title={clinicModuleText("delete", locale)}><Trash2 className="size-4 text-destructive" /></Button>}
+        {config?.remove && <Button type="button" size="icon" variant="ghost" disabled={deleteMutation.isPending || !resourceId(record)} onClick={() => setDeleteRecord(record)} aria-label={clinicModuleText("delete", locale)} title={clinicModuleText("delete", locale)}><Trash2 className="size-4 text-destructive" /></Button>}
       </div>,
     })
     return result
