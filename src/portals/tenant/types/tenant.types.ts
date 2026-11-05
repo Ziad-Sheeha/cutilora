@@ -11,6 +11,7 @@ export type TenantRole =
 
 export type TenantMembership = {
   tenant: string
+  tenantName?: string
   clinic: string | null
   branch_ids: string[]
   scope: "tenant" | "clinic" | "branch"

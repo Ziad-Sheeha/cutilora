@@ -5,7 +5,7 @@ import { BrandLogo } from "@/components/brand/brand-logo"
 import { Card, CardContent } from "@/components/ui/card"
 import { apiPost } from "@/lib/api"
 import { useI18n } from "@/i18n/i18n-provider"
-import { getTenantContext } from "../api/tenant-api"
+import { getTenantContext, getTenantContextFor } from "../api/tenant-api"
 import type { TenantLoginResponse, TenantMembership, TenantUser } from "../types/tenant.types"
 import { saveTenantSession } from "./tenant-session"
 import { TenantLoginForm } from "../components/tenant-login-form"
@@ -115,18 +115,33 @@ export function TenantLoginPage() {
         return
       }
 
+      const resolvedMemberships = memberships.length > 1
+        ? await Promise.all(memberships.map(async (membership) => {
+            try {
+              const tenantContext = await getTenantContextFor(
+                response.data.access_token,
+                membership.tenant,
+              )
+              const tenantName = tenantContext.tenant?.displayName || tenantContext.tenant?.name
+              return tenantName ? { ...membership, tenantName } : membership
+            } catch {
+              return membership
+            }
+          }))
+        : memberships
+
       const login = {
         token: response.data.access_token,
         user: response.data.user,
-        memberships,
+        memberships: resolvedMemberships,
       }
       setPending(login)
 
       if (memberships.length === 1) {
-        setSelectedTenantId(memberships[0].tenant)
-        await establishSession(memberships[0], login)
+        setSelectedTenantId(resolvedMemberships[0].tenant)
+        await establishSession(resolvedMemberships[0], login)
       } else {
-        setSelectedTenantId(memberships[0].tenant)
+        setSelectedTenantId(resolvedMemberships[0].tenant)
       }
     } catch (requestError) {
       setError(getErrorMessage(requestError, ar))

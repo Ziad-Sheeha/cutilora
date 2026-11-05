@@ -54,6 +54,14 @@ tenantApi.interceptors.response.use(
   },
 )
 
+export async function getTenantContextFor(token: string, tenantId: string) {
+  const client = axios.create({ baseURL: (appEnv.apiBaseUrl.endsWith("/") ? appEnv.apiBaseUrl.slice(0, -1) : appEnv.apiBaseUrl), timeout: 20_000 })
+  const { data } = await client.get<ApiEnvelope<TenantContext>>("/tenant/context", {
+    headers: { Authorization: `Bearer ${token}`, "X-Tenant-Id": tenantId },
+  })
+  return data.data
+}
+
 export async function getTenantContext() {
   const { data } = await tenantApi.get<ApiEnvelope<TenantContext>>("/tenant/context")
   return data.data
