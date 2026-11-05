@@ -1,7 +1,7 @@
 import { lazy, Suspense, type ReactNode } from "react"
 import { createBrowserRouter, Navigate } from "react-router"
 import { LandingPage } from "@/app/pages/landing-page"
-import { ClinicLayout } from "@/portals/clinic/layout/clinic-layout"
+import { ClinicLayout } from "@/portals/clinic/layout/clinic-layout"\nimport { ClinicGuard } from "@/portals/clinic/auth/clinic-guard"
 import { DashboardPage } from "@/portals/clinic/features/dashboard/pages/dashboard.page"
 import { ClinicModulePage } from "@/portals/clinic/features/clinic/pages/clinic-module.page"
 import { NotFoundPage } from "@/app/pages/not-found.page"
@@ -41,7 +41,7 @@ export const router = createBrowserRouter([
   { path: "/super-admin/login", element: <SuperAdminLoginPage /> },
   {
     path: "/clinic",
-    element: <ClinicLayout />,
+    element: <ClinicGuard><ClinicLayout /></ClinicGuard>,
     children: [
       { index: true, element: <DashboardPage /> },
       ...adminNavigation.filter((item) => item.href !== "/clinic").map((item) => ({
