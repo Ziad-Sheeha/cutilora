@@ -147,7 +147,7 @@ export function TenantFormPage() {
       const password = values.owner.password
       if (!values.owner.name.trim() || !values.owner.email.trim() || !password || !values.owner.passwordConfirmation) return [copy.requiredFields]
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.owner.email.trim())) return [copy.invalidEmail]
-      if (password.length < 8 || !/[A-Z]/.test(password) || !/[a-z]/.test(password) || !/\d/.test(password) || !/[^A-Za-z0-9]/.test(password)) return [copy.passwordRules]
+      if (password.length < 12 || password.length > 128) return [copy.passwordRules]
       if (password !== values.owner.passwordConfirmation) return [copy.passwordMismatch]
     }
     return []
