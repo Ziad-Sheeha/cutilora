@@ -10,6 +10,7 @@ import { useI18n } from "@/i18n/i18n-provider"
 import { useTenant, useTenantMutations, useTenantPayments, useTenantSubscription } from "../hooks/use-tenants"
 import { pushToast, store } from "@/store"
 import type { Tenant, TenantPayment, TenantSubscription } from "../types/tenant.types"
+import { resolveAssetUrl } from "@/shared/utils/resolve-asset-url"
 
 function human(value: string | null | undefined) { return value ? value.replace(/[_-]/g, " ").replace(/\b\w/g, (letter) => letter.toUpperCase()) : "—" }
 function dateTime(value: string | null, locale: string) {
@@ -81,11 +82,11 @@ export function TenantDetailsPage() {
   return <div dir={ar ? "rtl" : "ltr"} className="space-y-6">
     <Link to="/super-admin/tenants" className="inline-flex items-center gap-2 text-sm font-semibold text-muted-foreground transition hover:text-primary"><ArrowLeft className="size-4"/>{labels.back}</Link>
     <header className="overflow-hidden rounded-3xl border border-border/80 bg-card shadow-sm">
-      {tenant.branding.coverImageUrl ? <div className="relative h-36 overflow-hidden sm:h-48"><img src={tenant.branding.coverImageUrl} alt="" className="size-full object-cover"/><div className="absolute inset-0 bg-gradient-to-t from-slate-950/65 via-slate-950/10 to-transparent"/></div> : <div className="h-2 bg-gradient-to-r from-primary via-violet-500 to-sky-500"/>}
+      {tenant.branding.coverImageUrl ? <div className="relative h-36 overflow-hidden sm:h-48"><img src={resolveAssetUrl(tenant.branding.coverImageUrl)} alt="" className="size-full object-cover"/><div className="absolute inset-0 bg-gradient-to-t from-slate-950/65 via-slate-950/10 to-transparent"/></div> : <div className="h-2 bg-gradient-to-r from-primary via-violet-500 to-sky-500"/>}
       <div className="p-5 sm:p-7">
         <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
           <div className="flex min-w-0 items-start gap-4">
-            <span className={tenant.branding.coverImageUrl ? "-mt-16 relative flex size-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl border-4 border-card bg-background shadow-lg sm:-mt-20 sm:size-24" : "flex size-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl border bg-muted shadow-sm sm:size-24"}>{tenant.branding.logoUrl ? <img src={tenant.branding.logoUrl} alt="" className="size-full object-cover"/> : <Building2 className="size-9 text-primary"/>}</span>
+            <span className={tenant.branding.coverImageUrl ? "-mt-16 relative flex size-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl border-4 border-card bg-background shadow-lg sm:-mt-20 sm:size-24" : "flex size-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl border bg-muted shadow-sm sm:size-24"}>{tenant.branding.logoUrl ? <img src={resolveAssetUrl(tenant.branding.logoUrl)} alt="" className="size-full object-cover"/> : <Building2 className="size-9 text-primary"/>}</span>
             <div className="min-w-0 pt-1">
               <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-primary">{ar ? "ملف المؤسسة" : "TENANT PROFILE"}</p>
               <h1 className="mt-1 break-words text-2xl font-bold tracking-tight text-foreground sm:text-3xl">{tenant.displayName || tenant.name}</h1>
