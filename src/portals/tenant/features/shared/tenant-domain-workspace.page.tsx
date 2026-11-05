@@ -123,6 +123,10 @@ export function TenantDomainWorkspacePage({ feature, clinicId, clinics = [], bra
   const [search, setSearch] = useState("")
   const [page, setPage] = useState(1)
   const [perPage, setPerPage] = useState(10)
+  const [dateFrom, setDateFrom] = useState("")
+  const [dateTo, setDateTo] = useState("")
+  const [actorFilter, setActorFilter] = useState("")
+  const [moduleFilter, setModuleFilter] = useState("")
   const [formError, setFormError] = useState("")
   const [success, setSuccess] = useState("")
   const [confirm, setConfirm] = useState<{ endpoint: TenantFeatureEndpoint; row?: Row } | null>(null)
@@ -136,9 +140,13 @@ export function TenantDomainWorkspacePage({ feature, clinicId, clinics = [], bra
   const writeEndpoints = feature.endpoints.filter(endpoint => endpoint.method !== "GET")
   const resourcesQuery = useQueries({
     queries: getEndpoints.map(endpoint => ({
-      queryKey: ["tenant-domain", feature.key, endpoint.path, search, page, perPage],
+      queryKey: ["tenant-domain", feature.key, endpoint.path, search, page, perPage, dateFrom, dateTo, actorFilter, moduleFilter],
       queryFn: async () => {
-        const response = await tenantApi.get(apiPath(endpoint.path), { params: { page, per_page: perPage, search: search.trim() || undefined } })
+        const response = await tenantApi.get(apiPath(endpoint.path), { params: {
+          page, per_page: perPage, search: search.trim() || undefined,
+          ...(feature.key === "governance" || feature.key === "finance" ? { from: dateFrom || undefined, to: dateTo || undefined } : {}),
+          ...(feature.key === "governance" ? { actorId: actorFilter || undefined, module: moduleFilter || undefined } : {}),
+        } })
         const envelope = response.data && typeof response.data === "object" ? response.data as Record<string, unknown> : {}
         const nestedEnvelope = envelope.data && typeof envelope.data === "object" ? envelope.data as Record<string, unknown> : {}
         const meta = (envelope.pagination ?? envelope.meta ?? nestedEnvelope.pagination ?? nestedEnvelope.meta) as Record<string, unknown> | undefined
