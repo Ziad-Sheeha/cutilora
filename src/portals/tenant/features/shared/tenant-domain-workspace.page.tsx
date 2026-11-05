@@ -270,9 +270,10 @@ export function TenantDomainWorkspacePage({ feature, clinicId, clinics = [], bra
       await client.invalidateQueries({ queryKey: ["tenant-domain", feature.key] })
       const result = unwrap(data) as { url?: string; downloadUrl?: string; exportUrl?: string; secret?: string; apiKey?: string; token?: string; credential?: string; credentials?: { apiKey?: string; webhookSecret?: string; signingSecret?: string } } | undefined
       const url = result?.url ?? result?.downloadUrl ?? result?.exportUrl
-      if (url && /download|export/i.test(variables.endpoint.purpose)) {
-        if (downloadWindow.current && !downloadWindow.current.closed) downloadWindow.current.location.assign(url)
-        else window.open(url, "_blank", "noopener,noreferrer")
+      if (/download|export/i.test(variables.endpoint.purpose)) {
+        if (url && downloadWindow.current && !downloadWindow.current.closed) downloadWindow.current.location.assign(url)
+        else if (url) window.open(url, "_blank", "noopener,noreferrer")
+        else downloadWindow.current?.close()
         downloadWindow.current = null
       }
       const issuedCredential = result?.secret ?? result?.apiKey ?? result?.token ?? result?.credential ?? result?.credentials?.apiKey ?? result?.credentials?.webhookSecret ?? result?.credentials?.signingSecret
