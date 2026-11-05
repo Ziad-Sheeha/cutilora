@@ -126,11 +126,23 @@ export function validateTenantFeatureForm(
   return tenantFeatureSchemas[schemaKey].safeParse(values)
 }
 
-export function getTenantFieldErrors(error: z.ZodError): Record<string, string> {
+export function getTenantFieldErrors(
+  error: z.ZodError,
+  locale: "ar" | "en" = "en",
+): Record<string, string> {
   const errors: Record<string, string> = {}
   for (const issue of error.issues) {
     const field = String(issue.path[0] || "")
-    if (field && !errors[field]) errors[field] = issue.message
+    if (!field || errors[field]) continue
+    if (locale === "ar") {
+      if (issue.code === "too_small") errors[field] = "القيمة أقل من الحد الأدنى المطلوب"
+      else if (issue.code === "too_big") errors[field] = "القيمة تتجاوز الحد المسموح"
+      else if (issue.code === "invalid_format") errors[field] = "صيغة القيمة غير صحيحة"
+      else if (issue.code === "invalid_type") errors[field] = "نوع القيمة غير صحيح"
+      else errors[field] = "يرجى مراجعة هذه القيمة"
+    } else {
+      errors[field] = issue.message
+    }
   }
   return errors
 }
