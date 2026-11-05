@@ -42,7 +42,7 @@ export function TenantReviewPanel({ values, labels, onEdit, ar }: {
     { title: labels.location, icon: MapPin, step: 2, rows: [
       ["Country", country.data ? geoRecordName(country.data, locale) : ""], ["Governorate", governorate.data ? geoRecordName(governorate.data, locale) : ""], ["City", city.data ? geoRecordName(city.data, locale) : ""], ["District", district.data ? geoRecordName(district.data, locale) : ""], ["Address", values.address.addressLine1], ["Additional address", values.address.addressLine2],
       ["Building", values.address.building], ["Floor", values.address.floor], ["Unit", values.address.unit],
-      ["Landmark", values.address.landmark], ["Postal code", values.address.postalCode],
+      ["Postal code", values.address.postalCode],
       ["Latitude", values.address.latitude], ["Longitude", values.address.longitude],
     ] },
     { title: labels.legal, icon: ShieldCheck, step: 3, rows: [
