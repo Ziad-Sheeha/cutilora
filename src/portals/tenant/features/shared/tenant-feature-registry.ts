@@ -359,6 +359,13 @@ export const tenantFeatureRegistry: TenantFeatureDefinition[] = [
       { method: "GET", path: "/api/v1/tenant/notification-preferences", purpose: "Read notification preferences" },
       { method: "PATCH", path: "/api/v1/tenant/notification-preferences", purpose: "Update notification preferences" },
     ],
+    fields: [
+      { name: "emailEnabled", label: "Email notifications", type: "select", required: true, options: [{ label: "Enabled", value: "true" }, { label: "Disabled", value: "false" }] },
+      { name: "inAppEnabled", label: "In-app notifications", type: "select", required: true, options: [{ label: "Enabled", value: "true" }, { label: "Disabled", value: "false" }] },
+      { name: "securityAlerts", label: "Security alerts", type: "select", required: true, options: [{ label: "Enabled", value: "true" }, { label: "Disabled", value: "false" }] },
+      { name: "billingAlerts", label: "Billing alerts", type: "select", required: true, options: [{ label: "Enabled", value: "true" }, { label: "Disabled", value: "false" }] },
+      { name: "membershipAlerts", label: "Membership alerts", type: "select", required: true, options: [{ label: "Enabled", value: "true" }, { label: "Disabled", value: "false" }] },
+    ],
   },
   {
     key: "settings/security", group: "Settings", icon: "shield",
