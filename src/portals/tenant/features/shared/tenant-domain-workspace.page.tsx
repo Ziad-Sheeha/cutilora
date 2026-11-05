@@ -123,6 +123,7 @@ export function TenantDomainWorkspacePage({ feature, clinicId }: { feature: Tena
   const [details, setDetails] = useState<{ title: string; data: unknown } | null>(null)
   const [selectedOperation, setSelectedOperation] = useState<SelectedOperation | null>(null)
   const [permissionText, setPermissionText] = useState("")
+  const [pendingPreview, setPendingPreview] = useState<{ payload: Record<string, unknown>; preview: Record<string, unknown> } | null>(null)
   const getEndpoints = feature.endpoints.filter(endpoint => endpoint.method === "GET" && !endpoint.path.includes("{"))
   const writeEndpoints = feature.endpoints.filter(endpoint => endpoint.method !== "GET")
   const resourcesQuery = useQueries({
@@ -159,6 +160,7 @@ export function TenantDomainWorkspacePage({ feature, clinicId }: { feature: Tena
       setSuccess(ar ? "تم تنفيذ العملية بنجاح." : "The operation completed successfully.")
       setConfirm(null)
       setSelectedOperation(null)
+      if (feature.key === "configuration" && variables.endpoint.path.endsWith("/apply")) setPendingPreview(null)
       await client.invalidateQueries({ queryKey: ["tenant-domain", feature.key] })
       const result = unwrap(data) as { url?: string; downloadUrl?: string; exportUrl?: string } | undefined
       const url = result?.url ?? result?.downloadUrl ?? result?.exportUrl
@@ -171,7 +173,7 @@ export function TenantDomainWorkspacePage({ feature, clinicId }: { feature: Tena
   })
 
   const fields = feature.fields ?? []
-  const rootWriteEndpoints = writeEndpoints.filter(endpoint => !endpoint.path.includes("{") && ["POST", "PATCH", "PUT"].includes(endpoint.method))
+  const rootWriteEndpoints = writeEndpoints.filter(endpoint => !endpoint.path.includes("{") && ["POST", "PATCH", "PUT"].includes(endpoint.method) && !(feature.key === "configuration" && endpoint.path.endsWith("/apply")))
   function fieldsFor(endpoint: TenantFeatureEndpoint): TenantFeatureField[] {
     if (feature.key === "subscription" && endpoint.path.endsWith("/change-request")) return [
       { name: "requestedPlan", label: "Requested plan", type: "select", required: true, options: [{ label: "Starter", value: "starter" }, { label: "Growth", value: "growth" }, { label: "Enterprise", value: "enterprise" }] },
@@ -235,7 +237,11 @@ export function TenantDomainWorkspacePage({ feature, clinicId }: { feature: Tena
       payload.clinicIds = String(values.clinicIds ?? "").split(/[\n,]/).map(value => value.trim()).filter(Boolean)
       payload.branchIds = String(values.branchIds ?? "").split(/[\n,]/).map(value => value.trim()).filter(Boolean)
     }
-    await operation.mutateAsync({ endpoint, row, payload })
+    const result = await operation.mutateAsync({ endpoint, row, payload })
+    if (feature.key === "configuration" && endpoint.path.endsWith("/preview-apply")) {
+      const preview = unwrap(result)
+      setPendingPreview({ payload, preview: preview && typeof preview === "object" ? preview as Record<string, unknown> : {} })
+    }
     setValues({})
     setPermissionText("")
   }
@@ -323,6 +329,15 @@ export function TenantDomainWorkspacePage({ feature, clinicId }: { feature: Tena
           </form>
         </CardContent></Card>
       })}
+      {feature.key === "configuration" && pendingPreview && (() => {
+        const applyEndpoint = writeEndpoints.find(endpoint => endpoint.method === "POST" && endpoint.path.endsWith("/apply"))
+        const previewEntries = Object.entries(pendingPreview.preview).filter(([key, value]) => !sensitive.test(key) && value !== null && typeof value !== "object")
+        return <Card><CardContent className="p-5">
+          <div className="mb-4"><h2 className="font-semibold">{ar ? "مراجعة التغييرات قبل التطبيق" : "Review changes before applying"}</h2><p className="mt-1 text-sm text-muted-foreground">{ar ? "تم إنشاء معاينة للتغييرات. راجع النطاق والتأثير قبل اعتمادها." : "A change preview is ready. Review its scope and impact before confirming."}</p></div>
+          {previewEntries.length > 0 && <div className="mb-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">{previewEntries.map(([key, value]) => <div key={key} className="rounded-xl border p-3"><p className="text-xs text-muted-foreground">{humanize(key, ar)}</p><p className="mt-1 font-semibold">{display(value, ar)}</p></div>)}</div>}
+          <Button disabled={!applyEndpoint || operation.isPending} onClick={() => { if (applyEndpoint) void operation.mutateAsync({ endpoint: applyEndpoint, payload: pendingPreview.payload }) }}>{operation.isPending ? <LoaderCircle className="me-2 size-4 animate-spin"/> : <Check className="me-2 size-4"/>}{ar ? "اعتماد وتطبيق التغييرات" : "Confirm and apply changes"}</Button>
+        </CardContent></Card>
+      })()}
       {selectedOperation && <Card><CardContent className="p-5">
         <div className="mb-4 flex items-center justify-between gap-3"><div><h2 className="font-semibold">{operationLabel(selectedOperation.endpoint, ar)}</h2><p className="mt-1 text-xs text-muted-foreground">{String(selectedOperation.row.name ?? selectedOperation.row.email ?? rowId(selectedOperation.row))}</p></div><Button variant="ghost" size="sm" onClick={() => setSelectedOperation(null)}><XCircle className="me-2 size-4"/>{ar ? "إغلاق" : "Close"}</Button></div>
         <form onSubmit={event => void submitForm(event, selectedOperation.endpoint, selectedOperation.row)} className="grid gap-4 sm:grid-cols-2">
