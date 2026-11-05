@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { useParams } from "react-router"
+import { useOutletContext, useParams } from "react-router"
 import { AlertCircle, Database, RefreshCw, Search } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -20,6 +20,7 @@ import {
 } from "./tenant-feature-api"
 import { TenantFeatureForm } from "./tenant-feature-form"
 import { TenantDocumentsPage } from "../documents/tenant-documents.page"
+import type { TenantOutletContext } from "../../layout/tenant-layout"
 
 const PAGE_SIZE = 10
 const hiddenKeys = new Set(["id", "_id", "tenantId", "tenant_id", "createdAt", "updatedAt", "created_at", "updated_at"])
@@ -40,6 +41,7 @@ function recordId(record: TenantFeatureRecord) {
 
 export function TenantFeaturePage() {
   const { feature: featureParam, section } = useParams()
+  const outlet = useOutletContext<TenantOutletContext>()
   const { locale } = useI18n()
   const ar = locale === "ar"
   const dispatch = useAppDispatch()
@@ -59,8 +61,29 @@ export function TenantFeaturePage() {
     return () => window.clearTimeout(timer)
   }, [search])
 
-  const listEndpoint = feature ? getTenantFeatureListEndpoint(feature) : undefined
-  const writeEndpoint = feature ? getTenantFeatureWriteEndpoint(feature) : undefined
+  const clinicId = outlet.context?.access.clinicId ?? outlet.context?.clinic?._id
+  const baseListEndpoint = feature ? getTenantFeatureListEndpoint(feature) : undefined
+  const clinicDetailsEndpoint = key === "clinic-workspace" && clinicId
+    ? feature?.endpoints.find((endpoint) => endpoint.method === "GET" && endpoint.path === "/api/v1/tenant/clinics/{clinicId}")
+    : undefined
+  const financeSummaryEndpoint = key === "finance"
+    ? feature?.endpoints.find((endpoint) => endpoint.method === "GET" && endpoint.path.endsWith("/finance/summary"))
+    : undefined
+  const subscriptionEndpoint = key === "subscription"
+    ? feature?.endpoints.find((endpoint) => endpoint.method === "GET" && endpoint.path.endsWith("/subscription"))
+    : undefined
+  const selectedListEndpoint = baseListEndpoint ?? clinicDetailsEndpoint ?? financeSummaryEndpoint ?? subscriptionEndpoint
+  const listEndpoint = selectedListEndpoint && clinicId && selectedListEndpoint.path.includes("{clinicId}")
+    ? { ...selectedListEndpoint, path: selectedListEndpoint.path.replace("{clinicId}", encodeURIComponent(clinicId)) }
+    : selectedListEndpoint
+  const baseWriteEndpoint = feature ? getTenantFeatureWriteEndpoint(feature) : undefined
+  const clinicUpdateEndpoint = key === "clinic-workspace" && clinicId
+    ? feature?.endpoints.find((endpoint) => endpoint.method === "PATCH" && endpoint.path === "/api/v1/tenant/clinics/{clinicId}")
+    : undefined
+  const selectedWriteEndpoint = baseWriteEndpoint ?? clinicUpdateEndpoint
+  const writeEndpoint = selectedWriteEndpoint && clinicId && selectedWriteEndpoint.path.includes("{clinicId}")
+    ? { ...selectedWriteEndpoint, path: selectedWriteEndpoint.path.replace("{clinicId}", encodeURIComponent(clinicId)) }
+    : selectedWriteEndpoint
   const queryKey = ["tenant-feature", key, page, perPage, debouncedSearch] as const
   const listQuery = useQuery({
     queryKey,
