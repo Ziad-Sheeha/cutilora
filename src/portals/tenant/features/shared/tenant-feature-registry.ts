@@ -13,6 +13,7 @@ export const tenantFeatureRegistry: TenantFeatureDefinition[] = [
     ],
     endpoints: [
       { method: "GET", path: "/api/v1/tenant/users", purpose: "Users directory" },
+      { method: "GET", path: "/api/v1/tenant/memberships", purpose: "Organization memberships" },
       { method: "PATCH", path: "/api/v1/tenant/memberships/{membershipId}", purpose: "Update membership status and role" },
       { method: "PUT", path: "/api/v1/tenant/users/{userId}/scopes", purpose: "Assign clinic and branch scopes" },
     ],
@@ -250,7 +251,7 @@ export const tenantFeatureRegistry: TenantFeatureDefinition[] = [
     capabilities: [
       { en: "Maintain legal and display names, organization type and contact details.", ar: "إدارة الاسم القانوني والاسم التجاري ونوع المؤسسة وبيانات التواصل." },
       { en: "Maintain registered address and organization-level defaults.", ar: "إدارة العنوان المسجل والقيم الافتراضية للمؤسسة." },
-      { en: "Preview changes locally until the profile API and audit flow are available.", ar: "معاينة التغييرات محلياً لحين توفير API الملف الشخصي ومسار التدقيق." },
+      { en: "Review profile changes before saving them to the organization.", ar: "مراجعة تغييرات الملف الشخصي قبل حفظها في المؤسسة." },
     ],
     endpoints: [
       { method: "GET", path: "/api/v1/tenant/profile", purpose: "Read organization profile" },
@@ -263,8 +264,8 @@ export const tenantFeatureRegistry: TenantFeatureDefinition[] = [
       { name: "contactEmail", label: "Primary email", type: "email", required: true },
       { name: "contactPhone", label: "Primary phone", type: "tel", required: true },
       { name: "website", label: "Website", type: "url" },
-      { name: "countryId", label: "Country ID", required: true },
-      { name: "cityId", label: "City ID", required: true },
+      { name: "countryId", label: "Country", required: true },
+      { name: "cityId", label: "City", required: true },
       { name: "addressLine1", label: "Registered address", type: "textarea", required: true },
     ],
     note: { en: "The current backend context endpoint is read-only for organization profile. This form only validates a draft and does not submit it.", ar: "سياق المؤسسة المتاح حالياً للقراءة فقط. هذا النموذج يتحقق من المسودة محلياً ولا يرسلها للباك." },
@@ -307,6 +308,8 @@ export const tenantFeatureRegistry: TenantFeatureDefinition[] = [
       { method: "POST", path: "/api/v1/tenant/branches/{branchId}/holidays", purpose: "Create holiday or exception" },
       { method: "PATCH", path: "/api/v1/tenant/branches/{branchId}/settings", purpose: "Update branch settings" },
       { method: "GET", path: "/api/v1/tenant/branches/{branchId}/activity", purpose: "Branch activity" },
+      { method: "PATCH", path: "/api/v1/tenant/branches/{branchId}/settings", purpose: "Update branch settings" },
+      { method: "PATCH", path: "/api/v1/tenant/branches/{branchId}/manager", purpose: "Assign branch manager" },
     ],
     note: { en: "Schedules are interpreted in branch timezone. Overlapping shifts and invalid overnight windows must be rejected.", ar: "تُفسر المواعيد حسب المنطقة الزمنية للفرع، ويجب رفض الفترات المتداخلة أو غير الصحيحة." },
   },
