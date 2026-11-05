@@ -100,6 +100,21 @@ export async function updateBranch(id: string, payload: Record<string, unknown>)
   return data.data
 }
 
+export async function getClinicSettings(clinicId: string) {
+  const { data } = await tenantApi.get<ApiEnvelope<Record<string, unknown>>>(
+    `/tenant/clinics/${encodeURIComponent(clinicId)}/settings`,
+  )
+  return data.data
+}
+
+export async function updateClinicSettings(clinicId: string, payload: Record<string, unknown>) {
+  const { data } = await tenantApi.patch<ApiEnvelope<Record<string, unknown>>>(
+    `/tenant/clinics/${encodeURIComponent(clinicId)}/settings`,
+    payload,
+  )
+  return data.data
+}
+
 export async function updateTenantProfile(payload: Record<string, unknown>) {
   const { data } = await tenantApi.patch<ApiEnvelope<unknown>>("/tenant/profile", payload)
   return data.data
