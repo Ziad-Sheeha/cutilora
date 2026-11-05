@@ -1,7 +1,7 @@
 import { Navigate, Outlet } from "react-router"
 import { getTenantSession } from "./tenant-session"
 
-const TENANT_ROLES = ["tenant_owner", "tenant_admin"]
+const TENANT_ROLES = ["tenant_owner", "tenant_admin", "organization_manager", "billing_admin", "read_only_analyst"]
 
 export function TenantGuard() {
   const session = getTenantSession()
