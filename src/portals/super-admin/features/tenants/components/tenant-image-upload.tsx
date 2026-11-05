@@ -23,7 +23,7 @@ interface TenantImageUploadProps {
 
 export function TenantImageUpload({
   id, label, value, onChange, hint, replaceLabel, uploadLabel, removeLabel,
-  invalidTypeLabel, readErrorLabel, tooLargeLabel, previewLabel, maxSizeMb = 5,
+  invalidTypeLabel, readErrorLabel, tooLargeLabel, previewLabel, maxSizeMb = 2,
 }: TenantImageUploadProps) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [error, setError] = useState("")
