@@ -84,6 +84,14 @@ export async function updateClinic(id: string, payload: Record<string, unknown>)
   )
   return data.data
 }
+export async function activateClinic(id: string) {
+  const { data } = await tenantApi.post<ApiEnvelope<Clinic>>(`/tenant/clinics/${encodeURIComponent(id)}/activate`)
+  return data.data
+}
+export async function deactivateClinic(id: string) {
+  const { data } = await tenantApi.post<ApiEnvelope<Clinic>>(`/tenant/clinics/${encodeURIComponent(id)}/deactivate`)
+  return data.data
+}
 
 export async function getBranches(clinicId?: string) {
   const { data } = await tenantApi.get<ApiEnvelope<Branch[]>>("/tenant/branches", {
