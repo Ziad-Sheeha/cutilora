@@ -140,28 +140,6 @@ export function BranchOperationsPage() {
     { id: "createdAt", header: ar ? "التاريخ" : "Date", cell: row => row.createdAt ? new Date(row.createdAt).toLocaleString(ar ? "ar-EG" : "en-US") : "—" },
   ], [ar])
 
-  const saveSettings = useMutation({
-    mutationFn: () => updateBranchSettings(branchId, { timezone: branchTimezone, status: branchStatus }),
-    onSuccess: async () => {
-      setSettingsError("")
-      await Promise.all([queryClient.invalidateQueries({ queryKey: ["tenant-branch-settings", branchId] }), refresh()])
-    },
-    onError: error => setSettingsError(error instanceof Error ? error.message : (ar ? "تعذر حفظ إعدادات الفرع." : "Unable to save branch settings.")),
-  })
-  const saveManager = useMutation({
-    mutationFn: () => assignBranchManager(branchId, managerId),
-    onSuccess: async () => {
-      setSettingsError("")
-      await queryClient.invalidateQueries({ queryKey: ["tenant-branch-settings", branchId] })
-    },
-    onError: error => setSettingsError(error instanceof Error ? error.message : (ar ? "تعذر تعيين مدير الفرع." : "Unable to assign branch manager.")),
-  })
-  const activityColumns = useMemo<DataTableColumn<BranchActivity>[]>(() => [
-    { id: "action", header: ar ? "الإجراء" : "Action", cell: row => <span className="font-medium">{row.action ?? row.description ?? "—"}</span> },
-    { id: "actor", header: ar ? "المنفذ" : "Performed by", cell: row => row.actor ?? "—" },
-    { id: "module", header: ar ? "الوحدة" : "Module", cell: row => row.module ?? "—" },
-    { id: "createdAt", header: ar ? "التاريخ" : "Date", cell: row => row.createdAt ? new Date(row.createdAt).toLocaleString(ar ? "ar-EG" : "en-US") : "—" },
-  ], [ar])
   const holidayColumns = useMemo<DataTableColumn<BranchHoliday>[]>(() => [
     { id: "name", header: ar ? "العطلة" : "Holiday", cell: (row) => <span className="font-medium">{row.name}</span> },
     { id: "date", header: ar ? "التاريخ" : "Date", cell: (row) => <time className="text-sm tabular-nums">{row.date}</time> },
