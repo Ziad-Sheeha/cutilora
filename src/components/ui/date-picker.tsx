@@ -14,7 +14,7 @@ function formatLocalDate(date: Date) {
   return [date.getFullYear(), String(date.getMonth() + 1).padStart(2, "0"), String(date.getDate()).padStart(2, "0")].join("-")
 }
 
-export function DatePicker({ value, onChange, placeholder, locale = "en", dir = "ltr", minDate, maxDate, className }: {
+export function DatePicker({ value, onChange, placeholder, locale = "en", dir = "ltr", minDate, maxDate, className, id, disabled }: {
   value?: string
   onChange: (value: string) => void
   placeholder: string
@@ -23,6 +23,8 @@ export function DatePicker({ value, onChange, placeholder, locale = "en", dir = 
   minDate?: Date
   maxDate?: Date
   className?: string
+  id?: string
+  disabled?: boolean
 }) {
   const selected = parseLocalDate(value)
   const label = selected
@@ -31,7 +33,7 @@ export function DatePicker({ value, onChange, placeholder, locale = "en", dir = 
 
   return <Popover>
     <PopoverTrigger asChild>
-      <Button type="button" variant="outline" className={cn("h-11 w-full justify-start gap-2 px-3 text-start font-normal", !selected && "text-muted-foreground", className)}>
+      <Button id={id} type="button" variant="outline" disabled={disabled} className={cn("h-11 w-full justify-start gap-2 px-3 text-start font-normal", !selected && "text-muted-foreground", className)}>
         <CalendarDays className="size-4 shrink-0" /><span className="min-w-0 flex-1 truncate">{label}</span>
       </Button>
     </PopoverTrigger>
