@@ -41,9 +41,8 @@ export function ClinicModulePage() {
   const validKey = isModuleKey(slug)
   const key = validKey ? slug : "patients"
   const config = validKey ? getClinicModuleConfig(key) : undefined
-  const fields = getClinicModuleFields(key)
+  const fields = useMemo(() => getClinicModuleFields(key), [key])
   const { t, locale } = useI18n()
-  const ar = locale === "ar"
   const moduleText = t.clinic.modules[key]
   const ui = t.clinic.ui
   const dispatch = useAppDispatch()
@@ -172,7 +171,7 @@ export function ClinicModulePage() {
       <Database className="mx-auto size-9 text-muted-foreground" />
       <h2 className="mt-3 font-semibold">{clinicModuleText("noData", locale)}</h2>
       <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-muted-foreground">{key === "clinical-records" ? clinicModuleText("clinicalRecordsDescription", locale) : clinicModuleText("noDataDescription", locale)}</p>
-      {key === "clinical-records" && <Button asChild variant="outline" className="mt-4"><Link to="/clinic/patients">{clinicModuleText("goToPatients", locale)}</Link></Button>}
+      {key === "clinical-records" && <Link to="/clinic/patients" className="mt-4 inline-flex h-10 items-center rounded-xl border border-input px-4 text-sm font-semibold hover:bg-muted">{clinicModuleText("goToPatients", locale)}</Link>}
     </CardContent></Card> : <>
       {formOpen && <ClinicModuleForm key={editing ? recordId(editing) : "new"} fields={fields} record={editing} title={editing ? clinicModuleText("editTitle", locale) : moduleText.add} isSaving={saving} onCancel={() => { setFormOpen(false); setEditing(null) }} onSubmit={saveRecord} />}
       <section className="overflow-hidden rounded-2xl border bg-card">
