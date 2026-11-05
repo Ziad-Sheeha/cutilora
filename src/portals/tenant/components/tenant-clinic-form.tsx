@@ -2,11 +2,12 @@ import { useEffect, useState, type FormEvent } from "react"
 import { X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import { FieldError } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useI18n } from "@/i18n/i18n-provider"
-import { clinicFormSchema } from "../features/shared/tenant-feature-schemas"
+import { clinicFormSchema, getTenantFieldErrors } from "../features/shared/tenant-feature-schemas"
 import { getTenantGeo } from "../api/tenant-api"
 import type { Clinic } from "../types/tenant.types"
 
@@ -75,7 +76,8 @@ export function TenantClinicForm({ clinic, onCancel, onSave }: Props) {
   const [cities, setCities] = useState<GeoOption[]>([])
   const [districts, setDistricts] = useState<GeoOption[]>([])
   const [saving, setSaving] = useState(false)
-  const [error, setError] = useState("")
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
+  const [serverError, setServerError] = useState("")
 
   const copy = ar
     ? {
@@ -122,7 +124,7 @@ export function TenantClinicForm({ clinic, onCancel, onSave }: Props) {
       }
 
   useEffect(() => {
-    getTenantGeo("countries").then(setCountries).catch((e) => setError(e.message))
+    getTenantGeo("countries").then(setCountries).catch((e) => setServerError(e.message))
   }, [])
 
   useEffect(() => {
@@ -132,7 +134,7 @@ export function TenantClinicForm({ clinic, onCancel, onSave }: Props) {
     }
     getTenantGeo("governorates", { country_id: values.countryId })
       .then(setGovernorates)
-      .catch((e) => setError(e.message))
+      .catch((e) => setServerError(e.message))
   }, [values.countryId])
 
   useEffect(() => {
@@ -163,6 +165,7 @@ export function TenantClinicForm({ clinic, onCancel, onSave }: Props) {
       ...(key === "governorateId" ? { cityId: "", districtId: "" } : {}),
       ...(key === "cityId" ? { districtId: "" } : {}),
     }))
+    setFieldErrors((current) => ({ ...current, [key]: "" }))
   }
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -176,11 +179,12 @@ export function TenantClinicForm({ clinic, onCancel, onSave }: Props) {
       timezone: values.timezone,
     })
     if (!validation.success) {
-      setError(validation.error.issues[0]?.message || "Please review the form fields")
+      setFieldErrors(getTenantFieldErrors(validation.error, ar ? "ar" : "en"))
       return
     }
     setSaving(true)
-    setError("")
+    setFieldErrors({})
+    setServerError("")
     const payload = {
       name: values.name.trim(),
       clinicType: values.clinicType,
@@ -201,7 +205,7 @@ export function TenantClinicForm({ clinic, onCancel, onSave }: Props) {
     try {
       await onSave(payload)
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Unable to save clinic")
+      setServerError(e instanceof Error ? e.message : "Unable to save clinic")
     } finally {
       setSaving(false)
     }
@@ -222,22 +226,24 @@ export function TenantClinicForm({ clinic, onCancel, onSave }: Props) {
           </Button>
         </div>
 
-        <form onSubmit={submit} className="space-y-6">
+        <form noValidate onSubmit={submit} className="space-y-6">
           <section className="grid gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="clinic-name">{copy.name} *</Label>
-              <Input id="clinic-name" required minLength={2} maxLength={160} value={values.name} onChange={(e) => update("name", e.target.value)} />
+              <Label htmlFor="clinic-name">{copy.name} <span className="text-destructive">*</span></Label>
+              <Input id="clinic-name" required minLength={2} maxLength={160} value={values.name} aria-invalid={Boolean(fieldErrors.name)} aria-describedby={fieldErrors.name ? "clinic-name-error" : undefined} onChange={(e) => update("name", e.target.value)} />
+              {fieldErrors.name && <FieldError id="clinic-name-error">{fieldErrors.name}</FieldError>}
             </div>
             <div className="space-y-2">
               <Label htmlFor="clinic-type">{copy.type}</Label>
               <Select value={values.clinicType} onValueChange={(value) => update("clinicType", value)}>
-                <SelectTrigger id="clinic-type"><SelectValue /></SelectTrigger>
+                <SelectTrigger id="clinic-type" aria-invalid={Boolean(fieldErrors.clinicType)} aria-describedby={fieldErrors.clinicType ? "clinic-type-error" : undefined}><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {["dermatology", "aesthetic", "beauty", "medical_center", "other"].map((value, index) => (
                     <SelectItem key={value} value={value}>{copy.types[index]}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
+              {fieldErrors.clinicType && <FieldError id="clinic-type-error">{fieldErrors.clinicType}</FieldError>}
             </div>
             <div className="space-y-2 md:col-span-2">
               <Label htmlFor="clinic-description">{copy.description}</Label>
@@ -250,11 +256,13 @@ export function TenantClinicForm({ clinic, onCancel, onSave }: Props) {
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="clinic-email">{copy.email}</Label>
-                <Input id="clinic-email" type="email" value={values.email} onChange={(e) => update("email", e.target.value)} />
+                <Input id="clinic-email" type="email" value={values.email} aria-invalid={Boolean(fieldErrors.email)} aria-describedby={fieldErrors.email ? "clinic-email-error" : undefined} onChange={(e) => update("email", e.target.value)} />
+                {fieldErrors.email && <FieldError id="clinic-email-error">{fieldErrors.email}</FieldError>}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="clinic-phone">{copy.phone}</Label>
-                <Input id="clinic-phone" value={values.phone} onChange={(e) => update("phone", e.target.value)} />
+                <Input id="clinic-phone" value={values.phone} aria-invalid={Boolean(fieldErrors.phone)} aria-describedby={fieldErrors.phone ? "clinic-phone-error" : undefined} onChange={(e) => update("phone", e.target.value)} />
+                {fieldErrors.phone && <FieldError id="clinic-phone-error">{fieldErrors.phone}</FieldError>}
               </div>
             </div>
           </section>
@@ -272,12 +280,13 @@ export function TenantClinicForm({ clinic, onCancel, onSave }: Props) {
               </div>
               <div className="space-y-2 sm:col-span-2 xl:col-span-4">
                 <Label htmlFor="clinic-timezone">{copy.timezone}</Label>
-                <Input id="clinic-timezone" value={values.timezone} onChange={(e) => update("timezone", e.target.value)} />
+                <Input id="clinic-timezone" value={values.timezone} aria-invalid={Boolean(fieldErrors.timezone)} aria-describedby={fieldErrors.timezone ? "clinic-timezone-error" : undefined} onChange={(e) => update("timezone", e.target.value)} />
+                {fieldErrors.timezone && <FieldError id="clinic-timezone-error">{fieldErrors.timezone}</FieldError>}
               </div>
             </div>
           </section>
 
-          {error && <p role="alert" className="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}
+          {serverError && <FieldError className="rounded-xl bg-red-50 px-3 py-2">{serverError}</FieldError>}
           <div className="flex flex-wrap gap-2 border-t pt-4">
             <Button type="submit" loading={saving}>{copy.save}</Button>
             <Button type="button" variant="outline" onClick={onCancel}>{copy.cancel}</Button>
