@@ -70,3 +70,12 @@ export async function assignBranchManager(branchId: string, managerId: string) {
   const response = await tenantApi.patch("/tenant/branches/" + encodeURIComponent(branchId) + "/manager", { managerId })
   return unwrap<unknown>(response.data)
 }
+
+export async function updateBranchHoliday(branchId: string, holidayId: string, payload: Omit<BranchHoliday, "_id" | "id" | "createdAt" | "updatedAt">) {
+  const response = await tenantApi.patch("/tenant/branches/" + encodeURIComponent(branchId) + "/holidays/" + encodeURIComponent(holidayId), payload)
+  return unwrap<BranchHoliday>(response.data)
+}
+export async function deleteBranchHoliday(branchId: string, holidayId: string) {
+  const response = await tenantApi.delete("/tenant/branches/" + encodeURIComponent(branchId) + "/holidays/" + encodeURIComponent(holidayId))
+  return unwrap<unknown>(response.data)
+}
