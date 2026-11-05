@@ -1,6 +1,6 @@
 import axios, { AxiosError, type AxiosRequestConfig } from "axios"
 import { appEnv } from "@/config/env"
-import { beginLoading, endLoading, pushToast, store } from "@/store"
+import { beginLoading, endLoading, pushToast, store } from "@/store"\nimport { getClinicToken } from "@/portals/clinic/auth/clinic-auth"
 export type ApiError = { message: string; code?: string; status?: number; errors?: Record<string, string[]>; requestId?: string }
 export function normalizeApiError(error: unknown): ApiError {
  if (axios.isAxiosError(error)) {
@@ -19,7 +19,7 @@ export function normalizeApiError(error: unknown): ApiError {
 }
 let activeRequests = 0
 export const api = axios.create({ baseURL: appEnv.apiBaseUrl.replace(/\/$/, ""), timeout: 20_000, headers: { Accept: "application/json", "Content-Type": "application/json" } })
-api.interceptors.request.use((config) => { activeRequests += 1; store.dispatch(beginLoading()); return config })
+api.interceptors.request.use((config) => {\n activeRequests += 1\n store.dispatch(beginLoading())\n const token = typeof window !== "undefined" ? getClinicToken() : null\n if (token) config.headers.Authorization = "Bearer " + token\n return config\n})
 api.interceptors.response.use(
  (response) => { activeRequests = Math.max(0, activeRequests - 1); store.dispatch(endLoading()); return response },
  (error: AxiosError) => {
