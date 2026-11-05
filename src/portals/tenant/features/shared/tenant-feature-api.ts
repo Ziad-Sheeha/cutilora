@@ -82,12 +82,15 @@ export async function fetchTenantFeatureRecords(
   params: Record<string, string | number | undefined> = {},
 ) {
   const { data } = await tenantApi.get(toApiPath(endpoint.path), { params })
-  const result = unwrap<TenantFeatureRecord[] | { items?: TenantFeatureRecord[] }>(data)
-  const records = Array.isArray(result.data)
-    ? result.data
-    : Array.isArray(result.data?.items)
-      ? result.data.items
-      : []
+  const result = unwrap<unknown>(data)
+  const resource = result.data
+  const records = Array.isArray(resource)
+    ? resource as TenantFeatureRecord[]
+    : resource && typeof resource === "object" && "items" in resource && Array.isArray(resource.items)
+      ? resource.items as TenantFeatureRecord[]
+      : resource && typeof resource === "object"
+        ? [resource as TenantFeatureRecord]
+        : []
 
   return { records, pagination: result.pagination }
 }
