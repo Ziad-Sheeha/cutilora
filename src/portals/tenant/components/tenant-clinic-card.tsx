@@ -3,9 +3,9 @@ import { Button } from "@/components/ui/button"
 import type { Clinic } from "../types/tenant.types"
 import { TenantStatusPill } from "../components/tenant-status-pill"
 
-type Props = { clinic: Clinic; onEdit: (clinic: Clinic) => void; onToggleStatus: (clinic: Clinic) => void; editLabel: string; statusActionLabel: string }
+type Props = { clinic: Clinic; onEdit: (clinic: Clinic) => void; onToggleStatus: (clinic: Clinic) => void; editLabel: string; statusActionLabel: string; canManage?: boolean }
 
-export function TenantClinicCard({ clinic, onEdit, onToggleStatus, editLabel, statusActionLabel }: Props) {
+export function TenantClinicCard({ clinic, onEdit, onToggleStatus, editLabel, statusActionLabel, canManage = true }: Props) {
   return (
     <article className="rounded-2xl border border-border/70 bg-white p-4 transition-all hover:-translate-y-0.5 hover:border-violet-200 hover:shadow-md">
       <div className="flex items-start gap-3">
@@ -25,7 +25,7 @@ export function TenantClinicCard({ clinic, onEdit, onToggleStatus, editLabel, st
         <p className="flex items-center gap-2"><MapPin className="size-3.5" />{clinic.address?.addressLine1 || "—"}</p>
       </div>
 
-      <div className="mt-4 grid grid-cols-2 gap-2">
+      {canManage && <div className="mt-4 grid grid-cols-2 gap-2">
         <Button variant="outline" size="sm" onClick={() => onEdit(clinic)}>
           <Pencil className="size-3.5" />
           {editLabel}
@@ -34,7 +34,7 @@ export function TenantClinicCard({ clinic, onEdit, onToggleStatus, editLabel, st
           <Power className="size-3.5" />
           {statusActionLabel}
         </Button>
-      </div>
+      </div>}
     </article>
   )
 }
