@@ -1,7 +1,7 @@
 import axios, { AxiosError, type AxiosRequestConfig } from "axios"
 import { appEnv } from "@/config/env"
 import { beginLoading, endLoading, pushToast, store } from "@/store"
-import { expireClinicSession, getClinicToken } from "@/portals/clinic/auth/clinic-auth"
+import { expireClinicSession, getClinicSessionContext, getClinicToken } from "@/portals/clinic/auth/clinic-auth"
 export type ApiError = { message: string; code?: string; status?: number; errors?: Record<string, string[]>; requestId?: string }
 export function normalizeApiError(error: unknown): ApiError {
  if (axios.isAxiosError(error)) {
@@ -32,7 +32,8 @@ api.interceptors.response.use(
  (error: AxiosError) => {
   activeRequests = Math.max(0, activeRequests - 1); store.dispatch(endLoading())
   const normalized = normalizeApiError(error)
-  if (normalized.status === 401) expireClinicSession()\n  if (normalized.status === 401) store.dispatch(pushToast({ id: crypto.randomUUID(), kind: "warning", title: normalized.message, description: normalized.code }))
+  if (normalized.status === 401) expireClinicSession()
+  if (normalized.status === 401) store.dispatch(pushToast({ id: crypto.randomUUID(), kind: "warning", title: normalized.message, description: normalized.code }))
   else if (normalized.status !== 422) store.dispatch(pushToast({ id: crypto.randomUUID(), kind: "error", title: normalized.message, description: normalized.code }))
   return Promise.reject(normalized)
  },
