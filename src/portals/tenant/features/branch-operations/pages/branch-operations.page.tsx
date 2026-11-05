@@ -187,12 +187,27 @@ export function BranchOperationsPage() {
       isClosed: holidayClosed === "closed",
       ...(holidayClosed === "open" ? { overrideOpensAt: holidayOpens, overrideClosesAt: holidayCloses } : {}),
     }
+    if ((holidaysQuery.data ?? []).some(item => item.date === holidayDate)) {
+      setHolidayError(ar ? "توجد عطلة مسجلة بالفعل في هذا التاريخ." : "A holiday is already registered for this date.")
+      return
+    }
     const result = branchHolidaySchema.safeParse(payload)
     if (!result.success) {
       setHolidayError(getTenantFieldErrors(result.error, ar ? "ar" : "en").date ?? (ar ? "راجع بيانات العطلة." : "Review the holiday details."))
       return
     }
     createHoliday.mutate(payload)
+  }
+
+  function submitSettings() {
+    try {
+      new Intl.DateTimeFormat("en", { timeZone: branchTimezone }).format(new Date())
+    } catch {
+      setSettingsError(ar ? "أدخل منطقة زمنية صحيحة بصيغة IANA مثل Africa/Cairo." : "Enter a valid IANA timezone, for example Africa/Cairo.")
+      return
+    }
+    setSettingsError("")
+    saveSettings.mutate()
   }
 
   if (!canManageOrganization()) return <Card><CardContent className="p-8 text-center"><p className="font-semibold">{ar ? "صلاحية عرض فقط" : "Read-only access"}</p><p className="mt-2 text-sm text-muted-foreground">{ar ? "لا تملك صلاحية تعديل إعدادات الفروع." : "Your current organization role cannot change branch settings."}</p></CardContent></Card>
@@ -208,7 +223,7 @@ export function BranchOperationsPage() {
         <>
           <Card><CardContent className="p-5 sm:p-6">
             <div className="mb-5 flex items-center gap-3"><span className="grid size-10 place-items-center rounded-xl bg-primary/10 text-primary"><Clock3 className="size-5"/></span><div><h2 className="font-semibold">{ar ? "الجدول الأسبوعي" : "Weekly schedule"}</h2><p className="mt-1 text-xs text-muted-foreground">{ar ? "حتى فترتين عمل يومياً، دون تداخل." : "Up to two non-overlapping shifts per day."}</p></div></div>
-            {hoursQuery.isLoading ? <p className="py-8 text-center text-sm text-muted-foreground">{ar ? "جارٍ تحميل المواعيد..." : "Loading schedule..."}</p> : (
+            {hoursQuery.isLoading ? <p className="py-8 text-center text-sm text-muted-foreground">{ar ? "جارٍ تحميل المواعيد..." : "Loading schedule..."}</p> : hoursQuery.isError ? <p role="alert" className="py-6 text-sm text-destructive">{hoursQuery.error instanceof Error ? hoursQuery.error.message : (ar ? "تعذر تحميل جدول العمل." : "Unable to load the business schedule.")}</p> : (
               <form onSubmit={submitHours} className="space-y-3">
                 {days.map((day) => (
                   <div key={day.weekday} className="grid gap-3 rounded-xl border p-3 lg:grid-cols-[130px_150px_minmax(0,1fr)_auto] lg:items-center">
@@ -236,7 +251,7 @@ export function BranchOperationsPage() {
             {settingsQuery.isLoading ? <p className="py-6 text-center text-sm text-muted-foreground">{ar ? "جارٍ تحميل الإعدادات..." : "Loading settings..."}</p> : <div className="grid gap-4 sm:grid-cols-2">
               <div><Label>{ar ? "المنطقة الزمنية" : "Timezone"}</Label><Input value={branchTimezone} onChange={event => setBranchTimezone(event.target.value)} placeholder="Africa/Cairo" className="mt-2"/></div>
               <div><Label>{ar ? "حالة الفرع" : "Branch status"}</Label><Select value={branchStatus} onValueChange={setBranchStatus}><SelectTrigger className="mt-2"><SelectValue/></SelectTrigger><SelectContent><SelectItem value="active">{ar ? "نشط" : "Active"}</SelectItem><SelectItem value="inactive">{ar ? "غير نشط" : "Inactive"}</SelectItem><SelectItem value="suspended">{ar ? "موقوف" : "Suspended"}</SelectItem></SelectContent></Select></div>
-              <div className="sm:col-span-2 flex flex-wrap justify-end"><Button onClick={() => saveSettings.mutate()} disabled={saveSettings.isPending}>{saveSettings.isPending ? (ar ? "جارٍ الحفظ..." : "Saving...") : (ar ? "حفظ الإعدادات" : "Save settings")}</Button></div>
+              <div className="sm:col-span-2 flex flex-wrap justify-end"><Button onClick={submitSettings} disabled={saveSettings.isPending}>{saveSettings.isPending ? (ar ? "جارٍ الحفظ..." : "Saving...") : (ar ? "حفظ الإعدادات" : "Save settings")}</Button></div>
               <div className="sm:col-span-2 border-t pt-4"><Label>{ar ? "مدير الفرع" : "Branch manager"}</Label><div className="mt-2 flex flex-col gap-2 sm:flex-row"><Select value={managerId || "none"} onValueChange={setManagerId}><SelectTrigger className="sm:flex-1"><SelectValue placeholder={ar ? "اختر مديراً" : "Select a manager"}/></SelectTrigger><SelectContent><SelectItem value="none">{ar ? "بدون مدير" : "No manager"}</SelectItem>{(usersQuery.data ?? []).map(user => { const id = String(user.id ?? user._id ?? ""); return id ? <SelectItem key={id} value={id}>{user.name ?? user.email ?? id}</SelectItem> : null })}</SelectContent></Select><Button variant="outline" onClick={() => saveManager.mutate()} disabled={!managerId || managerId === "none" || saveManager.isPending}>{saveManager.isPending ? (ar ? "جارٍ التعيين..." : "Assigning...") : (ar ? "تعيين المدير" : "Assign manager")}</Button></div></div>
               {settingsError && <p role="alert" className="text-sm text-destructive sm:col-span-2">{settingsError}</p>}
               {settingsQuery.isError && <p role="alert" className="text-sm text-destructive sm:col-span-2">{settingsQuery.error instanceof Error ? settingsQuery.error.message : (ar ? "تعذر تحميل إعدادات الفرع." : "Unable to load branch settings.")}</p>}
