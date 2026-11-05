@@ -89,11 +89,11 @@ export function TenantProfileOverview({ tenant, labels, locale }: { tenant: Tena
 
         <TenantProfileSection title={labels.branding} subtitle={locale === "ar" ? "الأصول المرئية وإعدادات العلامة" : "Visual assets and brand settings"} icon={Building2}>
           <div className="flex min-w-0 items-center gap-3 rounded-xl border border-border/70 bg-background/70 p-3.5 sm:col-span-2">
-            <span className="flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-xl border bg-muted">{tenant.branding.logoUrl ? <img src={resolveAssetUrl(tenant.branding.logoUrl)} alt="" className="size-full object-cover" onError={(event) => { event.currentTarget.style.visibility = "hidden" }}/> : <Building2 className="size-6 text-muted-foreground"/>}</span>
+            <span className="flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-xl border bg-muted">{tenant.branding.logoUrl ? <img loading="lazy" decoding="async" src={resolveAssetUrl(tenant.branding.logoUrl)} alt="" className="size-full object-cover" onError={(event) => { event.currentTarget.style.visibility = "hidden" }}/> : <Building2 className="size-6 text-muted-foreground"/>}</span>
             <div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold">{tenant.displayName || tenant.name}</p><p className="mt-1 text-xs text-muted-foreground">{labels.brandColor}</p></div>
             <span className="size-9 shrink-0 rounded-lg border shadow-sm" style={{backgroundColor:tenant.branding.primaryColor || "transparent"}}/>
           </div>
-          {tenant.branding.coverImageUrl && <div className="overflow-hidden rounded-xl border border-border/70 sm:col-span-2"><img src={resolveAssetUrl(tenant.branding.coverImageUrl)} alt="" className="h-32 w-full object-cover sm:h-40" onError={(event) => { event.currentTarget.style.visibility = "hidden" }}/></div>}
+          {tenant.branding.coverImageUrl && <div className="overflow-hidden rounded-xl border border-border/70 sm:col-span-2"><img loading="lazy" decoding="async" src={resolveAssetUrl(tenant.branding.coverImageUrl)} alt="" className="h-32 w-full object-cover sm:h-40" onError={(event) => { event.currentTarget.style.visibility = "hidden" }}/></div>}
         </TenantProfileSection>
 
         <TenantClinicsSection clinics={tenant.clinics ?? []} locale={locale}/>
