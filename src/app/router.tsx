@@ -1,3 +1,4 @@
+import { lazy, Suspense, type ReactNode } from "react"
 import { createBrowserRouter, Navigate } from "react-router"
 import { LandingPage } from "@/app/pages/landing-page"
 import { ClinicLayout } from "@/portals/clinic/layout/clinic-layout"
@@ -12,6 +13,18 @@ import { SuperAdminModulePage, SuperAdminOverviewPage } from "@/portals/super-ad
 import { GeoLocationPage } from "@/portals/super-admin/features/geo-location/pages/geo-location.page"
 import { AuditMonitoringPage } from "@/portals/super-admin/features/monitoring/pages/audit-monitoring.page"
 import { adminNavigation } from "@/portals/clinic/config/navigation"
+
+const TenantsPage = lazy(() => import("@/portals/super-admin/features/tenants/pages/tenants.page").then((module) => ({ default: module.TenantsPage })))
+const TenantDetailsPage = lazy(() => import("@/portals/super-admin/features/tenants/pages/tenant-details.page").then((module) => ({ default: module.TenantDetailsPage })))
+const TenantFormPage = lazy(() => import("@/portals/super-admin/features/tenants/pages/tenant-form.page").then((module) => ({ default: module.TenantFormPage })))
+
+function TenantRouteFallback() {
+  return <div role="status" aria-live="polite" className="flex min-h-[240px] items-center justify-center text-sm text-muted-foreground">Loading tenant module…</div>
+}
+
+function TenantRoute({ children }: { children: ReactNode }) {
+  return <Suspense fallback={<TenantRouteFallback />}>{children}</Suspense>
+}
 
 export const router = createBrowserRouter([
   { path: "/", element: <LandingPage /> },
@@ -35,7 +48,10 @@ export const router = createBrowserRouter([
       element: <SuperAdminLayout />,
       children: [
         { index: true, element: <SuperAdminOverviewPage /> },
-        { path: "tenants", element: <SuperAdminModulePage moduleKey="tenants" /> },
+        { path: "tenants", element: <TenantRoute><TenantsPage /></TenantRoute> },
+        { path: "tenants/new", element: <TenantRoute><TenantFormPage /></TenantRoute> },
+        { path: "tenants/:tenantId/edit", element: <TenantRoute><TenantFormPage /></TenantRoute> },
+        { path: "tenants/:tenantId", element: <TenantRoute><TenantDetailsPage /></TenantRoute> },
         { path: "clinics", element: <SuperAdminModulePage moduleKey="clinics" /> },
         { path: "branches", element: <SuperAdminModulePage moduleKey="branches" /> },
         { path: "users", element: <SuperAdminModulePage moduleKey="users" /> },

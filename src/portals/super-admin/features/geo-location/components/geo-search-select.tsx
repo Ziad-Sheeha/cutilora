@@ -15,9 +15,10 @@ interface GeoSearchSelectProps {
   placeholder: string
   disabled?: boolean
   invalid?: boolean
+  parentId?: string
 }
 
-export function GeoSearchSelect({ kind, value, onChange, placeholder, disabled, invalid }: GeoSearchSelectProps) {
+export function GeoSearchSelect({ kind, value, onChange, placeholder, disabled, invalid, parentId }: GeoSearchSelectProps) {
   const { locale, t } = useI18n()
   const [open, setOpen] = useState(false)
   const [search, setSearch] = useState("")
@@ -25,9 +26,9 @@ export function GeoSearchSelect({ kind, value, onChange, placeholder, disabled, 
   const [page, setPage] = useState(1)
   const [loadedOptions, setLoadedOptions] = useState<GeoRecord[]>([])
   const config = geoConfigs[kind]
-  const query = useGeoList(config.endpoint, debouncedSearch, page, 10)
+  const query = useGeoList(config.endpoint, debouncedSearch, page, 10, config.parentField, parentId)
   const selectedQuery = useGeoDetail(config.endpoint, value || undefined)
-  const options = loadedOptions.length ? loadedOptions : query.data?.items ?? []
+  const options = loadedOptions.length ? loadedOptions : query.isPlaceholderData ? [] : query.data?.items ?? []
   const selected = selectedQuery.data
   const selectedLabel = selected ? geoRecordName(selected, locale) : ""
 
@@ -42,7 +43,7 @@ export function GeoSearchSelect({ kind, value, onChange, placeholder, disabled, 
   useEffect(() => {
     setLoadedOptions([])
     setPage(1)
-  }, [debouncedSearch])
+  }, [debouncedSearch, parentId])
 
   useEffect(() => {
     if (!query.data || query.isPlaceholderData) return
@@ -63,7 +64,7 @@ export function GeoSearchSelect({ kind, value, onChange, placeholder, disabled, 
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button type="button" variant="outline" role="combobox" aria-expanded={open} aria-invalid={invalid} disabled={disabled} className="h-11 w-full justify-between font-normal">
+        <Button type="button" variant="outline" role="combobox" aria-expanded={open} aria-invalid={invalid} disabled={disabled || Boolean(config.parentField && !parentId)} className="h-11 w-full justify-between font-normal">
           <span className={selectedLabel ? "truncate text-foreground" : "truncate text-muted-foreground"}>{selectedLabel || placeholder}</span>
           <ChevronsUpDown className="ms-2 size-4 shrink-0 opacity-50" />
         </Button>
@@ -74,15 +75,15 @@ export function GeoSearchSelect({ kind, value, onChange, placeholder, disabled, 
           <Input autoFocus value={search} onChange={(event) => setSearch(event.target.value)} placeholder={t.common.searchPlaceholder} className="ps-9" />
         </div>
         <div className="mt-2 max-h-60 overflow-y-auto">
-          {query.isLoading ? (
+          {query.isLoading || (query.isFetching && query.isPlaceholderData) ? (
             <div className="flex items-center justify-center gap-2 p-5 text-sm text-muted-foreground"><LoaderCircle className="size-4 animate-spin" />{t.common.loading}</div>
           ) : options.length === 0 ? (
             <p className="p-5 text-center text-sm text-muted-foreground">{t.common.noResults}</p>
           ) : options.map((option) => (
-            <button key={option.id} type="button" onClick={() => { onChange(option.id); setOpen(false) }} className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-start text-sm transition-colors hover:bg-muted focus-visible:bg-muted focus-visible:outline-none">
+            <Button key={option.id} type="button" variant="ghost" onClick={() => { onChange(option.id); setOpen(false) }} className="flex h-auto w-full justify-between rounded-lg px-3 py-2 text-start text-sm font-normal">
               <span className="min-w-0"><span className="block truncate font-medium">{geoRecordName(option, locale)}</span><span className="block truncate text-xs text-muted-foreground">{locale === "ar" ? option.nameEn : option.name_ar}</span></span>
               {option.id === value && <Check className="ms-2 size-4 shrink-0 text-primary" />}
-            </button>
+            </Button>
           ))}
         </div>
         {query.data && query.data.pagination.totalPages > page && (
