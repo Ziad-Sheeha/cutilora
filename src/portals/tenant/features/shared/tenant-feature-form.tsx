@@ -2,14 +2,14 @@ import { useState, type FormEvent } from "react"
 import { CheckCircle2, ClipboardCheck } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Field } from "@/components/ui/field"
+import { Field, FieldError } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { useI18n } from "@/i18n/i18n-provider"
 import type { TenantFeatureDefinition } from "./tenant-feature.types"
-import { validateTenantFeatureForm, type TenantFeatureSchemaKey } from "./tenant-feature-schemas"
+import { getTenantFieldErrors, validateTenantFeatureForm, type TenantFeatureSchemaKey } from "./tenant-feature-schemas"
 
 type Props = { feature: TenantFeatureDefinition }
 
@@ -93,12 +93,7 @@ export function TenantFeatureForm({ feature }: Props) {
       values,
     )
     if (!result.success) {
-      const nextErrors: Record<string, string> = {}
-      for (const issue of result.error.issues) {
-        const field = String(issue.path[0] || "")
-        if (field && !nextErrors[field]) nextErrors[field] = issue.message
-      }
-      setErrors(nextErrors)
+      setErrors(getTenantFieldErrors(result.error, ar ? "ar" : "en"))
       setValidated(false)
       return
     }
@@ -158,8 +153,10 @@ export function TenantFeatureForm({ feature }: Props) {
                   value={values[field.name] || ""}
                   placeholder={field.placeholder}
                   aria-invalid={Boolean(errors[field.name])}
+                  aria-describedby={errors[field.name] ? `tenant-feature-${field.name}-error` : undefined}
                   onChange={(event) => {
                     setValues((current) => ({ ...current, [field.name]: event.target.value }))
+                    setErrors((current) => ({ ...current, [field.name]: "" }))
                     setValidated(false)
                   }}
                 />
@@ -171,13 +168,14 @@ export function TenantFeatureForm({ feature }: Props) {
                   placeholder={field.placeholder}
                   required={field.required}
                   aria-invalid={Boolean(errors[field.name])}
+                  aria-describedby={errors[field.name] ? `tenant-feature-${field.name}-error` : undefined}
                   onChange={(event) => {
                     setValues((current) => ({ ...current, [field.name]: event.target.value }))
                     setValidated(false)
                   }}
                 />
               )}
-              {errors[field.name] && <p id={`tenant-feature-${field.name}-error`} role="alert" className="text-xs text-destructive">{errors[field.name]}</p>}
+              {errors[field.name] && <FieldError id={`tenant-feature-${field.name}-error`}>{errors[field.name]}</FieldError>}
             </Field>
           ))}
           <div className="flex flex-wrap items-center gap-3 sm:col-span-2">
