@@ -50,7 +50,7 @@ export function ClinicModuleForm({ fields, record, title, isSaving, onCancel, on
       else if (value && field.type === "email" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) invalid.add(field.name)
       else if (value && field.type === "number" && !Number.isFinite(Number(value))) invalid.add(field.name)
       else if (value && (field.type === undefined || field.type === "text" || field.type === "textarea")) {
-        const neutral = /email|phone|date|time|price|currency|duration|minutes|number|count|session|gender|language|validity|amount|invoice|id|code|url|timezone/i
+        const neutral = /email|phone|date|time|price|currency|duration|minutes|number|count|session|gender|language|validity|amount|invoice|id|code|url|timezone|recordType/i
         if (!neutral.test(field.name) && (ar ? !isArabicText(value) : !isEnglishText(value))) invalid.add(field.name)
       }
     })
@@ -69,7 +69,13 @@ export function ClinicModuleForm({ fields, record, title, isSaving, onCancel, on
     const numberInvalid = fields.some((field) => field.type === "number" && values[field.name] && !Number.isFinite(Number(values[field.name])))
     if (emailInvalid) { setError(clinicModuleText("invalidEmail", locale)); return }
     if (numberInvalid) { setError(clinicModuleText("invalidNumber", locale)); return }
-    if (invalidFields.size) { setError(clinicModuleText("invalidLanguage", locale)); return }
+    const invalidLanguage = fields.some((field) => {
+      const value = values[field.name]?.trim()
+      if (!value || !(field.type === undefined || field.type === "text" || field.type === "textarea")) return false
+      const neutral = /email|phone|date|time|price|currency|duration|minutes|number|count|session|gender|language|validity|amount|invoice|id|code|url|timezone|recordType/i
+      return !neutral.test(field.name) && (ar ? !isArabicText(value) : !isEnglishText(value))
+    })
+    if (invalidLanguage) { setError(clinicModuleText("invalidLanguage", locale)); return }
 
     const payload: Record<string, unknown> = {}
     fields.forEach((field) => {
@@ -77,7 +83,11 @@ export function ClinicModuleForm({ fields, record, title, isSaving, onCancel, on
       if (value === undefined || value === "") return
       payload[field.name] = field.type === "number" ? Number(value) : value
     })
-    await onSubmit(payload)
+    try {
+      await onSubmit(payload)
+    } catch (submitError) {
+      setError(submitError instanceof Error && submitError.message ? submitError.message : clinicModuleText("saveError", locale))
+    }
   }
 
   return (
