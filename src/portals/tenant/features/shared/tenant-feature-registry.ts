@@ -226,7 +226,7 @@ export const tenantFeatureRegistry: TenantFeatureDefinition[] = [
     key: "documents", group: "Organization", icon: "files",
     title: { en: "Organization Documents", ar: "مستندات المؤسسة" },
     eyebrow: { en: "ORGANIZATION PROFILE", ar: "ملف المؤسسة" },
-    description: { en: "Prepare a secure document library with categories, expiry metadata and permission-checked downloads.", ar: "إعداد مكتبة مستندات آمنة بتصنيفات وتواريخ انتهاء وتنزيلات خاضعة للصلاحيات." },
+    description: { en: "Manage your organization’s legal, licensing, tax and supporting documents in one place.", ar: "إدارة المستندات القانونية والتراخيص والملفات الضريبية والمستندات الداعمة للمؤسسة من مكان واحد." },
     capabilities: [
       { en: "Upload, categorize, preview, replace and archive organization documents.", ar: "رفع المستندات وتصنيفها ومعاينتها واستبدالها وأرشفتها." },
       { en: "Track verification and expiry status.", ar: "متابعة حالة التحقق وتواريخ الانتهاء." },
@@ -235,8 +235,11 @@ export const tenantFeatureRegistry: TenantFeatureDefinition[] = [
     endpoints: [
       { method: "GET", path: "/api/v1/tenant/documents", purpose: "List documents" },
       { method: "POST", path: "/api/v1/tenant/documents", purpose: "Upload document metadata/file" },
-      { method: "GET", path: "/api/v1/tenant/documents/{documentId}", purpose: "Document details/download authorization" },
-      { method: "DELETE", path: "/api/v1/tenant/documents/{documentId}", purpose: "Archive or remove document" },
+      { method: "GET", path: "/api/v1/tenant/documents/{documentId}", purpose: "Document details" },
+      { method: "PUT", path: "/api/v1/tenant/documents/{documentId}/file", purpose: "Replace document file" },
+      { method: "PATCH", path: "/api/v1/tenant/documents/{documentId}/verification", purpose: "Update verification status" },
+      { method: "GET", path: "/api/v1/tenant/documents/{documentId}/download", purpose: "Get authorized signed download URL" },
+      { method: "DELETE", path: "/api/v1/tenant/documents/{documentId}", purpose: "Archive document" },
     ],
   },
   {
