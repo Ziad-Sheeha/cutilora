@@ -1,6 +1,7 @@
 import { Building2, CalendarDays, Globe2, Mail, MapPin, Phone, ShieldCheck, SlidersHorizontal, type LucideIcon } from "lucide-react"
 import type { ReactNode } from "react"
 import type { Tenant } from "../types/tenant.types"
+import { resolveAssetUrl } from "@/shared/utils/resolve-asset-url"
 import { AppImage } from "@/shared/components/media/app-image"
 import { TenantClinicsSection } from "./tenant-clinics-section"
 
