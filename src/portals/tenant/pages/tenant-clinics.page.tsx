@@ -55,7 +55,8 @@ export function TenantClinicsPage() {
       }
 
   const filteredClinics = clinics.filter((clinic) =>
-    clinic.name.toLowerCase().includes(search.toLowerCase()),
+    [clinic.name, clinic.slug, clinic.code, clinic.contact?.email, clinic.contact?.phone, clinic.status]
+      .some(value => String(value ?? "").toLowerCase().includes(search.trim().toLowerCase())),
   )
 
   function openCreateForm() {
