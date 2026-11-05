@@ -316,7 +316,6 @@ export const tenantFeatureRegistry: TenantFeatureDefinition[] = [
       { method: "POST", path: "/api/v1/tenant/branches/{branchId}/holidays", purpose: "Create holiday or exception" },
       { method: "PATCH", path: "/api/v1/tenant/branches/{branchId}/settings", purpose: "Update branch settings" },
       { method: "GET", path: "/api/v1/tenant/branches/{branchId}/activity", purpose: "Branch activity" },
-      { method: "PATCH", path: "/api/v1/tenant/branches/{branchId}/settings", purpose: "Update branch settings" },
       { method: "PATCH", path: "/api/v1/tenant/branches/{branchId}/manager", purpose: "Assign branch manager" },
     ],
     note: { en: "Schedules are interpreted in branch timezone. Overlapping shifts and invalid overnight windows must be rejected.", ar: "تُفسر المواعيد حسب المنطقة الزمنية للفرع، ويجب رفض الفترات المتداخلة أو غير الصحيحة." },
