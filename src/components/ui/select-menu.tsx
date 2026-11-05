@@ -19,7 +19,7 @@ export function SelectMenuTrigger({ className, children, ...props }: ComponentPr
 export function SelectMenuContent({ className, position = "popper", ...props }: ComponentProps<typeof SelectPrimitive.Content>) {
   return (
     <SelectPrimitive.Portal>
-      <SelectPrimitive.Content position={position} className={cn("relative z-[9999] max-h-80 min-w-[8rem] overflow-hidden rounded-xl border border-border bg-card p-1 text-foreground shadow-[0_16px_48px_rgba(15,23,42,0.22)] ring-1 ring-black/5 dark:shadow-[0_18px_52px_rgba(0,0,0,0.6)] data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0", className)} {...props}>
+      <SelectPrimitive.Content position={position} className={cn("relative z-[9999] w-[var(--radix-select-trigger-width)] min-w-[var(--radix-select-trigger-width)] max-w-[calc(100vw-2rem)] max-h-80 overflow-hidden rounded-xl border border-border bg-card p-1 text-foreground shadow-[0_16px_48px_rgba(15,23,42,0.22)] ring-1 ring-black/5 dark:shadow-[0_18px_52px_rgba(0,0,0,0.6)] data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0", className)} {...props}>
         <SelectPrimitive.ScrollUpButton className="flex cursor-default items-center justify-center py-1"><ChevronUp className="size-4" /></SelectPrimitive.ScrollUpButton>
         <SelectPrimitive.Viewport className="p-0.5">{props.children}</SelectPrimitive.Viewport>
         <SelectPrimitive.ScrollDownButton className="flex cursor-default items-center justify-center py-1"><ChevronDown className="size-4" /></SelectPrimitive.ScrollDownButton>
