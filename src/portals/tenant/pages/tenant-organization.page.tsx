@@ -3,6 +3,8 @@ import { useOutletContext } from "react-router"
 import { Card, CardContent } from "@/components/ui/card"
 import { useI18n } from "@/i18n/i18n-provider"
 import { TenantPageHeading } from "../components/tenant-page-heading"
+import { getTenantFeature } from "../features/shared/tenant-feature-registry"
+import { TenantFeatureForm } from "../features/shared/tenant-feature-form"
 import type { TenantOutletContext } from "../layout/tenant-layout"
 
 export function TenantOrganizationPage() {
@@ -10,6 +12,7 @@ export function TenantOrganizationPage() {
   const { locale } = useI18n()
   const ar = locale === "ar"
   const tenant = context?.tenant
+  const profileFeature = getTenantFeature("organization-profile")
 
   const fields = [
     { label: ar ? "الاسم التجاري" : "Display name", value: tenant?.displayName || tenant?.name, icon: Building2 },
@@ -71,6 +74,8 @@ export function TenantOrganizationPage() {
           </div>
         </CardContent>
       </Card>
+
+      {profileFeature && <TenantFeatureForm feature={profileFeature} />}
 
       <div className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-amber-900">
         <MapPin className="mt-0.5 size-4 shrink-0" />
