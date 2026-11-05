@@ -131,3 +131,16 @@ export async function createTenantFeatureRecord(
   const { data } = await tenantApi.post(toApiPath(endpoint.path), payload)
   return unwrap<TenantFeatureRecord>(data).data
 }
+
+export async function saveTenantFeatureRecord(
+  endpoint: TenantFeatureEndpoint,
+  payload: Record<string, unknown>,
+) {
+  const url = toApiPath(endpoint.path)
+  const response = endpoint.method === "PATCH"
+    ? await tenantApi.patch(url, payload)
+    : endpoint.method === "PUT"
+      ? await tenantApi.put(url, payload)
+      : await tenantApi.post(url, payload)
+  return unwrap<TenantFeatureRecord>(response.data).data
+}
