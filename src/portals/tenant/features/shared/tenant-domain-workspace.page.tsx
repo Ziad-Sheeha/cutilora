@@ -300,9 +300,20 @@ export function TenantDomainWorkspacePage({ feature, clinicId, clinics = [], bra
     <div className="space-y-6">
       <TenantPageHeading eyebrow={feature.eyebrow[ar ? "ar" : "en"]} title={feature.title[ar ? "ar" : "en"]} description={feature.description[ar ? "ar" : "en"]} />
       {(formError || success) && <div role={formError ? "alert" : "status"} className={formError ? "rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive" : "rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800"}>{formError || success}</div>}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="relative w-full sm:max-w-sm"><Search className="absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"/><Input value={search} onChange={event => setSearch(event.target.value)} placeholder={ar ? "ابحث في البيانات..." : "Search workspace data..."} className="ps-9"/></div>
-        <Button variant="outline" onClick={() => void client.invalidateQueries({ queryKey: ["tenant-domain", feature.key] })} disabled={busy}><RefreshCw className={`me-2 size-4 ${busy ? "animate-spin" : ""}`}/>{ar ? "تحديث البيانات" : "Refresh data"}</Button>
+      <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="relative w-full sm:max-w-sm"><Search className="absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"/><Input value={search} onChange={event => { setSearch(event.target.value); setPage(1) }} placeholder={ar ? "ابحث في البيانات..." : "Search workspace data..."} className="ps-9"/></div>
+          <Button variant="outline" onClick={() => void client.invalidateQueries({ queryKey: ["tenant-domain", feature.key] })} disabled={busy}><RefreshCw className={`me-2 size-4 ${busy ? "animate-spin" : ""}`}/>{ar ? "تحديث البيانات" : "Refresh data"}</Button>
+        </div>
+        {(feature.key === "governance" || feature.key === "finance") && <div className="grid gap-3 rounded-xl border bg-card p-4 sm:grid-cols-2 xl:grid-cols-4">
+          <div><Label>{ar ? "من تاريخ" : "From date"}</Label><Input type="date" value={dateFrom} onChange={event => { setDateFrom(event.target.value); setPage(1) }} className="mt-2"/></div>
+          <div><Label>{ar ? "إلى تاريخ" : "To date"}</Label><Input type="date" value={dateTo} onChange={event => { setDateTo(event.target.value); setPage(1) }} className="mt-2"/></div>
+          {feature.key === "governance" && <>
+            <div><Label>{ar ? "المنفذ" : "Actor"}</Label><Input value={actorFilter} onChange={event => { setActorFilter(event.target.value); setPage(1) }} className="mt-2"/></div>
+            <div><Label>{ar ? "الوحدة" : "Module"}</Label><Input value={moduleFilter} onChange={event => { setModuleFilter(event.target.value); setPage(1) }} className="mt-2"/></div>
+          </>}
+          {dateFrom && dateTo && dateFrom > dateTo && <p role="alert" className="text-xs text-destructive sm:col-span-2 xl:col-span-4">{ar ? "يجب أن يكون تاريخ البداية قبل تاريخ النهاية." : "The start date must be on or before the end date."}</p>}
+        </div>}
       </div>
       {feature.key === "clinic-workspace" && !clinicId && <Card><CardContent className="p-8 text-center text-sm text-muted-foreground">{ar ? "اختر عيادة من محدد السياق بالأعلى لعرض مساحة إدارتها." : "Choose a clinic from the context selector above to open its management workspace."}</CardContent></Card>}
       {hasError && <p role="alert" className="text-sm text-destructive">{hasError instanceof Error ? hasError.message : (ar ? "تعذر تحميل بعض البيانات." : "Some data could not be loaded.")}</p>}
