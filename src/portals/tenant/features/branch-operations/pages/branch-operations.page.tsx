@@ -101,7 +101,7 @@ export function BranchOperationsPage() {
     mutationFn: () => replaceBranchBusinessHours(branchId, days),
     onSuccess: async () => {
       setHoursError("")
-      await queryClient.invalidateQueries({ queryKey: ["tenant-branch-hours", branchId] })
+      await Promise.all([queryClient.invalidateQueries({ queryKey: ["tenant-branch-hours", branchId] }), queryClient.invalidateQueries({ queryKey: ["tenant-branch-activity", branchId] })])
     },
     onError: (error) => setHoursError(error instanceof Error ? error.message : (ar ? "تعذر حفظ مواعيد العمل" : "Unable to save business hours")),
   })
@@ -112,7 +112,7 @@ export function BranchOperationsPage() {
       setHolidayName("")
       setHolidayDate("")
       setHolidayError("")
-      await queryClient.invalidateQueries({ queryKey: ["tenant-branch-holidays", branchId] })
+      await Promise.all([queryClient.invalidateQueries({ queryKey: ["tenant-branch-holidays", branchId] }), queryClient.invalidateQueries({ queryKey: ["tenant-branch-activity", branchId] })])
     },
     onError: (error) => setHolidayError(error instanceof Error ? error.message : (ar ? "تعذر إضافة العطلة" : "Unable to create holiday")),
   })
@@ -120,7 +120,7 @@ export function BranchOperationsPage() {
     mutationFn: () => updateBranchSettings(branchId, { timezone: branchTimezone, status: branchStatus }),
     onSuccess: async () => {
       setSettingsError("")
-      await Promise.all([queryClient.invalidateQueries({ queryKey: ["tenant-branch-settings", branchId] }), refresh()])
+      await Promise.all([queryClient.invalidateQueries({ queryKey: ["tenant-branch-settings", branchId] }), queryClient.invalidateQueries({ queryKey: ["tenant-branch-activity", branchId] }), refresh()])
     },
     onError: error => setSettingsError(error instanceof Error ? error.message : (ar ? "تعذر حفظ إعدادات الفرع." : "Unable to save branch settings.")),
   })
@@ -128,7 +128,7 @@ export function BranchOperationsPage() {
     mutationFn: () => assignBranchManager(branchId, managerId),
     onSuccess: async () => {
       setSettingsError("")
-      await queryClient.invalidateQueries({ queryKey: ["tenant-branch-settings", branchId] })
+      await Promise.all([queryClient.invalidateQueries({ queryKey: ["tenant-branch-settings", branchId] }), queryClient.invalidateQueries({ queryKey: ["tenant-branch-activity", branchId] })])
     },
     onError: error => setSettingsError(error instanceof Error ? error.message : (ar ? "تعذر تعيين مدير الفرع." : "Unable to assign branch manager.")),
   })
