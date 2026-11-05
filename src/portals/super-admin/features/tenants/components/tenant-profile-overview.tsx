@@ -2,6 +2,7 @@ import { Building2, CalendarDays, Globe2, Mail, MapPin, Phone, ShieldCheck, Slid
 import type { ReactNode } from "react"
 import type { Tenant } from "../types/tenant.types"
 import { resolveAssetUrl } from "@/shared/utils/resolve-asset-url"
+import { TenantClinicsSection } from "./tenant-clinics-section"
 
 type Labels = Record<string, string>
 
@@ -95,22 +96,7 @@ export function TenantProfileOverview({ tenant, labels, locale }: { tenant: Tena
           {tenant.branding.coverImageUrl && <div className="overflow-hidden rounded-xl border border-border/70 sm:col-span-2"><img src={resolveAssetUrl(tenant.branding.coverImageUrl)} alt="" className="h-32 w-full object-cover sm:h-40" onError={(event) => { event.currentTarget.style.visibility = "hidden" }}/></div>}
         </TenantProfileSection>
 
-        <TenantProfileSection title={locale === "ar" ? "العيادات التابعة" : "Clinics"} subtitle={locale === "ar" ? "الفروع والعيادات المسجلة تحت هذه المؤسسة" : "Clinics registered under this tenant"} icon={Building2}>
-          {tenant.clinics?.length ? tenant.clinics.map((clinic) => (
-            <div key={clinic.id} className="flex min-w-0 items-center gap-3 rounded-xl border border-border/70 bg-background/70 p-3 sm:col-span-2">
-              <span className="flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-xl border bg-muted">
-                {clinic.branding.logoUrl ? <img src={resolveAssetUrl(clinic.branding.logoUrl)} alt="" className="size-full object-cover" onError={(event) => { event.currentTarget.style.visibility = "hidden" }}/> : <Building2 className="size-6 text-muted-foreground"/>}
-              </span>
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-semibold">{clinic.name || "—"}</p>
-                <p className="mt-1 text-xs text-muted-foreground">{human(clinic.clinicType)} · {human(clinic.status)}</p>
-                {clinic.branding.coverImageUrl && <img src={resolveAssetUrl(clinic.branding.coverImageUrl)} alt="" className="mt-2 h-16 w-full rounded-lg object-cover" onError={(event) => { event.currentTarget.style.display = "none" }}/>}
-              </div>
-              <span className="size-8 shrink-0 rounded-lg border" style={{ backgroundColor: clinic.branding.primaryColor || "transparent" }}/>
-            </div>
-          )) : <p className="text-sm text-muted-foreground sm:col-span-2">{locale === "ar" ? "لا توجد عيادات مسجلة." : "No clinics registered."}</p>}
-        </TenantProfileSection>
-
+        <TenantClinicsSection clinics={tenant.clinics ?? []} locale={locale}/>
         <TenantProfileSection title={labels.preferences} subtitle={locale === "ar" ? "إعدادات اللغة والتوقيت والتنسيق" : "Locale, time zone and formatting"} icon={SlidersHorizontal}>
           <TenantProfileField label={labels.timezone} value={tenant.preferences.timezone}/>
           <TenantProfileField label={labels.locale} value={tenant.preferences.locale}/>
