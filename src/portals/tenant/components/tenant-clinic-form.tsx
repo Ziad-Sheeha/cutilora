@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select } from "@/components/ui/select"
 import { useI18n } from "@/i18n/i18n-provider"
+import { clinicFormSchema } from "../features/shared/tenant-feature-schemas"
 import { getTenantGeo } from "../api/tenant-api"
 import type { Clinic } from "../types/tenant.types"
 
@@ -166,6 +167,18 @@ export function TenantClinicForm({ clinic, onCancel, onSave }: Props) {
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    const validation = clinicFormSchema.safeParse({
+      name: values.name,
+      clinicType: values.clinicType,
+      description: values.description,
+      email: values.email,
+      phone: values.phone,
+      timezone: values.timezone,
+    })
+    if (!validation.success) {
+      setError(validation.error.issues[0]?.message || "Please review the form fields")
+      return
+    }
     setSaving(true)
     setError("")
     const payload = {
