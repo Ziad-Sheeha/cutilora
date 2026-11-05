@@ -556,7 +556,7 @@ export function TenantDomainWorkspacePage({ feature, clinicId, clinics = [], bra
               {matchingRowActions.length > 0 && rows.length > 0 && <div className="mt-4 flex flex-wrap gap-2">{rows.slice(0, 12).flatMap(row => matchingRowActions.map(endpoint => <Button key={endpoint.path + rowId(row)} size="sm" variant={endpoint.method === "DELETE" || /revoke|disconnect/i.test(endpoint.purpose) ? "destructive" : "outline"} disabled={!rowId(row) && !row.membershipId && !row.userId || operation.isPending} onClick={() => {
                 if (endpoint.method === "PATCH" || endpoint.method === "PUT" || (endpoint.method === "POST" && (endpoint.path.endsWith("/exports") || /rotate/i.test(endpoint.purpose)))) {
                   setSelectedOperation({ endpoint, row })
-                  setValues(Object.fromEntries(Object.entries(row).filter(([key, value]) => typeof value === "string" || typeof value === "number").map(([key, value]) => [key, String(value)])))
+                  setValues(Object.fromEntries(Object.entries(row).filter(([key, value]) => !hidden.has(key) && !sensitive.test(key) && (typeof value === "string" || typeof value === "number")).map(([key, value]) => [key, String(value)])))
                   setPermissionText(Array.isArray(row.permissions) ? row.permissions.map(String).join(", ") : "")
                   setSelectedClinicIds(Array.isArray(row.clinicIds ?? row.clinic_ids) ? ((row.clinicIds ?? row.clinic_ids) as unknown[]).map(String) : [])
                   setSelectedBranchIds(Array.isArray(row.branchIds ?? row.branch_ids) ? ((row.branchIds ?? row.branch_ids) as unknown[]).map(String) : [])
