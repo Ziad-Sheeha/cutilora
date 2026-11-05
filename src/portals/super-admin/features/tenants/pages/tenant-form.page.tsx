@@ -140,7 +140,7 @@ export function TenantFormPage() {
     }
     if (index === 3) {
       const urls = [values.branding.logoUrl, values.branding.coverImageUrl]
-      return urls.some((value) => value && !value.startsWith("data:image/") && !/^https?:\/\//i.test(value)) ? [copy.invalidUrl] : []
+      return urls.some((value) => value && !value.startsWith("data:image/") && !value.startsWith("/uploads/branding/") && !/^https?:\/\//i.test(value)) ? [copy.invalidUrl] : []
     }
     if (index === 4) return values.preferences.supportedLanguages.length ? [] : [ar ? "اختر لغة واحدة على الأقل." : "Select at least one supported language."]
     if (index === 5 && !isEdit) {
