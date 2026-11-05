@@ -13,11 +13,18 @@ import type { TenantOutletContext } from "../../../layout/tenant-layout"
 import { updateTenantContext } from "../../../auth/tenant-session"
 import { businessHoursDaySchema, branchHolidaySchema, getTenantFieldErrors } from "../../shared/tenant-feature-schemas"
 import {
+  assignBranchManager,
   createBranchHoliday,
+  getBranchActivity,
   getBranchBusinessHours,
   getBranchHolidays,
+  getBranchSettings,
+  getTenantDirectoryUsers,
   replaceBranchBusinessHours,
+  updateBranchSettings,
+  type BranchActivity,
   type BranchHoliday,
+  type BranchSettings,
   type BusinessHoursDay,
 } from "../api/branch-operations.api"
 
@@ -36,6 +43,7 @@ export function BranchOperationsPage() {
   const ar = locale === "ar"
   const queryClient = useQueryClient()
   const branchId = context?.access.branchId || context?.branch?._id || ""
+  const selectedBranch = branches.find((branch) => branch._id === branchId)
   const [days, setDays] = useState<BusinessHoursDay[]>(initialDays)
   const [hoursError, setHoursError] = useState("")
   const [holidayOpen, setHolidayOpen] = useState(false)
@@ -44,7 +52,11 @@ export function BranchOperationsPage() {
   const [holidayClosed, setHolidayClosed] = useState("closed")
   const [holidayOpens, setHolidayOpens] = useState("09:00")
   const [holidayCloses, setHolidayCloses] = useState("17:00")
-  const [holidayError, setHolidayError] = useState("")\n  const [branchTimezone, setBranchTimezone] = useState("Africa/Cairo")\n  const [branchStatus, setBranchStatus] = useState("active")\n  const [managerId, setManagerId] = useState("")\n  const [settingsError, setSettingsError] = useState("")
+  const [holidayError, setHolidayError] = useState("")
+  const [branchTimezone, setBranchTimezone] = useState("Africa/Cairo")
+  const [branchStatus, setBranchStatus] = useState("active")
+  const [managerId, setManagerId] = useState("")
+  const [settingsError, setSettingsError] = useState("")
 
   const hoursQuery = useQuery({
     queryKey: ["tenant-branch-hours", branchId],
@@ -56,6 +68,28 @@ export function BranchOperationsPage() {
     queryFn: () => getBranchHolidays(branchId),
     enabled: Boolean(branchId),
   })
+  const settingsQuery = useQuery({
+    queryKey: ["tenant-branch-settings", branchId],
+    queryFn: () => getBranchSettings(branchId),
+    enabled: Boolean(branchId),
+  })
+  const activityQuery = useQuery({
+    queryKey: ["tenant-branch-activity", branchId],
+    queryFn: () => getBranchActivity(branchId),
+    enabled: Boolean(branchId),
+  })
+  const usersQuery = useQuery({
+    queryKey: ["tenant-directory-users"],
+    queryFn: getTenantDirectoryUsers,
+    enabled: Boolean(branchId),
+    staleTime: 60_000,
+  })
+  useEffect(() => {
+    if (!settingsQuery.data) return
+    setBranchTimezone(settingsQuery.data.timezone ?? selectedBranch?.timezone ?? "Africa/Cairo")
+    setBranchStatus(settingsQuery.data.status ?? selectedBranch?.status ?? "active")
+    setManagerId(settingsQuery.data.managerId ?? "")
+  }, [settingsQuery.data, selectedBranch?.timezone, selectedBranch?.status])
   useEffect(() => {
     if (hoursQuery.data?.length) {
       const mapped: BusinessHoursDay[] = initialDays.map((day) => ({ ...day, shifts: [] }))
@@ -83,6 +117,28 @@ export function BranchOperationsPage() {
     },
     onError: (error) => setHolidayError(error instanceof Error ? error.message : (ar ? "تعذر إضافة العطلة" : "Unable to create holiday")),
   })
+  const saveSettings = useMutation({
+    mutationFn: () => updateBranchSettings(branchId, { timezone: branchTimezone, status: branchStatus }),
+    onSuccess: async () => {
+      setSettingsError("")
+      await Promise.all([queryClient.invalidateQueries({ queryKey: ["tenant-branch-settings", branchId] }), refresh()])
+    },
+    onError: error => setSettingsError(error instanceof Error ? error.message : (ar ? "تعذر حفظ إعدادات الفرع." : "Unable to save branch settings.")),
+  })
+  const saveManager = useMutation({
+    mutationFn: () => assignBranchManager(branchId, managerId),
+    onSuccess: async () => {
+      setSettingsError("")
+      await queryClient.invalidateQueries({ queryKey: ["tenant-branch-settings", branchId] })
+    },
+    onError: error => setSettingsError(error instanceof Error ? error.message : (ar ? "تعذر تعيين مدير الفرع." : "Unable to assign branch manager.")),
+  })
+  const activityColumns = useMemo<DataTableColumn<BranchActivity>[]>(() => [
+    { id: "action", header: ar ? "الإجراء" : "Action", cell: row => <span className="font-medium">{row.action ?? row.description ?? "—"}</span> },
+    { id: "actor", header: ar ? "المنفذ" : "Performed by", cell: row => row.actor ?? "—" },
+    { id: "module", header: ar ? "الوحدة" : "Module", cell: row => row.module ?? "—" },
+    { id: "createdAt", header: ar ? "التاريخ" : "Date", cell: row => row.createdAt ? new Date(row.createdAt).toLocaleString(ar ? "ar-EG" : "en-US") : "—" },
+  ], [ar])
 
   const saveSettings = useMutation({
     mutationFn: () => updateBranchSettings(branchId, { timezone: branchTimezone, status: branchStatus }),
@@ -112,7 +168,6 @@ export function BranchOperationsPage() {
     { id: "type", header: ar ? "نوع اليوم" : "Day type", cell: (row) => <span className="rounded-full bg-muted px-2.5 py-1 text-xs">{row.isClosed ? (ar ? "مغلق" : "Closed") : (ar ? "مواعيد استثنائية" : "Special hours")}</span> },
     { id: "hours", header: ar ? "المواعيد" : "Hours", cell: (row) => row.isClosed ? "—" : [row.overrideOpensAt, row.overrideClosesAt].filter(Boolean).join(" – ") },
   ], [ar])
-  const selectedBranch = branches.find((branch) => branch._id === branchId)
 
   function updateDay(weekday: number, update: Partial<BusinessHoursDay>) {
     setDays((current) => current.map((day) => day.weekday === weekday ? { ...day, ...update } : day))
