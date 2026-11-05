@@ -37,7 +37,7 @@ export function TenantLayout() {
       getClinics(),
     ])
     const clinicId = nextContext.access.clinicId || nextContext.clinic?._id || getTenantSession()?.clinicId
-    const nextBranches = clinicId ? await getBranches() : []
+    const nextBranches = clinicId ? await getBranches(clinicId) : []
     setContext(nextContext)
     setClinics(nextClinics)
     setBranches(nextBranches)
