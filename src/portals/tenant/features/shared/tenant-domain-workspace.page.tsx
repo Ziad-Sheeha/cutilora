@@ -6,6 +6,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Card, CardContent } from "@/components/ui/card"
 import { DataTable, type DataTableColumn } from "@/components/ui/data-table"
 import { Input } from "@/components/ui/input"
+import { DatePicker } from "@/components/ui/date-picker"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
@@ -498,8 +499,8 @@ export function TenantDomainWorkspacePage({ feature, clinicId, clinics = [], bra
           <Button variant="outline" onClick={() => void client.invalidateQueries({ queryKey: ["tenant-domain", feature.key] })} disabled={busy}><RefreshCw className={`me-2 size-4 ${busy ? "animate-spin" : ""}`}/>{ar ? "تحديث البيانات" : "Refresh data"}</Button>
         </div>
         {(feature.key === "governance" || feature.key === "finance") && <div className="grid gap-3 rounded-xl border bg-card p-4 sm:grid-cols-2 xl:grid-cols-4">
-          <div><Label>{ar ? "من تاريخ" : "From date"}</Label><Input type="date" value={dateFrom} onChange={event => { setDateFrom(event.target.value); setPage(1) }} className="mt-2"/></div>
-          <div><Label>{ar ? "إلى تاريخ" : "To date"}</Label><Input type="date" value={dateTo} onChange={event => { setDateTo(event.target.value); setPage(1) }} className="mt-2"/></div>
+          <div><Label>{ar ? "من تاريخ" : "From date"}</Label><DatePicker value={dateFrom} onChange={value => { setDateFrom(value); setPage(1) }} placeholder={ar ? "اختر تاريخ البداية" : "Select start date"} locale={ar ? "ar" : "en"} dir={ar ? "rtl" : "ltr"} className="mt-2"/></div>
+          <div><Label>{ar ? "إلى تاريخ" : "To date"}</Label><DatePicker value={dateTo} onChange={value => { setDateTo(value); setPage(1) }} placeholder={ar ? "اختر تاريخ النهاية" : "Select end date"} locale={ar ? "ar" : "en"} dir={ar ? "rtl" : "ltr"} className="mt-2"/></div>
           {feature.key === "governance" && <>
             <div><Label>{ar ? "المنفذ" : "Actor"}</Label><Input value={actorFilter} onChange={event => { setActorFilter(event.target.value); setPage(1) }} className="mt-2"/></div>
             <div><Label>{ar ? "الإجراء" : "Action"}</Label><Input value={actionFilter} onChange={event => { setActionFilter(event.target.value); setPage(1) }} className="mt-2"/></div>
