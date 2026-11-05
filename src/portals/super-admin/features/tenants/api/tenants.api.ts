@@ -72,7 +72,9 @@ function normalizeTenant(value: unknown): Tenant {
     id: String(id), name: text(row.name), slug: text(row.slug), displayName: text(row.displayName), legalName: text(row.legalName),
     businessType: text(row.businessType, "single_clinic"), description: text(row.description), industry: text(row.industry),
     status: text(row.status, "pending"), plan: text(row.plan), contact: tenantContact, address: tenantAddress,
-    legal: tenantLegal, branding: tenantBranding,\n    clinics: asArray(row.clinics).map(normalizeClinic).filter((clinic): clinic is TenantClinic => clinic !== null),\n    preferences: tenantPreferences,
+    legal: tenantLegal, branding: tenantBranding,
+    clinics: asArray(row.clinics).map(normalizeClinic).filter((clinic): clinic is TenantClinic => clinic !== null),
+    preferences: tenantPreferences,
     createdAt: nullableText(row.createdAt ?? row.created_at), updatedAt: nullableText(row.updatedAt ?? row.updated_at),
   }
 }
