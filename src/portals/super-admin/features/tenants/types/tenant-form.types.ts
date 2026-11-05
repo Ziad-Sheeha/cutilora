@@ -47,12 +47,12 @@ export function formToPayload(values: TenantFormValues): TenantPayload {
   return {
     name: clean(values.name), owner: { name: clean(values.owner.name), email: clean(values.owner.email), password: values.owner.password }, displayName: clean(values.displayName), legalName: clean(values.legalName),
     businessType: values.businessType, description: clean(values.description), industry: clean(values.industry),
-    contact: { email: clean(values.contact.email), phoneCode: values.contact.phoneCode, phone: apiPhone(values.contact.phone), alternatePhone: apiPhone(values.contact.alternatePhone), whatsapp: apiPhone(values.contact.whatsapp), website: clean(values.contact.website) },
+    contact: { email: clean(values.contact.email), phone: values.contact.phone.trim() ? values.contact.phoneCode + apiPhone(values.contact.phone) : "", alternatePhone: values.contact.alternatePhone.trim() ? values.contact.phoneCode + apiPhone(values.contact.alternatePhone) : "", whatsapp: values.contact.whatsapp.trim() ? values.contact.phoneCode + apiPhone(values.contact.whatsapp) : "", website: clean(values.contact.website) },
     address: { countryId: values.address.countryId, governorateId: values.address.governorateId, cityId: values.address.cityId, districtId: values.address.districtId, addressLine1: clean(values.address.addressLine1), addressLine2: clean(values.address.addressLine2), building: clean(values.address.building), floor: clean(values.address.floor), unit: clean(values.address.unit), landmark: clean(values.address.landmark), postalCode: clean(values.address.postalCode), latitude: numericOrNull(values.address.latitude), longitude: numericOrNull(values.address.longitude) },
     legal: { taxNumber: clean(values.legal.taxNumber), vatNumber: clean(values.legal.vatNumber), commercialRegistrationNumber: clean(values.legal.commercialRegistrationNumber) },
     branding: {
-      ...(values.branding.logoUrl.startsWith("data:image/") ? { logoUrl: values.branding.logoUrl } : values.branding.logoUrl === "" ? { logoUrl: "" } : {}),
-      ...(values.branding.coverImageUrl.startsWith("data:image/") ? { coverImageUrl: values.branding.coverImageUrl } : values.branding.coverImageUrl === "" ? { coverImageUrl: "" } : {}),
+      ...(values.branding.logoUrl.startsWith("data:image/") ? { logoBase64: values.branding.logoUrl } : {}),
+      ...(values.branding.coverImageUrl.startsWith("data:image/") ? { coverImageBase64: values.branding.coverImageUrl } : {}),
       primaryColor: values.branding.primaryColor,
     },
     preferences: { timezone: clean(values.preferences.timezone), locale: values.preferences.locale, currency: values.preferences.currency, dateFormat: values.preferences.dateFormat, weekStartsOn: Number(values.preferences.weekStartsOn), supportedLanguages: values.preferences.supportedLanguages },
