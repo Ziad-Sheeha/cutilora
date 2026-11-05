@@ -29,6 +29,15 @@ function readEnvelope(value: unknown): Record<string, unknown> {
   const nested = record.profile ?? record.tenant
   return nested && typeof nested === "object" ? nested as Record<string, unknown> : record
 }
+function localizedValue(value: unknown, ar: boolean) {
+  const key = String(value ?? "").toLowerCase()
+  const values: Record<string, [string, string]> = {
+    single_clinic: ["Single clinic", "عيادة واحدة"], clinic_group: ["Clinic group", "مجموعة عيادات"], beauty_center: ["Beauty center", "مركز تجميل"],
+    aesthetic_medicine: ["Aesthetic medicine", "الطب التجميلي"], active: ["Active", "نشط"], inactive: ["Inactive", "غير نشط"],
+    suspended: ["Suspended", "موقوف"], pending: ["Pending", "قيد الانتظار"], trial: ["Trial", "تجريبي"],
+  }
+  return values[key]?.[ar ? 1 : 0] ?? String(value ?? "—").replaceAll("_", " ")
+}
 function toForm(profile: Record<string, unknown>): ProfileForm {
   const contact = profile.contact && typeof profile.contact === "object" ? profile.contact as Record<string, unknown> : {}
   const address = profile.address && typeof profile.address === "object" ? profile.address as Record<string, unknown> : {}
@@ -139,9 +148,9 @@ export function TenantOrganizationPage() {
         <div className="mb-6 flex items-end gap-4"><span className="grid size-[72px] place-items-center rounded-2xl border-4 border-white bg-violet-100 text-violet-700 shadow-sm"><Building2 className="size-8"/></span><div className="pb-1"><h2 className="text-xl font-semibold">{values.displayName || tenant?.name || "—"}</h2><p className="mt-1 text-xs text-muted-foreground">{tenant?.slug || "—"}</p></div></div>
         {profileQuery.isLoading ? <p className="py-6 text-center text-sm text-muted-foreground">{copy.loading}</p> : profileQuery.isError ? <p role="alert" className="text-sm text-destructive">{profileQuery.error instanceof Error ? profileQuery.error.message : (ar ? "تعذر تحميل الملف." : "Unable to load profile.")}</p> : <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">{summary.map(item => { const Icon = item.icon; return <div key={item.label} className="rounded-xl border bg-slate-50/70 p-4"><div className="flex items-center gap-2 text-xs font-medium text-muted-foreground"><Icon className="size-4"/>{item.label}</div><p className="mt-3 break-words text-sm font-semibold">{item.value || "—"}</p></div> })}</div>}
         <div className="mt-5 grid gap-4 border-t pt-5 sm:grid-cols-3">
-          <ProfileValue label={ar ? "نوع المؤسسة" : "Business type"} value={String(profile.businessType ?? tenant?.businessType ?? "—").replaceAll("_", " ")}/>
-          <ProfileValue label={ar ? "الصناعة" : "Industry"} value={String(profile.industry ?? tenant?.industry ?? "—")}/>
-          <ProfileValue label={ar ? "حالة الحساب" : "Account status"} value={String(profile.status ?? tenant?.status ?? "—")}/>
+          <ProfileValue label={ar ? "نوع المؤسسة" : "Business type"} value={localizedValue(profile.businessType ?? tenant?.businessType, ar)}/>
+          <ProfileValue label={ar ? "الصناعة" : "Industry"} value={localizedValue(profile.industry ?? tenant?.industry, ar)}/>
+          <ProfileValue label={ar ? "حالة الحساب" : "Account status"} value={localizedValue(profile.status ?? tenant?.status, ar)}/>
         </div>
       </CardContent>
     </Card>
