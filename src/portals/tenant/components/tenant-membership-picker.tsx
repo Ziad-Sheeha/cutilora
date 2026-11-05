@@ -52,7 +52,7 @@ export function TenantMembershipPicker({
               </span>
             </span>
             {selected && <CheckCircle2 className="size-5 text-primary" />}
-          </button>
+          </Button>
         )
       })}
 
