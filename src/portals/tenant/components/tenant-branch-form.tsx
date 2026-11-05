@@ -25,9 +25,18 @@ export function TenantBranchForm({ branch, onCancel, onSave }: Props) {
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [serverError, setServerError] = useState("")
 
+  useEffect(() => {
+    setName(branch?.name ?? "")
+    setSlug(branch?.slug ?? "")
+    setAddress(branch?.address ?? "")
+    setTimezone(branch?.timezone ?? "Africa/Cairo")
+    setErrors({})
+    setServerError("")
+  }, [branch])
+
   const copy = ar
-    ? { title: "إضافة فرع", name: "اسم الفرع", slug: "المعرّف المختصر بالإنجليزية", address: "العنوان", timezone: "المنطقة الزمنية", save: "إنشاء الفرع", cancel: "إلغاء" }
-    : { title: "Add branch", name: "Branch name", slug: "URL slug (English)", address: "Address", timezone: "Timezone", save: "Create branch", cancel: "Cancel" }
+    ? { title: branch ? "تعديل الفرع" : "إضافة فرع", name: "اسم الفرع", slug: "المعرّف المختصر بالإنجليزية", address: "العنوان", timezone: "المنطقة الزمنية", save: branch ? "حفظ التعديلات" : "إنشاء الفرع", cancel: "إلغاء" }
+    : { title: branch ? "Edit branch" : "Add branch", name: "Branch name", slug: "URL slug (English)", address: "Address", timezone: "Timezone", save: branch ? "Save changes" : "Create branch", cancel: "Cancel" }
 
   function update<K extends "name" | "slug" | "address" | "timezone">(field: K, value: string) {
     if (field === "name") setName(value)
@@ -56,7 +65,7 @@ export function TenantBranchForm({ branch, onCancel, onSave }: Props) {
         timezone: timezone.trim(),
       })
     } catch (error) {
-      setServerError(error instanceof Error ? error.message : "Unable to create branch")
+      setServerError(error instanceof Error ? error.message : (ar ? "تعذر حفظ الفرع" : "Unable to save branch"))
     } finally {
       setSaving(false)
     }
