@@ -23,6 +23,31 @@ export function TenantFeaturePage() {
   const ar = locale === "ar"
   const key = section ? `${featureParam}/${section}` : featureParam || ""
   const feature = getTenantFeature(key)
+  const [records, setRecords] = useState<TenantFeatureRecord[]>([])
+  const [loading, setLoading] = useState(false)
+  const [loadError, setLoadError] = useState<string | null>(null)
+  const [reloadKey, setReloadKey] = useState(0)
+  const listEndpoint = feature ? getTenantFeatureListEndpoint(feature) : undefined
+
+  useEffect(() => {
+    if (!listEndpoint) return
+    let active = true
+    setLoading(true)
+    setLoadError(null)
+    fetchTenantFeatureRecords(listEndpoint, { page: 1, per_page: 20 })
+      .then((result) => {
+        if (active) setRecords(result.records)
+      })
+      .catch((error: Error) => {
+        if (active) setLoadError(error.message)
+      })
+      .finally(() => {
+        if (active) setLoading(false)
+      })
+    return () => {
+      active = false
+    }
+  }, [listEndpoint, reloadKey])
 
   if (!feature) {
     return (
