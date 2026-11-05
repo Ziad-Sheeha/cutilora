@@ -32,9 +32,9 @@ function displayValue(value: unknown) {
   if (typeof value === "object") return JSON.stringify(value)
   return String(value)
 }
-function recordId(record: TenantFeatureRecord, index: number) {
+function recordId(record: TenantFeatureRecord) {
   const id = record.id ?? record._id ?? record.uuid ?? record.email ?? record.code
-  return typeof id === "string" || typeof id === "number" ? String(id) : String(index)
+  return typeof id === "string" || typeof id === "number" ? String(id) : JSON.stringify(record)
 }
 
 export function TenantFeaturePage() {
