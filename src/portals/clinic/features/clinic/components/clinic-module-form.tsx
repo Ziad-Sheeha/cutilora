@@ -3,6 +3,7 @@ import { AlertCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
+import { DatePicker } from "@/components/ui/date-picker"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -118,6 +119,8 @@ export function ClinicModuleForm({ fields, record, title, isSaving, onCancel, on
                       <SelectItem value="provider">{clinicModuleText("recordTypeProvider", locale)}</SelectItem>
                     </SelectContent>
                   </Select>
+                ) : field.type === "date" ? (
+                  <DatePicker value={value} onChange={(next) => setValues((current) => ({ ...current, [field.name]: next }))} placeholder={ar ? "اختر التاريخ" : "Select date"} locale={ar ? "ar" : "en"} dir={ar ? "rtl" : "ltr"}/>
                 ) : field.type === "textarea" ? (
                   <Textarea id={`clinic-module-${field.name}`} value={value} aria-invalid={invalid} disabled={isSaving} onChange={(event) => setValues((current) => ({ ...current, [field.name]: event.target.value }))} />
                 ) : (
