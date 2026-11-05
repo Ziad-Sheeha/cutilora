@@ -63,14 +63,16 @@ export function TenantLoginForm({ labels, loading, error, onSubmit }: Props) {
             value={password}
             onChange={(event) => setPassword(event.target.value)}
           />
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="icon"
             onClick={() => setShowPassword((visible) => !visible)}
-            className="absolute end-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+            className="absolute end-1 top-1/2 size-9 -translate-y-1/2 text-muted-foreground"
             aria-label={showPassword ? labels.hidePassword : labels.showPassword}
           >
             {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
-          </button>
+          </Button>
         </div>
       </div>
 
