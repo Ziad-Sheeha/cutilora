@@ -20,7 +20,6 @@ export function TenantFeaturePage() {
   const ar = locale === "ar"
   const key = section ? `${featureParam}/${section}` : featureParam || ""
   const feature = getTenantFeature(key)
-  const feature = getTenantFeature(key)
 
   if (!feature) {
     return (
@@ -96,13 +95,13 @@ export function TenantFeaturePage() {
                 <p className="mt-1 text-xs text-muted-foreground">{ar ? "لا توجد اتصالات غير مؤكدة" : "No unverified API calls"}</p>
               </div>
               <span className="rounded-full bg-amber-50 px-2.5 py-1 text-[10px] font-bold text-amber-800">
-                {listEndpoint ? (ar ? "متصل عند توفر المسار" : "Endpoint configured") : (ar ? "حسب العقد" : "Contract-defined")}
+                {ar ? "عقد مقترح — غير متصل" : "Proposed contract — not connected"}
               </span>
             </div>
             <p className="text-sm leading-6 text-muted-foreground">
               {ar
-                ? "كل الأزرار والعمليات التي تحتاج Endpoint غير منفذ ستظل غير مفعلة أو في وضع المعاينة حتى يوفر الباك العقد النهائي."
-                : "Actions that require an unimplemented endpoint remain unavailable or preview-only until the backend contract is delivered."}
+                ? "تمت مراجعة كود الباك الحالي: المتاح فعلياً هو سياق المؤسسة والعيادات والفروع. باقي الوحدات لا تستدعي مسارات غير منفذة."
+                : "The current backend exposes tenant context, clinics and branches. Other modules do not call routes that are not implemented."}
             </p>
             {feature.note && (
               <div className="mt-5 rounded-xl border border-amber-200 bg-amber-50 p-4 text-xs leading-6 text-amber-900">
