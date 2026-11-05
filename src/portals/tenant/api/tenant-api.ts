@@ -85,8 +85,23 @@ export async function updateClinic(id: string, payload: Record<string, unknown>)
   return data.data
 }
 
-export async function getBranches() {
-  const { data } = await tenantApi.get<ApiEnvelope<Branch[]>>("/tenant/branches")
+export async function getBranches(clinicId?: string) {
+  const { data } = await tenantApi.get<ApiEnvelope<Branch[]>>("/tenant/branches", {
+    params: clinicId ? { clinicId } : undefined,
+  })
+  return data.data
+}
+
+export async function updateBranch(id: string, payload: Record<string, unknown>) {
+  const { data } = await tenantApi.patch<ApiEnvelope<Branch>>(
+    `/tenant/branches/${encodeURIComponent(id)}`,
+    payload,
+  )
+  return data.data
+}
+
+export async function updateTenantProfile(payload: Record<string, unknown>) {
+  const { data } = await tenantApi.patch<ApiEnvelope<unknown>>("/tenant/profile", payload)
   return data.data
 }
 
