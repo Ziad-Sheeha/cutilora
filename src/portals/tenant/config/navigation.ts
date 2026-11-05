@@ -1,14 +1,13 @@
 import {
-  Activity,
   Bell,
   Building2,
   ChartNoAxesCombined,
-  ChartNoAxesColumn,
+  BarChart3,
   ClipboardList,
   CreditCard,
   Files,
   LayoutDashboard,
-  Layers3,
+  Layers,
   MailPlus,
   MapPinned,
   PlugZap,
@@ -61,7 +60,7 @@ export const tenantNavigation: TenantNavGroup[] = [
     key: "configuration",
     label: { en: "Shared Configuration", ar: "الإعدادات المشتركة" },
     items: [
-      { key: "catalog", href: "/tenant/catalog", icon: Layers3 },
+      { key: "catalog", href: "/tenant/catalog", icon: Layers },
       { key: "policies", href: "/tenant/configuration", icon: SlidersHorizontal },
     ],
   },
@@ -83,7 +82,7 @@ export const tenantNavigation: TenantNavGroup[] = [
   {
     key: "insights",
     label: { en: "Insights", ar: "الرؤى والتقارير" },
-    items: [{ key: "insights", href: "/tenant/insights", icon: ChartNoAxesColumn }],
+    items: [{ key: "insights", href: "/tenant/insights", icon: BarChart3 }],
   },
   {
     key: "governance",
