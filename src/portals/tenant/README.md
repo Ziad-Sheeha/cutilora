@@ -40,6 +40,8 @@ The Tenant Portal now follows the `TENANT — Organization Management` Trello sc
 | Organization profile | `/tenant/organization` | Read-only until profile API is implemented |
 | Clinics | `/tenant/clinics` | Existing tenant clinic list/create/update |
 | Branches | `/tenant/branches` | Existing branch list/create |
+| Clinic workspace | `/tenant/clinic-workspace` | Clinic details/settings/documents/activity contract placeholder |
+| Branch operations | `/tenant/branch-operations` | Working hours/holidays/settings contract placeholder |
 | Organization documents | `/tenant/documents` | UI/API contract placeholder |
 | Users & memberships | `/tenant/users` | UI/API contract placeholder |
 | Invitations | `/tenant/invitations` | UI + local Zod validation; no submit request |
