@@ -243,10 +243,10 @@ export function TenantDomainWorkspacePage({ feature, clinicId, clinics = [], bra
       setSelectedOperation(null)
       if (feature.key === "configuration" && variables.endpoint.path.endsWith("/apply")) setPendingPreview(null)
       await client.invalidateQueries({ queryKey: ["tenant-domain", feature.key] })
-      const result = unwrap(data) as { url?: string; downloadUrl?: string; exportUrl?: string; secret?: string; apiKey?: string; token?: string; credential?: string; credentials?: { apiKey?: string } } | undefined
+      const result = unwrap(data) as { url?: string; downloadUrl?: string; exportUrl?: string; secret?: string; apiKey?: string; token?: string; credential?: string; credentials?: { apiKey?: string; webhookSecret?: string; signingSecret?: string } } | undefined
       const url = result?.url ?? result?.downloadUrl ?? result?.exportUrl
       if (url && /download|export/i.test(variables.endpoint.purpose)) window.open(url, "_blank", "noopener,noreferrer")
-      const issuedCredential = result?.secret ?? result?.apiKey ?? result?.token ?? result?.credential ?? result?.credentials?.apiKey
+      const issuedCredential = result?.secret ?? result?.apiKey ?? result?.token ?? result?.credential ?? result?.credentials?.apiKey ?? result?.credentials?.webhookSecret ?? result?.credentials?.signingSecret
       if (issuedCredential && /connect|rotate|register/i.test(variables.endpoint.purpose)) setOneTimeCredential(issuedCredential)
     },
     onError: error => {
