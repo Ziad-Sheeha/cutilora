@@ -121,7 +121,7 @@ export function TenantFormPage() {
   }
 
   function validateStep(index: number): string[] {
-    if (index === 0) return [values.name.trim(), values.businessType.trim(), values.industry.trim()].every(Boolean) ? [] : [copy.requiredFields]
+    if (index === 0) return values.name.trim().length >= 2 && values.name.trim().length <= 160 ? [] : [copy.requiredFields]
     if (index === 1) {
       if (values.contact.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.contact.email.trim())) return [copy.invalidEmail]
       const primaryPhone = values.contact.phone.replace(/\D/g, "").replace(/^0/, "")
@@ -145,7 +145,7 @@ export function TenantFormPage() {
     if (index === 4) return values.preferences.supportedLanguages.length ? [] : [ar ? "اختر لغة واحدة على الأقل." : "Select at least one supported language."]
     if (index === 5 && !isEdit) {
       const password = values.owner.password
-      if (!values.owner.name.trim() || !values.owner.email.trim() || !password || !values.owner.passwordConfirmation) return [copy.requiredFields]
+      if (values.owner.name.trim().length < 2 || values.owner.name.trim().length > 160 || !values.owner.email.trim() || !password || !values.owner.passwordConfirmation) return [copy.requiredFields]
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.owner.email.trim())) return [copy.invalidEmail]
       if (password.length < 12 || password.length > 128) return [copy.passwordRules]
       if (password !== values.owner.passwordConfirmation) return [copy.passwordMismatch]
