@@ -70,6 +70,8 @@ export interface Tenant {
   branding: TenantBranding
   clinics: TenantClinic[]
   preferences: TenantPreferences
+  subscription: TenantSubscription | null
+  paymentHistory: TenantPayment[]
   createdAt: string | null
   updatedAt: string | null
 }
