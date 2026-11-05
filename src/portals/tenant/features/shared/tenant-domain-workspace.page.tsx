@@ -112,7 +112,7 @@ function operationLabel(endpoint: TenantFeatureEndpoint, ar: boolean) {
   return endpoint.purpose
 }
 
-export function TenantDomainWorkspacePage({ feature }: { feature: TenantFeatureDefinition }) {
+export function TenantDomainWorkspacePage({ feature, clinicId }: { feature: TenantFeatureDefinition; clinicId?: string }) {
   const { locale } = useI18n()
   const ar = locale === "ar"
   const client = useQueryClient()
