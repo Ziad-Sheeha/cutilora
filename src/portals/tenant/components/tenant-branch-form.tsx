@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useI18n } from "@/i18n/i18n-provider"
+import { branchFormSchema } from "../features/shared/tenant-feature-schemas"
 
 type Props = { onCancel: () => void; onSave: (payload: Record<string, unknown>) => Promise<void> }
 function slugify(value: string) {
@@ -26,6 +27,16 @@ export function TenantBranchForm({ onCancel, onSave }: Props) {
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    const validation = branchFormSchema.safeParse({
+      name,
+      slug,
+      address,
+      timezone,
+    })
+    if (!validation.success) {
+      setError(validation.error.issues[0]?.message || "Please review the form fields")
+      return
+    }
     setSaving(true)
     setError("")
     try {
