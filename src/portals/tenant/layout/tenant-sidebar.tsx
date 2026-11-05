@@ -55,19 +55,6 @@ const itemLabels: Record<string, { en: string; ar: string }> = {
   security: { en: "Security", ar: "الأمان" },
 }
 
-const groupIcons = {
-  overview: Sparkles,
-  organization: Sparkles,
-  access: Sparkles,
-  configuration: Sparkles,
-  finance: Sparkles,
-  subscription: Sparkles,
-  integrations: Sparkles,
-  insights: Sparkles,
-  governance: Sparkles,
-  settings: Sparkles,
-}
-
 function TenantSidebarView({ collapsed = false, onToggleCollapse, onNavigate }: Props) {
   const { locale } = useI18n()
   const { pathname } = useLocation()
@@ -181,7 +168,7 @@ function TenantSidebarView({ collapsed = false, onToggleCollapse, onNavigate }: 
           aria-label={ar ? "التنقل الرئيسي" : "Main navigation"}
         >
           {tenantNavigation.map((group) => {
-            const GroupIcon = groupIcons[group.key as keyof typeof groupIcons] || Sparkles
+            const GroupIcon = group.items[0]?.icon || Sparkles
             const groupLabel = group.label[ar ? "ar" : "en"]
             const isOpen = expandedGroups[group.key] ?? isGroupActive(group)
             if (collapsed) {
