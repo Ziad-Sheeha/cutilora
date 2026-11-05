@@ -264,13 +264,15 @@ export function TenantDomainWorkspacePage({ feature, clinicId, clinics = [], bra
       source = { ...(profile ?? {}), ...(settings ?? {}), email: contact.email ?? profile?.email, phone: contact.phone ?? profile?.phone }
     } else if (feature.key === "settings/preferences" || feature.key === "settings/notifications") {
       source = preferenceResource?.summary ?? null
+    } else if (feature.key === "configuration") {
+      source = resources.find(resource => resource.endpoint.path.endsWith("/configuration"))?.summary ?? null
     } else if (feature.key === "subscription") {
       source = billingProfileResource?.summary ?? null
     } else return
     if (!source) return
     const nextValues = Object.fromEntries(Object.entries(source).filter(([key, value]) => !hidden.has(key) && !sensitive.test(key) && (typeof value === "string" || typeof value === "number" || typeof value === "boolean")).map(([key, value]) => [key, String(value)]))
     if (Object.keys(nextValues).length) setValues(nextValues)
-  }, [feature.key, clinicProfileResource?.summary, clinicSettingsResource?.summary, preferenceResource?.summary, billingProfileResource?.summary, values])
+  }, [feature.key, clinicProfileResource?.summary, clinicSettingsResource?.summary, preferenceResource?.summary, billingProfileResource?.summary, resources, values])
   const busy = resourcesQuery.some(query => query.isLoading)
   const hasError = resourcesQuery.find(query => query.isError)?.error
 
