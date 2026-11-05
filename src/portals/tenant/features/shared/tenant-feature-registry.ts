@@ -188,8 +188,9 @@ export const tenantFeatureRegistry: TenantFeatureDefinition[] = [
       { name: "name", label: "Integration name", required: true },
       { name: "provider", label: "Provider", type: "select", required: true, options: [{ label: "WhatsApp", value: "whatsapp" }, { label: "SMS", value: "sms" }, { label: "Email", value: "email" }, { label: "Calendar", value: "calendar" }, { label: "Payment reference", value: "payment" }] },
       { name: "scope", label: "Connection scope", type: "select", required: true, options: [{ label: "Tenant-wide default", value: "tenant" }, { label: "Specific clinic", value: "clinic" }] },
+      { name: "apiKey", label: "Provider API key (optional)", type: "password" },
     ],
-    note: { en: "Credentials and webhook actions remain unavailable until backend encryption, signature verification and audit support are implemented.", ar: "تظل إدارة بيانات الاتصال وWebhooks غير متاحة حتى تنفيذ التشفير والتحقق من التوقيعات والتدقيق في الباك." },
+    note: { en: "Credentials are submitted only when connecting or rotating a provider. Stored secrets are never read back into the interface.", ar: "تُرسل بيانات الاتصال عند الربط أو تدوير المفتاح فقط، ولا تُعرض الأسرار المخزنة مرة أخرى داخل الواجهة." },
   },
   {
     key: "insights", group: "Insights", icon: "chart-no-axes-column",
