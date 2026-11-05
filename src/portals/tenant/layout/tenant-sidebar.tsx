@@ -65,7 +65,11 @@ function TenantSidebarView({ collapsed = false, onToggleCollapse, onNavigate }: 
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({})
   const [searchQuery, setSearchQuery] = useState("")
   useEffect(() => {
-    const activeGroup = tenantNavigation.find((group) => isGroupActive(group))
+    const activeGroup = tenantNavigation.find((group) =>
+      group.items.some((item) =>
+        item.href === "/tenant" ? pathname === item.href : pathname.startsWith(item.href),
+      ),
+    )
     if (activeGroup) {
       setExpandedGroups((current) => ({ ...current, [activeGroup.key]: true }))
     }
