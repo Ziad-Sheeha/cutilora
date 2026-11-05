@@ -22,9 +22,9 @@ function scheduledDate(record: ClinicRecord) {
   const date = new Date(value)
   return Number.isNaN(date.getTime()) ? null : date
 }
-function rowId(record: ClinicRecord, index: number) {
+function rowId(record: ClinicRecord) {
   const id = record.id ?? record._id ?? record.uuid
-  return typeof id === "string" || typeof id === "number" ? String(id) : "appointment-" + index
+  return typeof id === "string" || typeof id === "number" ? String(id) : JSON.stringify(record)
 }
 
 export const AppointmentsTable = function AppointmentsTable() {
