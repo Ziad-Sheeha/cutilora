@@ -131,8 +131,11 @@ export function TenantDomainWorkspacePage({ feature, clinicId }: { feature: Tena
       queryFn: async () => {
         const response = await tenantApi.get(apiPath(endpoint.path), { params: { per_page: 100 } })
         const data = unwrap(response.data)
-        const rows = toRows(data)
-        const summary = data && typeof data === "object" && !Array.isArray(data) ? data as Record<string, unknown> : null
+        const isSummaryResource = /summary|subscription|configuration|preferences/.test(endpoint.path)
+        const record = data && typeof data === "object" && !Array.isArray(data) ? data as Record<string, unknown> : null
+        const nestedSummary = record?.summary && typeof record.summary === "object" ? record.summary as Record<string, unknown> : null
+        const summary = record ? { ...record, ...(nestedSummary ?? {}) } : null
+        const rows = isSummaryResource && record && !Array.isArray(record.items) && !Array.isArray(record.records) ? [] : toRows(data)
         return { rows, summary }
       },
       staleTime: 20_000,
