@@ -1,21 +1,23 @@
 import { useCallback, useEffect, useState } from "react"
 import { Outlet, useNavigate } from "react-router"
 import { useI18n } from "@/i18n/i18n-provider"
-import { getClinics, getTenantContext } from "../api/tenant-api"
+import { getBranches, getClinics, getTenantContext } from "../api/tenant-api"
 import { clearTenantSession, getTenantSession, updateTenantContext } from "../auth/tenant-session"
-import type { Clinic, TenantContext } from "../types/tenant.types"
+import type { Branch, Clinic, TenantContext } from "../types/tenant.types"
 import { TenantHeader } from "./tenant-header"
 import { TenantSidebar } from "./tenant-sidebar"
 
 export type TenantOutletContext = {
   context: TenantContext | null
   clinics: Clinic[]
+  branches: Branch[]
   refresh: () => Promise<void>
 }
 
 export function TenantLayout() {
   const [context, setContext] = useState<TenantContext | null>(null)
   const [clinics, setClinics] = useState<Clinic[]>([])
+  const [branches, setBranches] = useState<Branch[]>([])
   const [mobileOpen, setMobileOpen] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
@@ -28,18 +30,19 @@ export function TenantLayout() {
       getTenantContext(),
       getClinics(),
     ])
+    const clinicId = nextContext.access.clinicId || nextContext.clinic?._id || getTenantSession()?.clinicId
+    const nextBranches = clinicId ? await getBranches() : []
     setContext(nextContext)
     setClinics(nextClinics)
+    setBranches(nextBranches)
   }, [])
 
   useEffect(() => {
     let active = true
 
-    Promise.all([getTenantContext(), getClinics()])
-      .then(([nextContext, nextClinics]) => {
-        if (!active) return
-        setContext(nextContext)
-        setClinics(nextClinics)
+    refresh()
+      .then(() => {
+        if (active) setError("")
       })
       .catch((requestError) => {
         if (!active) return
@@ -53,15 +56,25 @@ export function TenantLayout() {
     return () => {
       active = false
     }
-  }, [navigate])
+  }, [navigate, refresh])
 
   async function changeClinic(clinicId: string) {
     updateTenantContext({ clinicId: clinicId || null, branchId: null })
+    setError("")
     try {
       await refresh()
-      setError("")
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : "Unable to switch clinic")
+    }
+  }
+
+  async function changeBranch(branchId: string) {
+    updateTenantContext({ branchId: branchId || null })
+    setError("")
+    try {
+      setContext(await getTenantContext())
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : "Unable to switch branch")
     }
   }
 
@@ -92,7 +105,9 @@ export function TenantLayout() {
         <TenantHeader
           context={context}
           clinics={clinics}
+          branches={branches}
           onClinicChange={changeClinic}
+          onBranchChange={changeBranch}
           onMenuClick={() => setMobileOpen(true)}
         />
 
@@ -117,7 +132,7 @@ export function TenantLayout() {
               {ar ? "جارٍ تحميل مساحة المؤسسة…" : "Loading organization workspace…"}
             </div>
           ) : (
-            <Outlet context={{ context, clinics, refresh } satisfies TenantOutletContext} />
+            <Outlet context={{ context, clinics, branches, refresh } satisfies TenantOutletContext} />
           )}
         </main>
 
