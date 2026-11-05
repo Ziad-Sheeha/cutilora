@@ -359,6 +359,7 @@ export function TenantDomainWorkspacePage({ feature, clinicId, clinics = [], bra
       const apiKey = payload.apiKey
       delete payload.apiKey
       if (apiKey) payload.credentials = { apiKey }
+      if (values.scope !== "clinic") delete payload.clinicId
     }
     const result = await operation.mutateAsync({ endpoint, row, payload })
     if (feature.key === "invitations") {
