@@ -192,7 +192,7 @@ export function TenantDomainWorkspacePage({ feature, clinicId, clinics = [], bra
   const [invitationClinicIds, setInvitationClinicIds] = useState<string[]>([])
   const [invitationBranchIds, setInvitationBranchIds] = useState<string[]>([])
   const [pendingPreview, setPendingPreview] = useState<{ payload: Record<string, unknown>; preview: Record<string, unknown> } | null>(null)
-  const getEndpoints = feature.endpoints.filter(endpoint => endpoint.method === "GET" && (!endpoint.path.includes("{") || (feature.key === "clinic-workspace" && endpoint.path.includes("{clinicId}"))))
+  const getEndpoints = feature.endpoints.filter(endpoint => endpoint.method === "GET" && (!endpoint.path.includes("{") || (feature.key === "clinic-workspace" && Boolean(clinicId) && endpoint.path.includes("{clinicId}"))))
   const writeEndpoints = feature.endpoints.filter(endpoint => endpoint.method !== "GET")
   const resourcesQuery = useQueries({
     queries: getEndpoints.map(endpoint => ({
