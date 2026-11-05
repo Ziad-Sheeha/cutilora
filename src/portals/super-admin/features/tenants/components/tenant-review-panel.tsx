@@ -4,6 +4,7 @@ import { useGeoDetail } from "@/portals/super-admin/features/geo-location/hooks/
 import { geoConfigs, geoRecordName } from "@/portals/super-admin/features/geo-location/types/geo-location.types"
 import { useI18n } from "@/i18n/i18n-provider"
 import type { TenantFormValues } from "../types/tenant-form.types"
+import { resolveAssetUrl } from "@/shared/utils/resolve-asset-url"
 
 type Group = { title: string; icon: typeof Building2; step: number; rows: [string, string][] }
 
@@ -77,8 +78,8 @@ export function TenantReviewPanel({ values, labels, onEdit, ar }: {
             <div className="grid gap-x-6 gap-y-3 p-4 sm:grid-cols-2">
               {rows.length ? rows.map(([label, value]) => <div key={label} className="min-w-0"><p className="text-[11px] font-medium text-muted-foreground">{localizedLabels[label] ?? label}</p><p className="mt-1 break-words text-sm font-medium">{value}</p></div>) : <p className="text-sm text-muted-foreground">{labels.empty}</p>}
               {group.step === 3 && (values.branding.logoUrl || values.branding.coverImageUrl) && <div className="flex flex-wrap items-center gap-3 sm:col-span-2">
-                {values.branding.logoUrl && <img src={values.branding.logoUrl} alt={ar ? "معاينة الشعار" : "Logo preview"} className="size-16 rounded-xl border bg-white object-contain p-1"/>}
-                {values.branding.coverImageUrl && <img src={values.branding.coverImageUrl} alt={ar ? "معاينة الغلاف" : "Cover preview"} className="h-16 w-32 rounded-xl border object-cover"/>}
+                {values.branding.logoUrl && <img src={resolveAssetUrl(values.branding.logoUrl)} alt={ar ? "معاينة الشعار" : "Logo preview"} className="size-16 rounded-xl border bg-white object-contain p-1"/>}
+                {values.branding.coverImageUrl && <img src={resolveAssetUrl(values.branding.coverImageUrl)} alt={ar ? "معاينة الغلاف" : "Cover preview"} className="h-16 w-32 rounded-xl border object-cover"/>}
               </div>}
             </div>
           </section>
