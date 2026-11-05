@@ -73,10 +73,30 @@ export function TenantBranchesPage() {
     }
   }, [clinicId])
 
+  function openCreateForm() {
+    setEditingBranch(null)
+    setError("")
+    setFormOpen(true)
+  }
+
+  function openEditForm(branch: Branch) {
+    setEditingBranch(branch)
+    setError("")
+    setFormOpen(true)
+  }
+
   async function saveBranch(payload: Record<string, unknown>) {
-    await createBranch({ ...payload, clinicId })
-    setBranches(await getBranches(clinicId))
-    setFormOpen(false)
+    setError("")
+    try {
+      if (editingBranch) await updateBranch(editingBranch._id, { ...payload, clinicId })
+      else await createBranch({ ...payload, clinicId })
+      setBranches(await getBranches(clinicId))
+      setFormOpen(false)
+      setEditingBranch(null)
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : (ar ? "تعذر حفظ الفرع" : "Unable to save branch"))
+      throw cause
+    }
   }
 
   return (
@@ -155,7 +175,7 @@ export function TenantBranchesPage() {
                   icon={MapPinned}
                   title={copy.empty}
                   description={copy.emptyDescription}
-                  action={<Button size="sm" onClick={() => setFormOpen(true)}>{copy.add}</Button>}
+                  action={<Button size="sm" onClick={openCreateForm}>{copy.add}</Button>}
                 />
               )}
             </CardContent>
