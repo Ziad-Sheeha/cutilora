@@ -32,7 +32,7 @@ api.interceptors.response.use(
  (error: AxiosError) => {
   activeRequests = Math.max(0, activeRequests - 1); store.dispatch(endLoading())
   const normalized = normalizeApiError(error)
-  if (normalized.status === 401) store.dispatch(pushToast({ id: crypto.randomUUID(), kind: "warning", title: normalized.message, description: normalized.code }))
+  if (normalized.status === 401) expireClinicSession()\n  if (normalized.status === 401) store.dispatch(pushToast({ id: crypto.randomUUID(), kind: "warning", title: normalized.message, description: normalized.code }))
   else if (normalized.status !== 422) store.dispatch(pushToast({ id: crypto.randomUUID(), kind: "error", title: normalized.message, description: normalized.code }))
   return Promise.reject(normalized)
  },
