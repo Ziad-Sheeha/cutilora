@@ -108,6 +108,12 @@ export const tenantFeatureSchemas = {
     name: z.string().trim().min(2).max(100),
     provider: requiredText("Provider"),
     scope: z.enum(["tenant", "clinic"]),
+    clinicId: z.string().optional(),
+    apiKey: z.string().optional(),
+  }).superRefine((value, context) => {
+    if (value.scope === "clinic" && !value.clinicId) {
+      context.addIssue({ code: "custom", path: ["clinicId"], message: "Choose a clinic for this integration." })
+    }
   }),
   profile: tenantProfileSchema,
   notification: z.object({
