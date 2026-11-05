@@ -25,6 +25,11 @@ api.interceptors.request.use((config) => {
  store.dispatch(beginLoading())
  const token = typeof window !== "undefined" ? getClinicToken() : null
  if (token) config.headers.Authorization = "Bearer " + token
+ const context = typeof window !== "undefined" ? getClinicSessionContext() : null
+ const branchId = store.getState().ui.currentBranchId || context?.branchId
+ if (context?.tenantId) config.headers["X-Tenant-Id"] = context.tenantId
+ if (context?.clinicId) config.headers["X-Clinic-Id"] = context.clinicId
+ if (branchId) config.headers["X-Branch-Id"] = branchId
  return config
 })
 api.interceptors.response.use(
