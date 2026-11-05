@@ -21,7 +21,7 @@ type Row = Record<string, unknown> & { id?: string; _id?: string; uuid?: string 
 type Resource = { endpoint: TenantFeatureEndpoint; rows: Row[]; summary: Record<string, unknown> | null; pagination?: { page?: number; per_page?: number; total?: number; total_pages?: number } }
 type SelectedOperation = { endpoint: TenantFeatureEndpoint; row: Row }
 const hidden = new Set(["id", "_id", "uuid", "tenantId", "tenant_id", "createdAt", "updatedAt", "created_at", "updated_at", "deletedAt"])
-const sensitive = /password|token|secret|credential|authorization|signature/i
+const sensitive = /password|token|secret|credential|authorization|signature|^(api.?key|client.?secret|private.?key)$/i
 const apiPath = (path: string) => path.replace(/^\/api\/v1/, "")
 function unwrap(value: unknown): unknown {
   let current = value
