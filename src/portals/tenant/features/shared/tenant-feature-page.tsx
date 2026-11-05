@@ -152,7 +152,7 @@ export function TenantFeaturePage() {
         </Card>
       )}
 
-      <TenantFeatureForm feature={feature} />
+      <TenantFeatureForm feature={feature} onCreated={() => setReloadKey((value) => value + 1)} />
 
       <Card className="border-white bg-white">
         <CardContent className="p-6">
