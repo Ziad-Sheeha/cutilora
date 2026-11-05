@@ -28,6 +28,10 @@
   --background: var(--cu-bg);
   --foreground: var(--cu-text);
   --card: var(--cu-surface);
+  --popover: var(--cu-surface);
+  --popover-foreground: var(--cu-text);
+  --accent: #FCE7F3;
+  --accent-foreground: #831843;
   --primary: var(--cu-primary);
   --primary-foreground: #FFFFFF;
   --muted: #EDE7FF;
@@ -55,6 +59,10 @@
   --background: var(--cu-bg);
   --foreground: var(--cu-text);
   --card: var(--cu-surface);
+  --popover: var(--cu-surface);
+  --popover-foreground: var(--cu-text);
+  --accent: #3B2444;
+  --accent-foreground: #FCE7F3;
   --primary: var(--cu-primary);
   --primary-foreground: #17102B;
   --muted: #262E52;
@@ -70,6 +78,10 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
   --color-primary-hover: var(--cu-primary-hover);
