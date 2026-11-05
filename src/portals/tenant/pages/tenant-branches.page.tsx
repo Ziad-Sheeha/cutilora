@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react"
 import { useOutletContext } from "react-router"
-import { Clock3, MapPin, MapPinned, Plus } from "lucide-react"
+import { Clock3, MapPin, MapPinned, Pencil, Plus } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { TenantBranchForm } from "../components/tenant-branch-form"
 import { TenantEmptyState } from "../components/tenant-empty-state"
 import { TenantPageHeading } from "../components/tenant-page-heading"
 import { TenantStatusPill } from "../components/tenant-status-pill"
-import { createBranch, getBranches } from "../api/tenant-api"
+import { createBranch, getBranches, updateBranch } from "../api/tenant-api"
 import type { Branch } from "../types/tenant.types"
 import type { TenantOutletContext } from "../layout/tenant-layout"
 import { useI18n } from "@/i18n/i18n-provider"
@@ -19,6 +19,7 @@ export function TenantBranchesPage() {
   const [branches, setBranches] = useState<Branch[]>([])
   const [loading, setLoading] = useState(false)
   const [formOpen, setFormOpen] = useState(false)
+  const [editingBranch, setEditingBranch] = useState<Branch | null>(null)
   const [error, setError] = useState("")
   const clinicId = context?.access.clinicId || context?.clinic?._id || ""
   const clinicName = context?.clinic?.name || clinics.find((clinic) => clinic._id === clinicId)?.name
@@ -85,7 +86,7 @@ export function TenantBranchesPage() {
         title={copy.title}
         description={copy.description}
         action={
-          <Button disabled={!clinicId} onClick={() => setFormOpen((open) => !open)}>
+          <Button disabled={!clinicId} onClick={openCreateForm}>
             <Plus className="size-4" />
             {copy.add}
           </Button>
@@ -110,7 +111,7 @@ export function TenantBranchesPage() {
             </div>
           </div>
 
-          {formOpen && <TenantBranchForm onCancel={() => setFormOpen(false)} onSave={saveBranch} />}
+          {formOpen && <TenantBranchForm branch={editingBranch} onCancel={() => { setFormOpen(false); setEditingBranch(null) }} onSave={saveBranch} />}
           {error && <p role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}
 
           <Card className="border-white bg-white">
@@ -140,6 +141,7 @@ export function TenantBranchesPage() {
                           <p className="mt-1 truncate text-xs text-muted-foreground">{branch.slug}</p>
                         </div>
                         <TenantStatusPill status={branch.status || "active"} />
+                        <Button type="button" size="icon" variant="ghost" onClick={() => openEditForm(branch)} aria-label={ar ? "تعديل الفرع" : "Edit branch"}><Pencil className="size-4"/></Button>
                       </div>
                       <p className="mt-4 flex items-center gap-2 border-t pt-3 text-xs text-muted-foreground">
                         <Clock3 className="size-3.5" />
