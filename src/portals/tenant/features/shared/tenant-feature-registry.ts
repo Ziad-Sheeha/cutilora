@@ -49,7 +49,7 @@ export const tenantFeatureRegistry: TenantFeatureDefinition[] = [
     key: "roles", group: "Access Management", icon: "shield-check", schemaKey: "role",
     title: { en: "Roles & Permissions", ar: "الأدوار والصلاحيات" },
     eyebrow: { en: "ACCESS MANAGEMENT", ar: "إدارة الوصول" },
-    description: { en: "Configure scope-aware roles on top of the shared RBAC engine. Access is deny-by-default and enforced by the backend.", ar: "إعداد الأدوار ونطاقات الصلاحيات فوق نظام RBAC المشترك، مع الرفض الافتراضي والتحقق النهائي من الباك." },
+    description: { en: "Create and manage organization roles and assign the right level of access to each team member.", ar: "إنشاء أدوار المؤسسة وإدارتها وتحديد مستوى الوصول المناسب لكل عضو في الفريق." },
     capabilities: [
       { en: "Create, edit, clone and deactivate custom roles when the plan allows.", ar: "إنشاء وتعديل ونسخ وتعطيل الأدوار المخصصة حسب الخطة." },
       { en: "Configure view, create, update, deactivate, export and approval grants by module.", ar: "ضبط صلاحيات العرض والإنشاء والتعديل والتعطيل والتصدير والاعتماد لكل وحدة." },
@@ -97,7 +97,7 @@ export const tenantFeatureRegistry: TenantFeatureDefinition[] = [
     key: "catalog", group: "Shared Configuration", icon: "layers-3", schemaKey: "catalog",
     title: { en: "Service & Treatment Defaults", ar: "افتراضات الخدمات والعلاجات" },
     eyebrow: { en: "SHARED CONFIGURATION", ar: "الإعدادات المشتركة" },
-    description: { en: "Prepare reusable service and treatment templates for clinics without silently overwriting clinic-specific values.", ar: "إعداد قوالب الخدمات والعلاجات المشتركة دون استبدال إعدادات العيادات الخاصة تلقائياً." },
+    description: { en: "Create shared service and treatment templates that clinics can use as a starting point.", ar: "إنشاء قوالب موحدة للخدمات والعلاجات يمكن للعيادات استخدامها كنقطة بداية." },
     capabilities: [
       { en: "Maintain categories, reusable templates, suggested durations and buffers.", ar: "إدارة التصنيفات والقوالب والمدد والفواصل الزمنية المقترحة." },
       { en: "Keep default pricing as a suggestion, not a forced clinic price.", ar: "اعتبار الأسعار الافتراضية اقتراحات وليست أسعاراً مفروضة على العيادات." },
@@ -121,7 +121,7 @@ export const tenantFeatureRegistry: TenantFeatureDefinition[] = [
     key: "finance", group: "Finance", icon: "chart-no-axes-combined",
     title: { en: "Group Financial Overview", ar: "النظرة المالية المجمعة" },
     eyebrow: { en: "TENANT FINANCE", ar: "مالية المؤسسة" },
-    description: { en: "Consolidated reporting across authorized clinics. Source transactions remain in the Clinic financial domain.", ar: "تقارير مجمعة للعيادات المصرح بها. تظل المعاملات الأصلية داخل المجال المالي للعيادة." },
+    description: { en: "Review consolidated financial performance across your clinics and branches.", ar: "مراجعة الأداء المالي المجمع عبر العيادات والفروع التابعة للمؤسسة." },
     capabilities: [
       { en: "Compare clinic and branch performance across a selected period.", ar: "مقارنة أداء العيادات والفروع خلال فترة محددة." },
       { en: "Review aggregate revenue, expenses, operating result and receivables.", ar: "مراجعة إجمالي الإيرادات والمصروفات والنتيجة التشغيلية والمستحقات." },
@@ -246,7 +246,7 @@ export const tenantFeatureRegistry: TenantFeatureDefinition[] = [
     key: "organization-profile", group: "Organization", icon: "building-2", schemaKey: "profile",
     title: { en: "Organization Profile", ar: "ملف المؤسسة" },
     eyebrow: { en: "ORGANIZATION IDENTITY", ar: "هوية المؤسسة" },
-    description: { en: "Prepare organization identity, legal, contact and registered-address changes. Legal changes require elevated permission and audit review.", ar: "تجهيز تعديلات هوية المؤسسة وبياناتها القانونية ووسائل التواصل والعنوان المسجل. تتطلب التعديلات القانونية صلاحيات مرتفعة ومراجعة تدقيقية." },
+    description: { en: "View and update your organization name, legal details, contact information and registered address.", ar: "عرض وتحديث اسم المؤسسة وبياناتها القانونية ووسائل التواصل والعنوان المسجل." },
     capabilities: [
       { en: "Maintain legal and display names, organization type and contact details.", ar: "إدارة الاسم القانوني والاسم التجاري ونوع المؤسسة وبيانات التواصل." },
       { en: "Maintain registered address and organization-level defaults.", ar: "إدارة العنوان المسجل والقيم الافتراضية للمؤسسة." },
