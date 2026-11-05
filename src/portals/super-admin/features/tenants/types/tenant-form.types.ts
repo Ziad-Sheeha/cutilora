@@ -1,4 +1,5 @@
 import type { Tenant, TenantPayload } from "./tenant.types"
+import { phoneCountries } from "@/components/ui/phone-country-data"
 
 export interface TenantFormValues {
   owner: { name: string; email: string; password: string; passwordConfirmation: string }
@@ -28,11 +29,28 @@ export const emptyTenantForm: TenantFormValues = {
   preferences: { timezone: "Africa/Cairo", locale: "en", currency: "EGP", dateFormat: "YYYY-MM-DD", weekStartsOn: "6", supportedLanguages: ["en", "ar"] },
 }
 
+function inferPhoneCode(value: string | null): string {
+  if (!value?.startsWith("+")) return "+20"
+  const digits = value.replace(/\D/g, "")
+  const match = [...phoneCountries].sort((a, b) => b.dial.length - a.dial.length)
+    .find((country) => digits.startsWith(country.dial.replace(/\D/g, "")))
+  return match?.dial ?? "+20"
+}
+
+function toLocalPhone(value: string | null, phoneCode: string): string {
+  if (!value) return ""
+  const digits = value.replace(/\D/g, "")
+  const code = phoneCode.replace(/\D/g, "")
+  const national = digits.startsWith(code) ? digits.slice(code.length) : digits
+  return national ? "0" + national.replace(/^0+/, "") : ""
+}
+
 export function tenantToForm(tenant: Tenant): TenantFormValues {
+  const phoneCode = inferPhoneCode(tenant.contact.phone)
   return {
     name: tenant.name, owner: { name: "", email: "", password: "", passwordConfirmation: "" }, displayName: tenant.displayName, legalName: tenant.legalName, businessType: tenant.businessType,
     description: tenant.description, industry: tenant.industry,
-    contact: { email: tenant.contact.email ?? "", phoneCode: tenant.contact.phoneCode || "+20", phone: tenant.contact.phone ? "0" + tenant.contact.phone.replace(/^0+/, "") : "", alternatePhone: tenant.contact.alternatePhone ? "0" + tenant.contact.alternatePhone.replace(/^0+/, "") : "", whatsapp: tenant.contact.whatsapp ? "0" + tenant.contact.whatsapp.replace(/^0+/, "") : "", website: tenant.contact.website ?? "" },
+    contact: { email: tenant.contact.email ?? "", phoneCode, phone: toLocalPhone(tenant.contact.phone, phoneCode), alternatePhone: toLocalPhone(tenant.contact.alternatePhone, phoneCode), whatsapp: toLocalPhone(tenant.contact.whatsapp, phoneCode), website: tenant.contact.website ?? "" },
     address: { countryId: tenant.address.countryId ?? "", governorateId: tenant.address.governorateId ?? "", cityId: tenant.address.cityId ?? "", districtId: tenant.address.districtId ?? "", addressLine1: tenant.address.addressLine1, addressLine2: tenant.address.addressLine2, building: tenant.address.building, floor: tenant.address.floor, unit: tenant.address.unit, postalCode: tenant.address.postalCode, latitude: tenant.address.latitude === null ? "" : String(tenant.address.latitude), longitude: tenant.address.longitude === null ? "" : String(tenant.address.longitude) },
     legal: { taxNumber: tenant.legal.taxNumber, vatNumber: tenant.legal.vatNumber, commercialRegistrationNumber: tenant.legal.commercialRegistrationNumber },
     branding: { logoUrl: tenant.branding.logoUrl, coverImageUrl: tenant.branding.coverImageUrl, primaryColor: tenant.branding.primaryColor },
