@@ -59,6 +59,9 @@ export function TenantDocumentsPage() {
   const upload = useMutation({
     mutationFn: async () => {
       if (!file) throw new Error(ar ? "اختر ملفاً أولاً" : "Choose a file first")
+      const allowedExtensions = /\\.(pdf|png|jpe?g|webp|docx?|xlsx?)$/i
+      if (!allowedExtensions.test(file.name)) throw new Error(ar ? "نوع الملف غير مدعوم. استخدم PDF أو صورة أو مستند Office." : "Unsupported file type. Use PDF, an image, or an Office document.")
+      if (file.size > 20 * 1024 * 1024) throw new Error(ar ? "الحد الأقصى لحجم الملف 20 ميجابايت." : "The maximum file size is 20 MB.")
       const body = new FormData()
       body.append("file", file)
       body.append("category", category)
@@ -85,13 +88,19 @@ export function TenantDocumentsPage() {
     onError: (e) => setError(e instanceof Error ? e.message : "Verification update failed"),
   })
   async function openDocument(row: DocumentRecord) {
+    const popup = window.open("about:blank", "_blank")
+    if (popup) popup.opener = null
     try {
-      const response = await tenantApi.get(`${root}/${encodeURIComponent(idOf(row))}/download`)
+      const response = await tenantApi.get(root + "/" + encodeURIComponent(idOf(row)) + "/download")
       const result = unwrap<{ url?: string; downloadUrl?: string }>(response)
       const url = result.url ?? result.downloadUrl
       if (!url) throw new Error(ar ? "رابط المستند غير متاح" : "Authorized document URL is unavailable")
-      window.open(url, "_blank", "noopener,noreferrer")
-    } catch (e) { setError(e instanceof Error ? e.message : "Unable to open document") }
+      if (popup) popup.location.assign(url)
+      else window.location.assign(url)
+    } catch (e) {
+      popup?.close()
+      setError(e instanceof Error ? e.message : "Unable to open document")
+    }
   }
   const rows = query.data ?? []
   const columns = useMemo<DataTableColumn<DocumentRecord>[]>(() => [
@@ -106,7 +115,7 @@ export function TenantDocumentsPage() {
   return <div className="space-y-6">
     <TenantPageHeading eyebrow={ar ? "ملف المؤسسة" : "ORGANIZATION PROFILE"} title={ar ? "مستندات المؤسسة" : "Organization Documents"} description={ar ? "احفظ مستندات مؤسستك وتابع تصنيفاتها وحالة التحقق وتواريخ الانتهاء." : "Store organization documents and track their categories, verification and expiry dates."}/>
     <Card><CardContent className="grid gap-4 p-5 md:grid-cols-2 xl:grid-cols-4">
-      <div className="md:col-span-2"><Label>{ar ? "الملف" : "Document file"}</Label><Input type="file" onChange={e => setFile(e.target.files?.[0] ?? null)} className="mt-2"/></div>
+      <div className="md:col-span-2"><Label>{ar ? "الملف" : "Document file"}</Label><Input type="file" accept=".pdf,.png,.jpg,.jpeg,.webp,.doc,.docx,.xls,.xlsx" onChange={e => setFile(e.target.files?.[0] ?? null)} className="mt-2"/></div>
       <div><Label>{ar ? "التصنيف" : "Category"}</Label><Select value={category} onValueChange={setCategory}><SelectTrigger className="mt-2"><SelectValue/></SelectTrigger><SelectContent><SelectItem value="legal">{ar ? "مستندات قانونية" : "Legal"}</SelectItem><SelectItem value="license">{ar ? "تراخيص" : "Licenses"}</SelectItem><SelectItem value="tax">{ar ? "مستندات ضريبية" : "Tax"}</SelectItem><SelectItem value="insurance">{ar ? "تأمين" : "Insurance"}</SelectItem><SelectItem value="other">{ar ? "أخرى" : "Other"}</SelectItem></SelectContent></Select></div>
       <div><Label>{ar ? "تاريخ الانتهاء" : "Expiry date"}</Label><Input type="date" value={expiryDate} onChange={e => setExpiryDate(e.target.value)} className="mt-2"/></div>
       <div className="flex flex-wrap items-end gap-2 md:col-span-2 xl:col-span-4"><Button disabled={!file || upload.isPending} onClick={() => upload.mutate()}><FilePlus2 className="me-2 size-4"/>{upload.isPending ? (ar ? "جارٍ الرفع..." : "Uploading...") : replaceId ? (ar ? "استبدال المستند" : "Replace document") : (ar ? "رفع مستند" : "Upload document")}</Button>{replaceId && <Button variant="outline" onClick={() => { setReplaceId(null); setFile(null) }}>{ar ? "إلغاء الاستبدال" : "Cancel replace"}</Button>}</div>
