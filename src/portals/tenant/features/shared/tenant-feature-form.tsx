@@ -18,7 +18,9 @@ export function TenantFeatureForm({ feature, onSave, initialValues }: Props) {
   const ar = locale === "ar"
   const [values, setValues] = useState<Record<string, string>>(() => initialValues ?? {})
   const [errors, setErrors] = useState<Record<string, string>>({})
-  const [validated, setValidated] = useState(false)\n  const [saving, setSaving] = useState(false)\n  const [saveError, setSaveError] = useState<string | null>(null)
+  const [validated, setValidated] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
 
   if (!feature.fields?.length || !feature.schemaKey) return null
 
