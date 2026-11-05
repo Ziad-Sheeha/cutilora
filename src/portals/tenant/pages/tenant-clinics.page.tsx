@@ -8,7 +8,7 @@ import { TenantClinicCard } from "../components/tenant-clinic-card"
 import { TenantClinicForm } from "../components/tenant-clinic-form"
 import { TenantEmptyState } from "../components/tenant-empty-state"
 import { TenantPageHeading } from "../components/tenant-page-heading"
-import { createClinic } from "../api/tenant-api"
+import { createClinic, updateClinic } from "../api/tenant-api"
 import type { Clinic } from "../types/tenant.types"
 import type { TenantOutletContext } from "../layout/tenant-layout"
 import { useI18n } from "@/i18n/i18n-provider"
@@ -71,11 +71,10 @@ export function TenantClinicsPage() {
     setError("")
     try {
       if (editingClinic) {
-        throw new Error(ar
-          ? "واجهة التعديل والتحقق جاهزة، لكن Endpoint تعديل العيادة لم يتم توفيره من الباك بعد."
-          : "The edit form and validation are ready, but the clinic update endpoint is not available in the backend yet.")
+        await updateClinic(editingClinic._id, payload)
+      } else {
+        await createClinic(payload)
       }
-      await createClinic(payload)
       await refresh()
       setFormOpen(false)
       setError("")
