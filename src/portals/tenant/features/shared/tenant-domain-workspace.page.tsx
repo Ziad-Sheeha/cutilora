@@ -258,7 +258,7 @@ export function TenantDomainWorkspacePage({ feature, clinicId, clinics = [], bra
   const fields = feature.fields ?? []
   const rootWriteEndpoints = writeEndpoints.filter(endpoint => !endpoint.path.includes("{") && ["POST", "PATCH", "PUT"].includes(endpoint.method) && !(feature.key === "configuration" && endpoint.path.endsWith("/apply")))
   function fieldsFor(endpoint: TenantFeatureEndpoint): TenantFeatureField[] {
-    if (feature.key === "integrations" && endpoint.path.endsWith("/integrations")) {
+    if (feature.key === "integrations" && endpoint.path.includes("/integrations")) {
       return [
         ...fields,
         ...(values.scope === "clinic" ? [{ name: "clinicId", label: "Clinic", type: "select" as const, required: true, options: clinics.map(clinic => ({ label: clinic.name, value: clinic._id })) }] : []),
@@ -358,7 +358,7 @@ export function TenantDomainWorkspacePage({ feature, clinicId, clinics = [], bra
       if (values.scope === "clinic") payload.clinicIds = invitationClinicIds
       if (values.scope === "branch") payload.branchIds = invitationBranchIds
     }
-    if (feature.key === "integrations" && endpoint.path.endsWith("/integrations")) {
+    if (feature.key === "integrations" && endpoint.path.includes("/integrations")) {
       const apiKey = payload.apiKey
       delete payload.apiKey
       if (apiKey) payload.credentials = { apiKey }
@@ -476,7 +476,7 @@ export function TenantDomainWorkspacePage({ feature, clinicId, clinics = [], bra
                 cancellationWindowHours: "مهلة الإلغاء بالساعات", category: "التصنيف", durationMinutes: "المدة بالدقائق",
                 bufferMinutes: "الفاصل بالدقائق", billingName: "الاسم القانوني للفوترة", billingEmail: "بريد الفوترة",
                 taxNumber: "الرقم الضريبي", provider: "مزود الخدمة", locale: "اللغة", currency: "العملة", timezone: "المنطقة الزمنية",
-                apiKey: "مفتاح API", clinicId: "العيادة",
+                apiKey: "مفتاح API (اختياري)", clinicId: "العيادة",
                 emailEnabled: "إشعارات البريد الإلكتروني", inAppEnabled: "إشعارات داخل التطبيق", securityAlerts: "تنبيهات الأمان",
                 billingAlerts: "تنبيهات الفوترة", membershipAlerts: "تنبيهات العضويات", requestedPlan: "الخطة المطلوبة",
                 billingCycle: "دورة الفوترة", reason: "سبب الطلب", url: "رابط HTTPS", events: "الأحداث المشترك بها",
