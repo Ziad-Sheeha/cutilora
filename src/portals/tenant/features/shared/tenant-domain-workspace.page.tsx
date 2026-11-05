@@ -44,7 +44,7 @@ function toRows(value: unknown): Row[] {
   return []
 }
 function rowId(row: Row) {
-  const value = row.id ?? row._id ?? row.uuid ?? row.membershipId ?? row.userId ?? row.invoiceId
+  const value = row.id ?? row._id ?? row.uuid ?? row.membershipId ?? row.userId ?? row.invoiceId ?? row.reportId ?? row.auditEventId ?? row.sessionId
   return value === undefined || value === null ? "" : String(value)
 }
 function label(value: string, ar: boolean) {
@@ -130,7 +130,7 @@ function display(value: unknown, ar: boolean) {
 function resolvePath(path: string, row?: Row) {
   return path.replace(/\{([^}]+)\}/g, (_match, token: string) => {
     const aliases: Record<string, unknown> = {
-      id: row?.id ?? row?._id ?? row?.uuid, membershipId: row?.membershipId ?? row?.membership_id ?? row?.id ?? row?._id,
+      id: row?.id ?? row?._id ?? row?.uuid ?? row?.invoiceId ?? row?.reportId ?? row?.auditEventId ?? row?.sessionId, membershipId: row?.membershipId ?? row?.membership_id ?? row?.id ?? row?._id,
       userId: row?.userId ?? row?.user_id ?? row?.id ?? row?._id, reportKey: row?.key ?? row?.reportKey ?? row?.id,
       webhookId: row?.id ?? row?._id,
     }
