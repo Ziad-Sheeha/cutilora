@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { Archive, Download, Eye, FilePlus2, FileText, RefreshCw, Upload } from "lucide-react"
+import { Archive, Eye, FilePlus2, FileText, RefreshCw, Upload } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { DataTable, type DataTableColumn } from "@/components/ui/data-table"
@@ -8,8 +8,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useI18n } from "@/i18n/i18n-provider"
-import { tenantApi } from "../../../api/tenant-api"
-import { TenantPageHeading } from "../../../components/tenant-page-heading"
+import { tenantApi } from "../../api/tenant-api"
+import { TenantPageHeading } from "../../components/tenant-page-heading"
 
 type DocumentRecord = {
   id?: string; _id?: string; name?: string; fileName?: string; originalName?: string
