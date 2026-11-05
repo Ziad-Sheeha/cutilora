@@ -25,7 +25,7 @@ function readEnvelope(value: unknown): Record<string, unknown> {
     if (!current || typeof current !== "object" || !("data" in current)) break
     current = (current as { data: unknown }).data
   }
-  return current && typeof current === "object" ? current as Record<string, unknown> : {}
+  const record = current && typeof current === "object" ? current as Record<string, unknown> : {}\n  const nested = record.profile ?? record.tenant\n  return nested && typeof nested === "object" ? nested as Record<string, unknown> : record
 }
 function toForm(profile: Record<string, unknown>): ProfileForm {
   const contact = profile.contact && typeof profile.contact === "object" ? profile.contact as Record<string, unknown> : {}
@@ -71,7 +71,7 @@ export function TenantOrganizationPage() {
   })
   const countryOptions = countriesQuery.data ?? []
   const cityOptions = citiesQuery.data ?? []
-  const countryName = useMemo(() => countryOptions.find(item => item.id === values.countryId)?.name_en ?? "", [countryOptions, values.countryId])
+  const countryName = useMemo(() => { const country = countryOptions.find(item => item.id === values.countryId); return ar ? country?.name_ar || country?.name_en || "" : country?.name_en || "" }, [countryOptions, values.countryId, ar])
   const mutation = useMutation({
     mutationFn: async (payload: ProfileForm) => updateTenantProfile({
       displayName: payload.displayName,
