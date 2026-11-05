@@ -1,10 +1,11 @@
-import { useMemo, useState } from "react"
+import { useMemo, useRef, useState } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Archive, BadgeCheck, Eye, FilePlus2, FileText, RefreshCw, Upload } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { DataTable, type DataTableColumn } from "@/components/ui/data-table"
 import { Input } from "@/components/ui/input"
+import { DatePicker } from "@/components/ui/date-picker"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useI18n } from "@/i18n/i18n-provider"
@@ -58,6 +59,7 @@ export function TenantDocumentsPage() {
   const [category, setCategory] = useState("legal")
   const [expiryDate, setExpiryDate] = useState("")
   const [file, setFile] = useState<File | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const [replaceId, setReplaceId] = useState<string | null>(null)
   const [archiveId, setArchiveId] = useState<string | null>(null)
   const [error, setError] = useState("")
@@ -131,9 +133,9 @@ export function TenantDocumentsPage() {
   return <div className="space-y-6">
     <TenantPageHeading eyebrow={ar ? "ملف المؤسسة" : "ORGANIZATION PROFILE"} title={ar ? "مستندات المؤسسة" : "Organization Documents"} description={ar ? "احفظ مستندات مؤسستك وتابع تصنيفاتها وحالة التحقق وتواريخ الانتهاء." : "Store organization documents and track their categories, verification and expiry dates."}/>
     {canWrite && <Card><CardContent className="grid gap-4 p-5 md:grid-cols-2 xl:grid-cols-4">
-      <div className="md:col-span-2"><Label>{ar ? "الملف" : "Document file"}</Label><Input type="file" accept=".pdf,.png,.jpg,.jpeg,.webp,.doc,.docx,.xls,.xlsx" onChange={e => { setFile(e.target.files?.[0] ?? null); setError("") }} className="mt-2"/></div>
+      <div className="md:col-span-2"><Label>{ar ? "الملف" : "Document file"}</Label><div className="mt-2 flex min-h-11 flex-wrap items-center gap-3 rounded-xl border border-dashed border-border bg-muted/20 p-3"><Input ref={fileInputRef} type="file" accept=".pdf,.png,.jpg,.jpeg,.webp,.doc,.docx,.xls,.xlsx" className="sr-only" onChange={e => { setFile(e.target.files?.[0] ?? null); setError("") }}/><Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()}><Upload className="me-2 size-4"/>{ar ? "اختيار ملف" : "Choose file"}</Button><span className="min-w-0 flex-1 truncate text-sm text-muted-foreground">{file?.name ?? (ar ? "PDF أو صورة أو مستند Office" : "PDF, image or Office document")}</span>{file && <Button type="button" size="sm" variant="ghost" onClick={() => { setFile(null); if (fileInputRef.current) fileInputRef.current.value = "" }}>{ar ? "إزالة" : "Remove"}</Button>}</div></div>
       <div><Label>{ar ? "التصنيف" : "Category"}</Label><Select value={category} onValueChange={setCategory}><SelectTrigger className="mt-2"><SelectValue/></SelectTrigger><SelectContent><SelectItem value="legal">{ar ? "مستندات قانونية" : "Legal"}</SelectItem><SelectItem value="license">{ar ? "تراخيص" : "Licenses"}</SelectItem><SelectItem value="tax">{ar ? "مستندات ضريبية" : "Tax"}</SelectItem><SelectItem value="insurance">{ar ? "تأمين" : "Insurance"}</SelectItem><SelectItem value="other">{ar ? "أخرى" : "Other"}</SelectItem></SelectContent></Select></div>
-      <div><Label>{ar ? "تاريخ الانتهاء" : "Expiry date"}</Label><Input type="date" value={expiryDate} onChange={e => setExpiryDate(e.target.value)} className="mt-2"/></div>
+      <div><Label>{ar ? "تاريخ الانتهاء" : "Expiry date"}</Label><DatePicker value={expiryDate} onChange={setExpiryDate} placeholder={ar ? "اختر تاريخ الانتهاء" : "Select expiry date"} locale={ar ? "ar" : "en"} dir={ar ? "rtl" : "ltr"} className="mt-2"/></div>
       <div className="flex flex-wrap items-end gap-2 md:col-span-2 xl:col-span-4">{replaceId && <p className="w-full text-xs text-muted-foreground">{ar ? `استبدال ملف: ${rows.find(row => idOf(row) === replaceId)?.name ?? rows.find(row => idOf(row) === replaceId)?.fileName ?? "المستند المحدد"}` : `Replacing file: ${rows.find(row => idOf(row) === replaceId)?.name ?? rows.find(row => idOf(row) === replaceId)?.fileName ?? "Selected document"}`}</p>}<Button disabled={!file || upload.isPending} onClick={() => upload.mutate()}><FilePlus2 className="me-2 size-4"/>{upload.isPending ? (ar ? "جارٍ الرفع..." : "Uploading...") : replaceId ? (ar ? "استبدال المستند" : "Replace document") : (ar ? "رفع مستند" : "Upload document")}</Button>{replaceId && <Button variant="outline" onClick={() => { setReplaceId(null); setFile(null); setExpiryDate(""); setCategory("legal") }}>{ar ? "إلغاء الاستبدال" : "Cancel replace"}</Button>}</div>
       {error && <p role="alert" className="text-sm text-destructive md:col-span-2 xl:col-span-4">{error}</p>}
     </CardContent></Card>}
