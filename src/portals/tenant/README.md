@@ -83,3 +83,9 @@ The Tenant Portal now follows the `TENANT — Organization Management` Trello sc
 - New modules deliberately do not make placeholder HTTP requests. Their pages show a pending-backend state and list the proposed endpoint contract.
 - Local form validation is a UX layer and must be duplicated/enforced by the backend.
 - No placeholder form reports that data was saved. A successful local validation is explicitly labelled as validation only.
+
+### API alignment note for backend handoff
+
+The Trello foundation card `00.03` lists generic `/api/v1/clinics` and `/api/v1/branches` routes, while the currently inspected backend tenant contract exposes tenant-scoped collection routes `/api/v1/tenant/clinics` and `/api/v1/tenant/branches`. The frontend keeps using the verified tenant-scoped collection routes. New clinic/branch detail, schedule, holiday, settings and activity routes are proposed under the same `/api/v1/tenant` scope for consistency; Hegazy should confirm the final route convention before implementing them.
+
+Clinic create and branch list/create use currently available backend routes. Clinic edit is intentionally UI-only and displays a backend-pending message because the current backend contract has not confirmed a clinic PATCH endpoint.
