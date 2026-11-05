@@ -21,19 +21,19 @@ export const clinicFormSchema = z.object({
   description: z.string().max(2000).optional(),
   email: z.string().trim().email().optional().or(z.literal("")),
   phone: z.string().trim().min(7).max(24).optional().or(z.literal("")),
-  timezone: z.string().trim().min(3).max(80).regex(/^[A-Za-z_+-]+(?:\\/[A-Za-z0-9_+.-]+)+$/),
+  timezone: z.string().trim().min(3).max(80).regex(/^[A-Za-z_+-]+(?:\/[A-Za-z0-9_+.-]+)+$/),
 })
 
 export const branchFormSchema = z.object({
   name: z.string().trim().min(2).max(120),
   slug: z.string().trim().min(2).max(80).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
   address: z.string().max(240).optional(),
-  timezone: z.string().trim().min(3).max(80).regex(/^[A-Za-z_+-]+(?:\\/[A-Za-z0-9_+.-]+)+$/),
+  timezone: z.string().trim().min(3).max(80).regex(/^[A-Za-z_+-]+(?:\/[A-Za-z0-9_+.-]+)+$/),
 })
 
 export const branchHolidaySchema = z.object({
   name: z.string().trim().min(2).max(120),
-  date: z.string().regex(/^\\d{4}-\\d{2}-\\d{2}$/),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   isClosed: z.boolean(),
   overrideOpensAt: z.string().optional(),
   overrideClosesAt: z.string().optional(),
@@ -50,8 +50,8 @@ export const businessHoursDaySchema = z.object({
   weekday: z.number().int().min(0).max(6),
   isClosed: z.boolean(),
   shifts: z.array(z.object({
-    opensAt: z.string().regex(/^([01]\\d|2[0-3]):[0-5]\\d$/),
-    closesAt: z.string().regex(/^([01]\\d|2[0-3]):[0-5]\\d$/),
+    opensAt: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/),
+    closesAt: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/),
   }).refine((shift) => shift.opensAt < shift.closesAt, {
     message: "Closing time must be later than opening time",
     path: ["closesAt"],
