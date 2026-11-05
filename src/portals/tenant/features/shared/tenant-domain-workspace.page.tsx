@@ -175,7 +175,9 @@ export function TenantDomainWorkspacePage({ feature }: { feature: TenantFeatureD
       setSuccess(ar ? "تم تنفيذ العملية بنجاح." : "The operation completed successfully.")
       setConfirm(null)
       await client.invalidateQueries({ queryKey: ["tenant-domain", feature.key] })
-      if (variables.endpoint.method === "GET") return
+      const result = _data as { url?: string; downloadUrl?: string; exportUrl?: string } | undefined
+      const downloadUrl = result?.url ?? result?.downloadUrl ?? result?.exportUrl
+      if (downloadUrl && /download|export/i.test(variables.endpoint.purpose)) window.open(downloadUrl, "_blank", "noopener,noreferrer")
     },
     onError: error => {
       setSuccess("")
@@ -229,7 +231,7 @@ export function TenantDomainWorkspacePage({ feature }: { feature: TenantFeatureD
     }
   }
 
-  const detailsEndpoint = feature.endpoints.find(endpoint => endpoint.method === "GET" && endpoint.path.includes("{"))
+  const readActions = feature.endpoints.filter(endpoint => endpoint.method === "GET" && endpoint.path.includes("{"))
   const rowActions = writeEndpoints.filter(endpoint => endpoint.path.includes("{"))
   const showGenericPayload = !fields.length && Boolean(formEndpoint)
 
@@ -263,7 +265,16 @@ export function TenantDomainWorkspacePage({ feature }: { feature: TenantFeatureD
               ) : !isSummary && !resourcesQuery[index]?.isLoading ? (
                 <p className="rounded-xl border border-dashed py-8 text-center text-sm text-muted-foreground">{ar ? "لا توجد سجلات حالياً." : "No records yet."}</p>
               ) : null}
-              {detailsEndpoint && rows.length > 0 && <div className="mt-3 flex flex-wrap gap-2">{rows.slice(0, 8).map(row => <Button key={rowId(row)} size="sm" variant="outline" onClick={() => void openDetails(detailsEndpoint, row)}><Eye className="me-2 size-3.5"/>{ar ? "تفاصيل" : "Details"} · {String(row.name ?? row.email ?? rowId(row)).slice(0, 24)}</Button>)}</div>}
+              {readActions.length > 0 && rows.length > 0 && <div className="mt-3 flex flex-wrap gap-2">{rows.slice(0, 8).flatMap(row => readActions.map(endpoint => <Button key={endpoint.path + rowId(row)} size="sm" variant="outline" onClick={() => {
+                if (/download/i.test(endpoint.purpose)) {
+                  void tenantApi.get(apiPath(resolvePath(endpoint.path, row))).then(response => {
+                    const result = unwrap(response.data) as { url?: string; downloadUrl?: string }
+                    const url = result?.url ?? result?.downloadUrl
+                    if (url) window.open(url, "_blank", "noopener,noreferrer")
+                    else setFormError(ar ? "رابط التنزيل غير متاح." : "The download link is unavailable.")
+                  }).catch(error => setFormError(error instanceof Error ? error.message : (ar ? "تعذر التنزيل." : "Unable to download.")))
+                } else void openDetails(endpoint, row)
+              }}><Eye className="me-2 size-3.5"/>{/download/i.test(endpoint.purpose) ? (ar ? "تنزيل" : "Download") : (ar ? "تفاصيل" : "Details")} · {String(row.name ?? row.email ?? rowId(row)).slice(0, 20)}</Button>))}</div>}
               {rowActions.length > 0 && rows.length > 0 && (
                 <div className="mt-4 flex flex-wrap gap-2">
                   {rows.slice(0, 12).flatMap(row => rowActions.map(endpoint => (
