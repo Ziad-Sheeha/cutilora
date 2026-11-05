@@ -85,17 +85,25 @@ export function BranchOperationsPage() {
     staleTime: 60_000,
   })
   useEffect(() => {
+    setDays(initialDays)
+    setHoursError("")
+    setHolidayOpen(false)
+    setHolidayName("")
+    setHolidayDate("")
+    setHolidayError("")
+    setSettingsError("")
+  }, [branchId])
+  useEffect(() => {
     if (!settingsQuery.data) return
     setBranchTimezone(settingsQuery.data.timezone ?? selectedBranch?.timezone ?? "Africa/Cairo")
     setBranchStatus(settingsQuery.data.status ?? selectedBranch?.status ?? "active")
     setManagerId(settingsQuery.data.managerId ?? "")
   }, [settingsQuery.data, selectedBranch?.timezone, selectedBranch?.status])
   useEffect(() => {
-    if (hoursQuery.data?.length) {
-      const mapped: BusinessHoursDay[] = initialDays.map((day) => ({ ...day, shifts: [] }))
-      hoursQuery.data.forEach((day) => { if (day.weekday >= 0 && day.weekday <= 6) mapped[day.weekday] = { ...day, shifts: day.shifts ?? [] } })
-      setDays(mapped)
-    }
+    if (!hoursQuery.data) return
+    const mapped: BusinessHoursDay[] = initialDays.map((day) => ({ ...day, shifts: [] }))
+    hoursQuery.data.forEach((day) => { if (day.weekday >= 0 && day.weekday <= 6) mapped[day.weekday] = { ...day, shifts: day.shifts ?? [] } })
+    setDays(mapped)
   }, [hoursQuery.data])
 
   const saveHours = useMutation({
