@@ -57,7 +57,7 @@ export function TenantBranchesPage() {
     let active = true
     setLoading(true)
     setError("")
-    getBranches()
+    getBranches(clinicId)
       .then((items) => {
         if (active) setBranches(items)
       })
@@ -73,8 +73,8 @@ export function TenantBranchesPage() {
   }, [clinicId])
 
   async function saveBranch(payload: Record<string, unknown>) {
-    await createBranch(payload)
-    setBranches(await getBranches())
+    await createBranch({ ...payload, clinicId })
+    setBranches(await getBranches(clinicId))
     setFormOpen(false)
   }
 
