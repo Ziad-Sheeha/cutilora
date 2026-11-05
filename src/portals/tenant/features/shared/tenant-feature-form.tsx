@@ -11,12 +11,12 @@ import { useI18n } from "@/i18n/i18n-provider"
 import type { TenantFeatureDefinition } from "./tenant-feature.types"
 import { getTenantFieldErrors, validateTenantFeatureForm, type TenantFeatureSchemaKey } from "./tenant-feature-schemas"
 
-type Props = { feature: TenantFeatureDefinition; onSave?: (payload: Record<string, unknown>) => Promise<void> }
+type Props = { feature: TenantFeatureDefinition; onSave?: (payload: Record<string, unknown>) => Promise<void>; initialValues?: Record<string, string> }
 
-export function TenantFeatureForm({ feature, onSave }: Props) {
+export function TenantFeatureForm({ feature, onSave, initialValues }: Props) {
   const { locale } = useI18n()
   const ar = locale === "ar"
-  const [values, setValues] = useState<Record<string, string>>({})
+  const [values, setValues] = useState<Record<string, string>>(() => initialValues ?? {})
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [validated, setValidated] = useState(false)\n  const [saving, setSaving] = useState(false)\n  const [saveError, setSaveError] = useState<string | null>(null)
 
