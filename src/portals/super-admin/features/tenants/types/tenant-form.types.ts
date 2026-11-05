@@ -12,7 +12,7 @@ export interface TenantFormValues {
   address: {
     countryId: string; governorateId: string; cityId: string; districtId: string
     addressLine1: string; addressLine2: string; building: string; floor: string
-    unit: string; landmark: string; postalCode: string; latitude: string; longitude: string
+    unit: string; postalCode: string; latitude: string; longitude: string
   }
   legal: { taxNumber: string; vatNumber: string; commercialRegistrationNumber: string }
   branding: { logoUrl: string; coverImageUrl: string; primaryColor: string }
@@ -22,7 +22,7 @@ export interface TenantFormValues {
 export const emptyTenantForm: TenantFormValues = {
   name: "", owner: { name: "", email: "", password: "", passwordConfirmation: "" }, displayName: "", legalName: "", businessType: "single_clinic", description: "", industry: "aesthetic_medicine",
   contact: { email: "", phoneCode: "+20", phone: "", alternatePhone: "", whatsapp: "", website: "" },
-  address: { countryId: "", governorateId: "", cityId: "", districtId: "", addressLine1: "", addressLine2: "", building: "", floor: "", unit: "", landmark: "", postalCode: "", latitude: "", longitude: "" },
+  address: { countryId: "", governorateId: "", cityId: "", districtId: "", addressLine1: "", addressLine2: "", building: "", floor: "", unit: "", postalCode: "", latitude: "", longitude: "" },
   legal: { taxNumber: "", vatNumber: "", commercialRegistrationNumber: "" },
   branding: { logoUrl: "", coverImageUrl: "", primaryColor: "#2563eb" },
   preferences: { timezone: "Africa/Cairo", locale: "en", currency: "EGP", dateFormat: "YYYY-MM-DD", weekStartsOn: "6", supportedLanguages: ["en", "ar"] },
@@ -33,7 +33,7 @@ export function tenantToForm(tenant: Tenant): TenantFormValues {
     name: tenant.name, owner: { name: "", email: "", password: "", passwordConfirmation: "" }, displayName: tenant.displayName, legalName: tenant.legalName, businessType: tenant.businessType,
     description: tenant.description, industry: tenant.industry,
     contact: { email: tenant.contact.email ?? "", phoneCode: tenant.contact.phoneCode || "+20", phone: tenant.contact.phone ? "0" + tenant.contact.phone.replace(/^0+/, "") : "", alternatePhone: tenant.contact.alternatePhone ? "0" + tenant.contact.alternatePhone.replace(/^0+/, "") : "", whatsapp: tenant.contact.whatsapp ? "0" + tenant.contact.whatsapp.replace(/^0+/, "") : "", website: tenant.contact.website ?? "" },
-    address: { countryId: tenant.address.countryId ?? "", governorateId: tenant.address.governorateId ?? "", cityId: tenant.address.cityId ?? "", districtId: tenant.address.districtId ?? "", addressLine1: tenant.address.addressLine1, addressLine2: tenant.address.addressLine2, building: tenant.address.building, floor: tenant.address.floor, unit: tenant.address.unit, landmark: tenant.address.landmark ?? "", postalCode: tenant.address.postalCode, latitude: tenant.address.latitude === null ? "" : String(tenant.address.latitude), longitude: tenant.address.longitude === null ? "" : String(tenant.address.longitude) },
+    address: { countryId: tenant.address.countryId ?? "", governorateId: tenant.address.governorateId ?? "", cityId: tenant.address.cityId ?? "", districtId: tenant.address.districtId ?? "", addressLine1: tenant.address.addressLine1, addressLine2: tenant.address.addressLine2, building: tenant.address.building, floor: tenant.address.floor, unit: tenant.address.unit, postalCode: tenant.address.postalCode, latitude: tenant.address.latitude === null ? "" : String(tenant.address.latitude), longitude: tenant.address.longitude === null ? "" : String(tenant.address.longitude) },
     legal: { taxNumber: tenant.legal.taxNumber, vatNumber: tenant.legal.vatNumber, commercialRegistrationNumber: tenant.legal.commercialRegistrationNumber },
     branding: { logoUrl: tenant.branding.logoUrl, coverImageUrl: tenant.branding.coverImageUrl, primaryColor: tenant.branding.primaryColor },
     preferences: { timezone: tenant.preferences.timezone, locale: tenant.preferences.locale, currency: tenant.preferences.currency, dateFormat: tenant.preferences.dateFormat, weekStartsOn: String(tenant.preferences.weekStartsOn), supportedLanguages: tenant.preferences.supportedLanguages },
@@ -48,7 +48,7 @@ export function formToPayload(values: TenantFormValues): TenantPayload {
     name: clean(values.name), owner: { name: clean(values.owner.name), email: clean(values.owner.email), password: values.owner.password }, displayName: clean(values.displayName), legalName: clean(values.legalName),
     businessType: values.businessType, description: clean(values.description), industry: clean(values.industry),
     contact: { email: clean(values.contact.email) || undefined, phone: values.contact.phone.trim() ? values.contact.phoneCode + apiPhone(values.contact.phone) : "", alternatePhone: values.contact.alternatePhone.trim() ? values.contact.phoneCode + apiPhone(values.contact.alternatePhone) : "", whatsapp: values.contact.whatsapp.trim() ? values.contact.phoneCode + apiPhone(values.contact.whatsapp) : "", website: clean(values.contact.website) || undefined },
-    address: { countryId: clean(values.address.countryId) || undefined, governorateId: clean(values.address.governorateId) || undefined, cityId: clean(values.address.cityId) || undefined, districtId: clean(values.address.districtId) || undefined, addressLine1: clean(values.address.addressLine1), addressLine2: clean(values.address.addressLine2), building: clean(values.address.building), floor: clean(values.address.floor), unit: clean(values.address.unit), landmark: clean(values.address.landmark), postalCode: clean(values.address.postalCode), latitude: numericOrNull(values.address.latitude), longitude: numericOrNull(values.address.longitude) },
+    address: { countryId: clean(values.address.countryId) || undefined, governorateId: clean(values.address.governorateId) || undefined, cityId: clean(values.address.cityId) || undefined, districtId: clean(values.address.districtId) || undefined, addressLine1: clean(values.address.addressLine1), addressLine2: clean(values.address.addressLine2), building: clean(values.address.building), floor: clean(values.address.floor), unit: clean(values.address.unit), postalCode: clean(values.address.postalCode), latitude: numericOrNull(values.address.latitude), longitude: numericOrNull(values.address.longitude) },
     legal: { taxNumber: clean(values.legal.taxNumber), vatNumber: clean(values.legal.vatNumber), commercialRegistrationNumber: clean(values.legal.commercialRegistrationNumber) },
     branding: {
       ...(values.branding.logoUrl.startsWith("data:image/") ? { logoBase64: values.branding.logoUrl } : {}),
