@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Select } from "@/components/ui/select"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useI18n } from "@/i18n/i18n-provider"
 import { clinicFormSchema } from "../features/shared/tenant-feature-schemas"
 import { getTenantGeo } from "../api/tenant-api"
@@ -230,10 +230,13 @@ export function TenantClinicForm({ clinic, onCancel, onSave }: Props) {
             </div>
             <div className="space-y-2">
               <Label htmlFor="clinic-type">{copy.type}</Label>
-              <Select id="clinic-type" value={values.clinicType} onChange={(e) => update("clinicType", e.target.value)}>
-                {["dermatology", "aesthetic", "beauty", "medical_center", "other"].map((value, index) => (
-                  <option key={value} value={value}>{copy.types[index]}</option>
-                ))}
+              <Select value={values.clinicType} onValueChange={(value) => update("clinicType", value)}>
+                <SelectTrigger id="clinic-type"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {["dermatology", "aesthetic", "beauty", "medical_center", "other"].map((value, index) => (
+                    <SelectItem key={value} value={value}>{copy.types[index]}</SelectItem>
+                  ))}
+                </SelectContent>
               </Select>
             </div>
             <div className="space-y-2 md:col-span-2">
@@ -299,9 +302,12 @@ function GeoSelect({ label, value, options, disabled, onChange, choose, nameOf }
   return (
     <div className="space-y-2">
       <Label>{label}</Label>
-      <Select value={value} disabled={disabled} onChange={(event) => onChange(event.target.value)}>
-        <option value="">{choose}</option>
-        {options.map((option) => <option key={option.id} value={option.id}>{nameOf(option)}</option>)}
+      <Select value={value || "__none__"} disabled={disabled} onValueChange={(selected) => onChange(selected === "__none__" ? "" : selected)}>
+        <SelectTrigger aria-label={label}><SelectValue placeholder={choose} /></SelectTrigger>
+        <SelectContent>
+          <SelectItem value="__none__">{choose}</SelectItem>
+          {options.map((option) => <SelectItem key={option.id} value={option.id}>{nameOf(option)}</SelectItem>)}
+        </SelectContent>
       </Select>
     </div>
   )
