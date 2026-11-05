@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { Archive, Eye, FilePlus2, FileText, RefreshCw, Upload } from "lucide-react"
+import { Archive, BadgeCheck, Eye, FilePlus2, FileText, RefreshCw, Upload } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { DataTable, type DataTableColumn } from "@/components/ui/data-table"
@@ -22,7 +22,16 @@ function unwrap<T>(response: unknown): T {
   const value = response as { data?: { data?: T } }
   return (value?.data?.data ?? value?.data ?? response) as T
 }
-function idOf(row: DocumentRecord) { return String(row.id ?? row._id ?? row.fileName ?? row.name ?? "") }
+function idOf(row: DocumentRecord) { return String(row.id ?? row._id ?? row.fileName ?? row.name ?? JSON.stringify(row)) }
+function expiryState(value?: string, ar = false) {
+  if (!value) return ar ? "غير محدد" : "Not set"
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return value
+  const days = Math.ceil((date.getTime() - Date.now()) / 86_400_000)
+  if (days < 0) return ar ? "منتهي" : "Expired"
+  if (days <= 30) return ar ? "ينتهي قريباً" : "Expiring soon"
+  return ar ? "ساري" : "Valid"
+}
 function bytes(value?: number) {
   if (!value) return "—"
   return value < 1024 * 1024 ? `${(value / 1024).toFixed(0)} KB` : `${(value / 1024 / 1024).toFixed(1)} MB`
@@ -89,9 +98,10 @@ export function TenantDocumentsPage() {
     { id: "document", header: ar ? "المستند" : "Document", cell: row => <div className="flex min-w-0 items-center gap-2"><FileText className="size-4 shrink-0 text-primary"/><span className="max-w-[220px] truncate font-medium">{row.name ?? row.originalName ?? row.fileName ?? "—"}</span></div> },
     { id: "category", header: ar ? "التصنيف" : "Category", cell: row => row.category ?? row.type ?? "—" },
     { id: "verification", header: ar ? "التحقق" : "Verification", cell: row => row.verificationStatus ?? row.status ?? (ar ? "قيد المراجعة" : "Pending") },
-    { id: "expiry", header: ar ? "تاريخ الانتهاء" : "Expiry", cell: row => row.expiryDate ?? row.expiresAt ?? "—" },
+    { id: "expiry", header: ar ? "تاريخ الانتهاء" : "Expiry date", cell: row => row.expiryDate ?? row.expiresAt ?? "—" },
+    { id: "expiryStatus", header: ar ? "حالة الصلاحية" : "Expiry status", cell: row => expiryState(row.expiryDate ?? row.expiresAt, ar) },
     { id: "size", header: ar ? "الحجم" : "Size", cell: row => bytes(row.size) },
-    { id: "actions", header: ar ? "الإجراءات" : "Actions", cell: row => <div className="flex flex-wrap gap-1"><Button size="icon" variant="ghost" title={ar ? "معاينة / تنزيل" : "Preview / download"} onClick={() => void openDocument(row)}><Eye className="size-4"/></Button><Button size="icon" variant="ghost" title={ar ? "استبدال الملف" : "Replace file"} onClick={() => { setReplaceId(idOf(row)); setFile(null) }}><Upload className="size-4"/></Button><Button size="icon" variant="ghost" title={ar ? "اعتماد المستند" : "Mark verified"} onClick={() => verify.mutate(idOf(row))}><FilePlus2 className="size-4"/></Button><Button size="icon" variant="ghost" title={ar ? "أرشفة" : "Archive"} onClick={() => setArchiveId(idOf(row))}><Archive className="size-4"/></Button></div> },
+    { id: "actions", header: ar ? "الإجراءات" : "Actions", cell: row => <div className="flex flex-wrap gap-1"><Button size="icon" variant="ghost" title={ar ? "معاينة / تنزيل" : "Preview / download"} onClick={() => void openDocument(row)}><Eye className="size-4"/></Button><Button size="icon" variant="ghost" title={ar ? "استبدال الملف" : "Replace file"} onClick={() => { setReplaceId(idOf(row)); setFile(null) }}><Upload className="size-4"/></Button><Button size="icon" variant="ghost" title={ar ? "اعتماد المستند" : "Mark verified"} onClick={() => verify.mutate(idOf(row))}><BadgeCheck className="size-4"/></Button><Button size="icon" variant="ghost" title={ar ? "أرشفة" : "Archive"} onClick={() => setArchiveId(idOf(row))}><Archive className="size-4"/></Button></div> },
   ], [ar])
   return <div className="space-y-6">
     <TenantPageHeading eyebrow={ar ? "ملف المؤسسة" : "ORGANIZATION PROFILE"} title={ar ? "مستندات المؤسسة" : "Organization Documents"} description={ar ? "احفظ مستندات مؤسستك وتابع تصنيفاتها وحالة التحقق وتواريخ الانتهاء." : "Store organization documents and track their categories, verification and expiry dates."}/>
