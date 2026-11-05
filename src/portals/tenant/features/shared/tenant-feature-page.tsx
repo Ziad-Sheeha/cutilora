@@ -1,13 +1,10 @@
-import { useEffect, useState } from "react"
 import { useParams } from "react-router"
-import { AlertCircle, ArrowUpRight, CheckCircle2, Code2, LoaderCircle, LockKeyhole, RefreshCw, ServerCog } from "lucide-react"
+import { CheckCircle2, Code2, LockKeyhole, ServerCog } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { useI18n } from "@/i18n/i18n-provider"
 import { TenantPageHeading } from "../../components/tenant-page-heading"
 import { getTenantFeature } from "./tenant-feature-registry"
 import { TenantFeatureForm } from "./tenant-feature-form"
-import { fetchTenantFeatureRecords, getTenantFeatureListEndpoint, type TenantFeatureRecord } from "./tenant-feature-api"
-import { Button } from "@/components/ui/button"
 
 const methodStyles: Record<string, string> = {
   GET: "bg-sky-50 text-sky-700",
@@ -23,32 +20,7 @@ export function TenantFeaturePage() {
   const ar = locale === "ar"
   const key = section ? `${featureParam}/${section}` : featureParam || ""
   const feature = getTenantFeature(key)
-  const [records, setRecords] = useState<TenantFeatureRecord[]>([])
-  const [loading, setLoading] = useState(false)
-  const [loadError, setLoadError] = useState<string | null>(null)
-  const [reloadKey, setReloadKey] = useState(0)
-  const listEndpoint = feature ? getTenantFeatureListEndpoint(feature) : undefined
-
-  useEffect(() => {
-    if (!listEndpoint) return
-    let active = true
-    setLoading(true)
-    setLoadError(null)
-    setRecords([])
-    fetchTenantFeatureRecords(listEndpoint, { page: 1, per_page: 20 })
-      .then((result) => {
-        if (active) setRecords(result.records)
-      })
-      .catch((error: Error) => {
-        if (active) setLoadError(error.message)
-      })
-      .finally(() => {
-        if (active) setLoading(false)
-      })
-    return () => {
-      active = false
-    }
-  }, [listEndpoint, reloadKey])
+  const feature = getTenantFeature(key)
 
   if (!feature) {
     return (
@@ -76,8 +48,8 @@ export function TenantFeaturePage() {
         <StatusCard
           icon={ServerCog}
           label={ar ? "حالة التكامل" : "Integration status"}
-          value={listEndpoint ? (ar ? "واجهة بيانات" : "API-backed") : (ar ? "تكامل حسب العقد" : "Contract-driven")}
-          description={ar ? "الواجهة والعقد جاهزان للتوصيل" : "UI and API contract are scaffolded"}
+          value={ar ? "بانتظار الباك" : "Backend pending"}
+          description={ar ? "لا يتم إرسال طلبات وهمية لمسارات غير منفذة" : "No requests are sent to unimplemented endpoints"}
         />
         <StatusCard
           icon={LockKeyhole}
@@ -121,7 +93,7 @@ export function TenantFeaturePage() {
             <div className="mb-4 flex items-center justify-between gap-3">
               <div>
                 <h3 className="font-semibold">{ar ? "حالة الباك" : "Backend readiness"}</h3>
-                <p className="mt-1 text-xs text-muted-foreground">{ar ? "لا توجد عمليات وهمية" : "No fake requests are made"}</p>
+                <p className="mt-1 text-xs text-muted-foreground">{ar ? "لا توجد اتصالات غير مؤكدة" : "No unverified API calls"}</p>
               </div>
               <span className="rounded-full bg-amber-50 px-2.5 py-1 text-[10px] font-bold text-amber-800">
                 {listEndpoint ? (ar ? "متصل عند توفر المسار" : "Endpoint configured") : (ar ? "حسب العقد" : "Contract-defined")}
@@ -141,44 +113,9 @@ export function TenantFeaturePage() {
         </Card>
       </section>
 
-      {listEndpoint && (
-        <Card className="border-white bg-white">
-          <CardContent className="p-6">
-            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <h3 className="font-semibold">{ar ? "البيانات الفعلية" : "Live records"}</h3>
-                <p className="mt-1 text-xs text-muted-foreground" dir="ltr">{listEndpoint.path}</p>
-              </div>
-              <Button type="button" size="sm" variant="outline" disabled={loading} onClick={() => setReloadKey((value) => value + 1)}>
-                <RefreshCw className={`me-2 size-4 ${loading ? "animate-spin" : ""}`} />
-                {ar ? "تحديث" : "Refresh"}
-              </Button>
-            </div>
-            {loading ? (
-              <div role="status" className="flex items-center gap-2 py-8 text-sm text-muted-foreground"><LoaderCircle className="size-4 animate-spin" />{ar ? "جاري تحميل البيانات..." : "Loading records..."}</div>
-            ) : loadError ? (
-              <div role="alert" className="flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800"><AlertCircle className="mt-0.5 size-4 shrink-0" /><span>{loadError}</span></div>
-            ) : records.length === 0 ? (
-              <p className="py-8 text-center text-sm text-muted-foreground">{ar ? "لا توجد سجلات لعرضها حالياً." : "No records found."}</p>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[560px] text-sm">
-                  <thead><tr className="border-b text-start text-xs text-muted-foreground"><th className="px-3 py-3 text-start">{ar ? "السجل" : "Record"}</th><th className="px-3 py-3 text-start">{ar ? "الحالة" : "Status"}</th><th className="px-3 py-3 text-start">{ar ? "تاريخ الإنشاء" : "Created at"}</th></tr></thead>
-                  <tbody>{records.map((record, index) => {
-                    const id = String(record.id ?? record._id ?? index)
-                    const label = String(record.name ?? record.displayName ?? record.email ?? record.title ?? id)
-                    const status = String(record.status ?? "—")
-                    const createdAt = record.createdAt ? new Date(String(record.createdAt)).toLocaleString(ar ? "ar-EG" : "en-US") : "—"
-                    return <tr key={id} className="border-b last:border-0"><td className="px-3 py-3 font-medium">{label}</td><td className="px-3 py-3 text-muted-foreground">{status}</td><td className="px-3 py-3 text-xs text-muted-foreground">{createdAt}</td></tr>
-                  })}</tbody>
-                </table>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
 
-      <TenantFeatureForm feature={feature} onCreated={() => setReloadKey((value) => value + 1)} />
+
+      <TenantFeatureForm feature={feature} />
 
       <Card className="border-white bg-white">
         <CardContent className="p-6">
@@ -188,7 +125,7 @@ export function TenantFeaturePage() {
             </span>
             <div>
               <h3 className="font-semibold">{ar ? "عقد الـ API المقترح" : "Prepared API contract"}</h3>
-              <p className="mt-1 text-xs text-muted-foreground">{ar ? "مسارات جاهزة للمراجعة والاتفاق مع الباك" : "Routes prepared for backend review and alignment"}</p>
+              <p className="mt-1 text-xs text-muted-foreground">{ar ? "عقود مقترحة للمراجعة — لا يتم استدعاؤها قبل تنفيذها في الباك" : "Proposed contracts for review — not called until implemented by the backend"}</p>
             </div>
           </div>
           <div className="overflow-x-auto">
@@ -210,7 +147,7 @@ export function TenantFeaturePage() {
                     <td className="px-3 py-3 font-mono text-xs" dir="ltr">{endpoint.path}</td>
                     <td className="px-3 py-3 text-xs text-muted-foreground">{endpoint.purpose}</td>
                     <td className="px-3 py-3">
-                      <span className="rounded-full bg-amber-50 px-2 py-1 text-[10px] font-semibold text-amber-800">{ar ? "مسار API معرف" : "API contract defined"}</span>
+                      <span className="rounded-full bg-amber-50 px-2 py-1 text-[10px] font-semibold text-amber-800">{ar ? "غير منفذ في الباك الحالي" : "Not implemented in current backend"}</span>
                     </td>
                   </tr>
                 ))}
