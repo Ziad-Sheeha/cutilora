@@ -48,7 +48,6 @@ export function TenantLocationSection({ values, copy, update, updateLocation }: 
     <TenantFormField id="tenant-building" label={copy.building} value={values.address.building} onChange={(value) => update("address", "building", value)}/>
     <TenantFormField id="tenant-floor" label={copy.floor} value={values.address.floor} onChange={(value) => update("address", "floor", value)}/>
     <TenantFormField id="tenant-unit" label={copy.unit} value={values.address.unit} onChange={(value) => update("address", "unit", value)}/>
-    <TenantFormField id="tenant-landmark" label={copy.landmark} value={values.address.landmark} onChange={(value) => update("address", "landmark", value)}/>
     <TenantFormField id="tenant-postal" label={copy.postalCode} value={values.address.postalCode} onChange={(value) => update("address", "postalCode", value)}/>
     <TenantFormField id="tenant-latitude" label={copy.latitude} type="number" min="-90" max="90" step="any" value={values.address.latitude} onChange={(value) => update("address", "latitude", value)}/>
     <TenantFormField id="tenant-longitude" label={copy.longitude} type="number" min="-180" max="180" step="any" value={values.address.longitude} onChange={(value) => update("address", "longitude", value)}/>
