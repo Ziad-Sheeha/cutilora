@@ -1,6 +1,6 @@
-import { useMemo, useState } from "react"
+import { useState, type FormEvent } from "react"
 import { useQueries, useMutation, useQueryClient } from "@tanstack/react-query"
-import { Activity, ArrowDownToLine, Check, Eye, LoaderCircle, Plus, RefreshCw, RotateCw, Send, ShieldCheck, Trash2, XCircle } from "lucide-react"
+import { Activity, Check, Eye, LoaderCircle, Plus, RefreshCw, RotateCw, Send, ShieldCheck, Trash2, XCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { DataTable, type DataTableColumn } from "@/components/ui/data-table"
@@ -164,7 +164,7 @@ export function TenantDomainWorkspacePage({ feature }: { feature: TenantFeatureD
       const path = resolvePath(endpoint.path, row)
       if (path.includes("//") || path.includes("/undefined")) throw new Error(ar ? "تعذر تحديد السجل المطلوب." : "The target record could not be identified.")
       const response = await tenantApi.request({
-        method: endpoint.method.toLowerCase(),
+        method: endpoint.method,
         url: apiPath(path),
         data: payload,
       })
@@ -199,7 +199,7 @@ export function TenantDomainWorkspacePage({ feature }: { feature: TenantFeatureD
     }))
   }
 
-  async function submitForm(event: React.FormEvent<HTMLFormElement>) {
+  async function submitForm(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (!formEndpoint) return
     setFormError("")
