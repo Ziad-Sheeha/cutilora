@@ -152,7 +152,7 @@ export function ClinicModulePage() {
     setFormOpen(true)
   }
   async function removeRecord(record: ClinicRecord) {
-    const id = rowId(record, 0)
+    const id = rowId(record)
     try {
       await deleteMutation.mutateAsync(id)
     } catch (error) {
@@ -181,7 +181,7 @@ export function ClinicModulePage() {
       field.type === "number" ? Number(formValues[field.name]) : formValues[field.name],
     ]))
     try {
-      if (editing) await updateMutation.mutateAsync({ id: rowId(editing, 0), payload, recordType: editing.recordType })
+      if (editing) await updateMutation.mutateAsync({ id: rowId(editing), payload, recordType: editing.recordType })
       else await createMutation.mutateAsync(payload)
     } catch (error) {
       setFormError(error instanceof Error ? error.message : (ar ? "تعذر حفظ البيانات" : "Unable to save record"))
