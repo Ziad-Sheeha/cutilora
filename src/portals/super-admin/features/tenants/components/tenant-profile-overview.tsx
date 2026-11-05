@@ -94,7 +94,7 @@ export function TenantProfileOverview({ tenant, labels, locale }: { tenant: Tena
             <div className="min-w-0 flex-1"><p className="truncate text-sm font-semibold">{tenant.displayName || tenant.name}</p><p className="mt-1 text-xs text-muted-foreground">{labels.brandColor}</p></div>
             <span className="size-9 shrink-0 rounded-lg border shadow-sm" style={{backgroundColor:tenant.branding.primaryColor || "transparent"}}/>
           </div>
-          {tenant.branding.coverImageUrl && <div className="overflow-hidden rounded-xl border border-border/70 sm:col-span-2"><AppImage src={resolveAssetUrl(tenant.branding.coverImageUrl)} alt={locale === "ar" ? "صورة غلاف المؤسسة" : "Organization cover"} className="h-32 w-full sm:h-40" imageClassName="size-full object-cover"/></div>}
+          {tenant.branding.coverImageUrl && <div className="overflow-hidden rounded-xl border border-border/70 sm:col-span-2"><AppImage src={resolveAssetUrl(tenant.branding.coverImageUrl)} alt={locale === "ar" ? "صورة غلاف المؤسسة" : "Organization cover"} className="h-40 w-full bg-muted/20 sm:h-52" imageClassName="size-full object-contain p-2"/></div>}
         </TenantProfileSection>
 
         <TenantClinicsSection clinics={tenant.clinics ?? []} locale={locale}/>
