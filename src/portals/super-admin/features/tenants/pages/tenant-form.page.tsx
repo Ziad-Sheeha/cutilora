@@ -174,6 +174,7 @@ export function TenantFormPage() {
     const payload = formToPayload(values)
     try {
       const saved = isEdit ? await mutations.updateProfile.mutateAsync({ id: tenantId, payload: (({ owner: _owner, ...profile }) => profile)(payload) }) : await mutations.create.mutateAsync(payload)
+      if (isEdit) setValues(tenantToForm(saved))
       setSavedTenant(saved)
       setSuccessOpen(true)
       store.dispatch(pushToast({ id: crypto.randomUUID(), kind: "success", title: isEdit ? copy.successUpdate : copy.successCreate }))
