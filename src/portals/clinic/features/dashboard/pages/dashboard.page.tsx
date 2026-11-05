@@ -5,6 +5,7 @@ import { CalendarCheck, CircleDollarSign, Clock3, Users } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { StatCard } from "@/shared/components/stat-card"
 import { useI18n } from "@/i18n/i18n-provider"
+import { useAppSelector } from "@/store/hooks"
 import { fetchClinicModuleRecords, type ClinicRecord } from "@/portals/clinic/features/clinic/api/clinic-module.api"
 import { AppointmentsTable } from "@/portals/clinic/features/dashboard/components/appointments-table"
 
@@ -21,9 +22,10 @@ function amountOf(record: ClinicRecord) {
 export function DashboardPage() {
   const { t, locale } = useI18n()
   const d = t.dashboard
-  const appointmentsQuery = useQuery({ queryKey: ["clinic-module", "appointments"], queryFn: () => fetchClinicModuleRecords("appointments"), staleTime: 30_000 })
-  const patientsQuery = useQuery({ queryKey: ["clinic-module", "patients"], queryFn: () => fetchClinicModuleRecords("patients"), staleTime: 60_000 })
-  const salesQuery = useQuery({ queryKey: ["clinic-module", "billing"], queryFn: () => fetchClinicModuleRecords("billing"), staleTime: 30_000 })
+  const branchId = useAppSelector((state) => state.ui.currentBranchId)
+  const appointmentsQuery = useQuery({ queryKey: ["clinic-module", "appointments", branchId], queryFn: () => fetchClinicModuleRecords("appointments"), staleTime: 30_000 })
+  const patientsQuery = useQuery({ queryKey: ["clinic-module", "patients", branchId], queryFn: () => fetchClinicModuleRecords("patients"), staleTime: 60_000 })
+  const salesQuery = useQuery({ queryKey: ["clinic-module", "billing", branchId], queryFn: () => fetchClinicModuleRecords("billing"), staleTime: 30_000 })
   const appointments = appointmentsQuery.data ?? []
   const patients = patientsQuery.data ?? []
   const sales = salesQuery.data ?? []
