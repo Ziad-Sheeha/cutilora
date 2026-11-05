@@ -5,14 +5,14 @@ import { useI18n } from "@/i18n/i18n-provider"
 import { TenantPageHeading } from "../components/tenant-page-heading"
 import { getTenantFeature } from "../features/shared/tenant-feature-registry"
 import { TenantFeatureForm } from "../features/shared/tenant-feature-form"
-import type { TenantOutletContext } from "../layout/tenant-layout"
+import type { TenantOutletContext } from "../layout/tenant-layout"\nimport { updateTenantProfile } from "../api/tenant-api"
 
 export function TenantOrganizationPage() {
-  const { context } = useOutletContext<TenantOutletContext>()
+  const { context, refresh } = useOutletContext<TenantOutletContext>()
   const { locale } = useI18n()
   const ar = locale === "ar"
   const tenant = context?.tenant
-  const profileFeature = getTenantFeature("organization-profile")
+  const profileFeature = getTenantFeature("organization-profile")\n  const initialValues = {\n    displayName: tenant?.displayName || tenant?.name || "",\n    legalName: tenant?.legalName || "",\n    businessType: tenant?.businessType || "single_clinic",\n    contactEmail: tenant?.contact?.email || "",\n    contactPhone: tenant?.contact?.phone || "",\n    website: tenant?.contact?.website || "",\n    countryId: tenant?.address?.countryId || "",\n    cityId: tenant?.address?.cityId || "",\n    addressLine1: tenant?.address?.addressLine1 || "",\n  }\n\n  async function saveProfile(values: Record<string, unknown>) {\n    await updateTenantProfile({\n      displayName: values.displayName,\n      legalName: values.legalName,\n      businessType: values.businessType,\n      contact: { email: values.contactEmail, phone: values.contactPhone, website: values.website },\n      address: { countryId: values.countryId, cityId: values.cityId, addressLine1: values.addressLine1 },\n    })\n    await refresh()\n  }
 
   const fields = [
     { label: ar ? "الاسم التجاري" : "Display name", value: tenant?.displayName || tenant?.name, icon: Building2 },
@@ -75,7 +75,7 @@ export function TenantOrganizationPage() {
         </CardContent>
       </Card>
 
-      {profileFeature && <TenantFeatureForm feature={profileFeature} />}
+      {profileFeature && <TenantFeatureForm feature={profileFeature} initialValues={initialValues} onSave={saveProfile} />}
 
       <div className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-amber-900">
         <MapPin className="mt-0.5 size-4 shrink-0" />
