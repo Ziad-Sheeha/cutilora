@@ -289,6 +289,14 @@ export const tenantFeatureRegistry: TenantFeatureDefinition[] = [
       { method: "GET", path: "/api/v1/tenant/clinics/{clinicId}/documents", purpose: "Clinic documents" },
       { method: "GET", path: "/api/v1/tenant/clinics/{clinicId}/activity", purpose: "Clinic activity" },
     ],
+    fields: [
+      { name: "name", label: "Clinic name", required: true },
+      { name: "clinicType", label: "Clinic type", type: "select", required: true, options: [{ label: "Aesthetic clinic", value: "aesthetic" }, { label: "Dermatology clinic", value: "dermatology" }, { label: "Beauty center", value: "beauty_center" }] },
+      { name: "description", label: "Description", type: "textarea" },
+      { name: "email", label: "Contact email", type: "email" },
+      { name: "phone", label: "Contact phone", type: "tel" },
+      { name: "timezone", label: "Timezone", required: true, placeholder: "Africa/Cairo" },
+    ],
     note: { en: "Clinic is the operating/legal entity. Branch is the physical location. Clinic operational workflows stay in the Clinic Portal.", ar: "العيادة كيان تشغيلي/قانوني، والفرع هو الموقع الفعلي. تظل العمليات اليومية للعيادة داخل بوابة العيادة." },
   },
   {
