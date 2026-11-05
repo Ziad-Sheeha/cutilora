@@ -154,7 +154,7 @@ export function TenantClinicForm({ clinic, onCancel, onSave }: Props) {
     }
     getTenantGeo("districts", { city_id: values.cityId })
       .then(setDistricts)
-      .catch((e) => setError(e.message))
+      .catch((e: Error) => setServerError(e.message))
   }, [values.cityId])
 
   function update<K extends keyof ClinicFormValues>(key: K, value: string) {
