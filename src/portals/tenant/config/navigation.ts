@@ -1,5 +1,6 @@
 import {
   Bell,
+  CalendarClock,
   Building2,
   ChartNoAxesCombined,
   BarChart3,
@@ -44,6 +45,8 @@ export const tenantNavigation: TenantNavGroup[] = [
       { key: "organizationProfile", href: "/tenant/organization", icon: Building2 },
       { key: "clinics", href: "/tenant/clinics", icon: Building2 },
       { key: "branches", href: "/tenant/branches", icon: MapPinned },
+      { key: "clinicWorkspace", href: "/tenant/clinic-workspace", icon: Building2 },
+      { key: "branchOperations", href: "/tenant/branch-operations", icon: CalendarClock },
       { key: "documents", href: "/tenant/documents", icon: Files },
     ],
   },
