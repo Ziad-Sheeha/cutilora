@@ -66,6 +66,7 @@ const pageLabels: Record<string, Record<Locale, string>> = {
   invalidNumber: { en: "Enter a valid number.", ar: "أدخل رقمًا صحيحًا." },
   invalidLanguage: { en: "Use the selected language for this text field.", ar: "استخدم اللغة المحددة في هذا الحقل النصي." },
   saveError: { en: "Unable to save this record.", ar: "تعذر حفظ السجل." },
+  missingId: { en: "This record cannot be changed because it has no resource identifier.", ar: "لا يمكن تعديل هذا السجل لعدم وجود معرّف صالح له." },
   loadError: { en: "Unable to load records.", ar: "تعذر تحميل السجلات." },
   createSuccess: { en: "Record created successfully.", ar: "تم إنشاء السجل بنجاح." },
   updateSuccess: { en: "Changes saved successfully.", ar: "تم حفظ التغييرات بنجاح." },
