@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useI18n } from "@/i18n/i18n-provider"
 import { tenantApi } from "../../api/tenant-api"
 import { TenantPageHeading } from "../../components/tenant-page-heading"
+import { ConfirmDialog } from "@/shared/components/dialogs/confirm-dialog"
 
 type DocumentRecord = {
   id?: string; _id?: string; name?: string; fileName?: string; originalName?: string
@@ -34,6 +35,7 @@ export function TenantDocumentsPage() {
   const [expiryDate, setExpiryDate] = useState("")
   const [file, setFile] = useState<File | null>(null)
   const [replaceId, setReplaceId] = useState<string | null>(null)
+  const [archiveId, setArchiveId] = useState<string | null>(null)
   const [error, setError] = useState("")
   const query = useQuery({
     queryKey: ["tenant-documents"],
@@ -65,8 +67,13 @@ export function TenantDocumentsPage() {
   })
   const archive = useMutation({
     mutationFn: (id: string) => tenantApi.delete(`${root}/${encodeURIComponent(id)}`),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["tenant-documents"] }),
+    onSuccess: async () => { setArchiveId(null); await qc.invalidateQueries({ queryKey: ["tenant-documents"] }) },
     onError: (e) => setError(e instanceof Error ? e.message : "Archive failed"),
+  })
+  const verify = useMutation({
+    mutationFn: (id: string) => tenantApi.patch(`${root}/${encodeURIComponent(id)}/verification`, { verificationStatus: "verified" }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["tenant-documents"] }),
+    onError: (e) => setError(e instanceof Error ? e.message : "Verification update failed"),
   })
   async function openDocument(row: DocumentRecord) {
     try {
@@ -84,7 +91,7 @@ export function TenantDocumentsPage() {
     { id: "verification", header: ar ? "التحقق" : "Verification", cell: row => row.verificationStatus ?? row.status ?? (ar ? "قيد المراجعة" : "Pending") },
     { id: "expiry", header: ar ? "تاريخ الانتهاء" : "Expiry", cell: row => row.expiryDate ?? row.expiresAt ?? "—" },
     { id: "size", header: ar ? "الحجم" : "Size", cell: row => bytes(row.size) },
-    { id: "actions", header: ar ? "الإجراءات" : "Actions", cell: row => <div className="flex flex-wrap gap-1"><Button size="icon" variant="ghost" title={ar ? "معاينة / تنزيل" : "Preview / download"} onClick={() => void openDocument(row)}><Eye className="size-4"/></Button><Button size="icon" variant="ghost" title={ar ? "استبدال الملف" : "Replace file"} onClick={() => { setReplaceId(idOf(row)); setFile(null) }}><Upload className="size-4"/></Button><Button size="icon" variant="ghost" title={ar ? "أرشفة" : "Archive"} onClick={() => { if (window.confirm(ar ? "أرشفة هذا المستند؟" : "Archive this document?")) archive.mutate(idOf(row)) }}><Archive className="size-4"/></Button></div> },
+    { id: "actions", header: ar ? "الإجراءات" : "Actions", cell: row => <div className="flex flex-wrap gap-1"><Button size="icon" variant="ghost" title={ar ? "معاينة / تنزيل" : "Preview / download"} onClick={() => void openDocument(row)}><Eye className="size-4"/></Button><Button size="icon" variant="ghost" title={ar ? "استبدال الملف" : "Replace file"} onClick={() => { setReplaceId(idOf(row)); setFile(null) }}><Upload className="size-4"/></Button><Button size="icon" variant="ghost" title={ar ? "اعتماد المستند" : "Mark verified"} onClick={() => verify.mutate(idOf(row))}><FilePlus2 className="size-4"/></Button><Button size="icon" variant="ghost" title={ar ? "أرشفة" : "Archive"} onClick={() => setArchiveId(idOf(row))}><Archive className="size-4"/></Button></div> },
   ], [ar])
   return <div className="space-y-6">
     <TenantPageHeading eyebrow={ar ? "ملف المؤسسة" : "ORGANIZATION PROFILE"} title={ar ? "مستندات المؤسسة" : "Organization Documents"} description={ar ? "احفظ مستندات مؤسستك وتابع تصنيفاتها وحالة التحقق وتواريخ الانتهاء." : "Store organization documents and track their categories, verification and expiry dates."}/>
@@ -100,5 +107,6 @@ export function TenantDocumentsPage() {
       {query.isError && <p role="alert" className="p-5 text-sm text-destructive">{query.error instanceof Error ? query.error.message : (ar ? "تعذر تحميل المستندات" : "Unable to load documents")}</p>}
       <DataTable columns={columns} data={rows} getRowId={idOf} isLoading={query.isLoading} loadingLabel={ar ? "جارٍ تحميل المستندات..." : "Loading documents..."} emptyState={<div className="px-6 py-14 text-center text-sm text-muted-foreground">{ar ? "لا توجد مستندات مضافة حتى الآن." : "No organization documents have been added yet."}</div>}/>
     </section>
+    <ConfirmDialog open={Boolean(archiveId)} title={ar ? "أرشفة المستند" : "Archive document"} description={ar ? "لن يظهر هذا المستند ضمن المستندات النشطة." : "This document will be moved out of the active document library."} confirmLabel={ar ? "أرشفة" : "Archive"} destructive isLoading={archive.isPending} onOpenChange={open => { if (!open) setArchiveId(null) }} onConfirm={() => { if (archiveId) archive.mutate(archiveId) }}/>
   </div>
 }
