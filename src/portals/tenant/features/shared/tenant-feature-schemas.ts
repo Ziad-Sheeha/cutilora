@@ -110,6 +110,13 @@ export const tenantFeatureSchemas = {
     scope: z.enum(["tenant", "clinic"]),
   }),
   profile: tenantProfileSchema,
+  notification: z.object({
+    emailEnabled: z.enum(["true", "false"]),
+    inAppEnabled: z.enum(["true", "false"]),
+    securityAlerts: z.enum(["true", "false"]),
+    billingAlerts: z.enum(["true", "false"]),
+    membershipAlerts: z.enum(["true", "false"]),
+  }),
   preferences: z.object({
     locale: z.enum(["en", "ar"]),
     currency: z.enum(["EGP", "SAR", "AED", "USD"]),
