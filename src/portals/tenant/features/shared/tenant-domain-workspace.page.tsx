@@ -482,6 +482,8 @@ export function TenantDomainWorkspacePage({ feature, clinicId, clinics = [], bra
         const matchingRowActions = rowActions.filter(endpoint => resolvePath(endpoint.path, feature.key === "clinic-workspace" ? { clinicId, id: clinicId } : undefined).startsWith(resource.endpoint.path.replace(/\/$/, "") + "/"))
         const isSummary = /summary|subscription|configuration|preferences/.test(resource.endpoint.path)
         const summaryEntries = Object.entries(resource.summary ?? {}).filter(([key, value]) => !hidden.has(key) && !sensitive.test(key) && value !== null && typeof value !== "object").slice(0, 12)
+        const inheritance = resource.summary?.inheritance ?? resource.summary?.sources ?? resource.summary?.overrides
+        const inheritanceEntries = inheritance && typeof inheritance === "object" && !Array.isArray(inheritance) ? Object.entries(inheritance as Record<string, unknown>) : []
         return (
           <Card key={resource.endpoint.path}>
             <CardContent className="p-5">
@@ -490,6 +492,7 @@ export function TenantDomainWorkspacePage({ feature, clinicId, clinics = [], bra
                 {isSummary && <Activity className="size-5 text-muted-foreground"/>}
               </div>
               {isSummary && summaryEntries.length > 0 && <div className="mb-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">{summaryEntries.map(([key, value]) => <div key={key} className="rounded-xl border bg-muted/20 p-3"><p className="text-xs text-muted-foreground">{humanize(key, ar)}</p><p className="mt-1 break-words text-lg font-semibold">{display(value, ar)}</p></div>)}</div>}
+              {feature.key === "configuration" && inheritanceEntries.length > 0 && <div className="mb-4 rounded-xl border p-4"><h3 className="mb-3 text-sm font-semibold">{ar ? "مصدر القيم والوراثة" : "Value sources & inheritance"}</h3><div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">{inheritanceEntries.map(([key, raw]) => { const entry = raw && typeof raw === "object" ? raw as Record<string, unknown> : { value: raw }; return <div key={key} className="rounded-lg bg-muted/30 p-3"><p className="text-xs text-muted-foreground">{humanize(key, ar)}</p><p className="mt-1 text-sm font-semibold">{display(entry.value ?? entry.effectiveValue ?? entry.effective_value ?? raw, ar)}</p><p className="mt-1 text-xs text-muted-foreground">{ar ? "المصدر: " : "Source: "}{display(entry.source ?? entry.inheritedFrom ?? entry.inherited_from ?? entry.level, ar)}</p></div> })}</div></div>}
               {rows.length > 0 ? <DataTable
                 columns={columnsFor(rows)}
                 data={rows}
