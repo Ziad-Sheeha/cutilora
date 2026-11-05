@@ -109,6 +109,7 @@ export const tenantFeatureSchemas = {
     provider: requiredText("Provider"),
     scope: z.enum(["tenant", "clinic"]),
   }),
+  profile: tenantProfileSchema,
   preferences: z.object({
     locale: z.enum(["en", "ar"]),
     currency: z.enum(["EGP", "SAR", "AED", "USD"]),
