@@ -71,7 +71,7 @@ function normalizeTenant(value: unknown): Tenant {
   return {
     id: String(id), name: text(row.name), slug: text(row.slug), displayName: text(row.displayName), legalName: text(row.legalName),
     businessType: text(row.businessType, "single_clinic"), description: text(row.description), industry: text(row.industry),
-    status: text(row.status, "pending"), plan: text(row.plan), contact: tenantContact, address: tenantAddress,
+    status: text(row.status, "unknown"), plan: text(row.plan, text(object(object(row.subscription)?.plan)?.name, "unassigned")), contact: tenantContact, address: tenantAddress,
     legal: tenantLegal, branding: tenantBranding,
     clinics: asArray(row.clinics).map(normalizeClinic).filter((clinic): clinic is TenantClinic => clinic !== null),
     preferences: tenantPreferences,
@@ -181,6 +181,5 @@ export const tenantsApi = {
   updateStatus: async (id: string, status: string): Promise<void> => {
     await request(tenantPath(id) + "/status", { method: "PATCH", body: JSON.stringify({ status }) })
   },
-  subscription: async (id: string): Promise<TenantSubscription> => normalizeSubscription(await request(tenantPath(id) + "/subscription")),
-  payments: async (id: string): Promise<TenantPayment[]> => asArray(rowsFrom(await request(tenantPath(id) + "/subscription/payments"))).map(normalizePayment),
+
 }
