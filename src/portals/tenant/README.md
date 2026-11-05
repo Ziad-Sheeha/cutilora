@@ -1,91 +1,70 @@
-# Tenant portal
+# Tenant Portal — Organization Management
 
-A dedicated organization-management workspace for tenant owners and tenant administrators. It is separate from both the Super Admin portal and the clinic operations portal.
+A dedicated multi-tenant organization workspace for tenant owners and authorized tenant administrators. It is separate from the Super Admin portal and the Clinic operational portal.
 
-## Backend contracts
+## Frontend scope
 
-- `POST /auth/login` — regular user login and active tenant memberships.
-- `POST /auth/logout` — revoke the regular user token.
-- `GET /tenant/context` — resolve tenant, optional clinic/branch context, and access role.
-- `GET|POST /tenant/clinics`, `GET|PATCH /tenant/clinics/:clinicId` — tenant clinic management.
-- `GET|POST /tenant/branches` — branch management; an active clinic context is required.
-- `GET /tenant/geo/:resource` — tenant-scoped geographic lookups.
+The Tenant frontend covers the organization-management workflows below:
 
-Requests use the regular Bearer token and `X-Tenant-Id`. `X-Clinic-Id` and `X-Branch-Id` are added only when those contexts are selected.
-
-## Structure
-
-- `api/` — tenant-scoped API client and endpoint functions.
-- `auth/` — login, membership selection, session and route guard.
-- `components/` — reusable forms, membership picker, page heading, empty state and status presentation.
-- `config/` — navigation definitions.
-- `layout/` — independent tenant shell, header and sidebar.
-- `pages/` — organization overview, clinics, branches and organization profile.
-- `types/` — API contracts.
-
-## Backend boundaries
-
-The current backend does not expose tenant-profile update, tenant subscription/billing management, staff invitation, tenant user/role management, or tenant analytics endpoints. Those screens and actions are intentionally not fabricated. The organization profile is read-only until a tenant-profile update API is available.
-
-
-## Organization Management frontend map
-
-The Tenant Portal now follows the `TENANT — Organization Management` Trello scope.
-
-### Navigation and route map
-
-| Area | Route | Frontend status |
+| Area | Route | Frontend implementation |
 |---|---|---|
-| Organization overview | `/tenant` | Existing context/clinic overview |
-| Organization profile | `/tenant/organization` | Read-only until profile API is implemented |
-| Clinics | `/tenant/clinics` | Existing tenant clinic list/create/update |
-| Branches | `/tenant/branches` | Existing branch list/create |
-| Clinic workspace | `/tenant/clinic-workspace` | Clinic details/settings/documents/activity contract placeholder |
-| Branch operations | `/tenant/branch-operations` | Working hours/holidays/settings contract placeholder |
-| Organization documents | `/tenant/documents` | UI/API contract placeholder |
-| Users & memberships | `/tenant/users` | UI/API contract placeholder |
-| Invitations | `/tenant/invitations` | UI + local Zod validation; no submit request |
-| Roles & permissions | `/tenant/roles` | UI + local Zod validation; shared RBAC contract |
-| Shared catalog | `/tenant/catalog` | UI + local Zod validation; no publish request |
-| Organization policies | `/tenant/configuration` | UI + local Zod validation; no apply request |
-| Group finance | `/tenant/finance` | Reporting-only placeholder |
-| Subscription | `/tenant/subscription` | Cutilora billing placeholder |
-| Integrations | `/tenant/integrations` | Secret-safe UI contract placeholder |
-| Group reports | `/tenant/insights` | Aggregate reporting placeholder |
-| Audit governance | `/tenant/governance` | Read-only audit placeholder |
-| Preferences | `/tenant/settings/preferences` | UI + local Zod validation |
-| Notifications | `/tenant/settings/notifications` | UI/API contract placeholder |
-| Security | `/tenant/settings/security` | UI/API contract placeholder |
+| Organization overview | `/tenant` | Tenant context, organization summary, clinic overview and navigation |
+| Organization profile | `/tenant/organization` | Read/update profile, contact and registered address, dependent country/city selectors |
+| Clinics | `/tenant/clinics` | List, search, create, edit, activate and deactivate |
+| Branches | `/tenant/branches` | List by active clinic, create and edit |
+| Clinic workspace | `/tenant/clinic-workspace` | Clinic profile update, branches, assigned members, settings, documents and activity |
+| Branch operations | `/tenant/branch-operations` | Weekly hours, multiple shifts, holidays, exceptions, settings, manager assignment and activity |
+| Organization documents | `/tenant/documents` | Upload, categorize, expiry, replace, signed preview/download, verification and archive |
+| Users & memberships | `/tenant/users` | Directory, membership status/role updates and clinic/branch scopes |
+| Invitations | `/tenant/invitations` | Create, list, resend and revoke invitations |
+| Roles & permissions | `/tenant/roles` | Role create/update, permission catalogue and grant assignment |
+| Organization policies | `/tenant/configuration` | Read/update defaults, preview rollout and confirm application |
+| Shared catalog | `/tenant/catalog` | Create and update shared templates, publish templates |
+| Group finance | `/tenant/finance` | Consolidated summary, clinic comparison, revenue trends, expenses and reports |
+| Subscription | `/tenant/subscription` | Plan, usage, Cutilora invoices, invoice detail/download, billing profile and change request |
+| Integrations | `/tenant/integrations` | Providers, credential rotation, disconnect, webhook registration |
+| Group reports | `/tenant/insights` | Available reports, report detail and filtered exports |
+| Audit governance | `/tenant/governance` | Read-only audit timeline, event details and filtered exports |
+| Preferences | `/tenant/settings/preferences` | Organization language, currency and timezone |
+| Notifications | `/tenant/settings/notifications` | Email, in-app, security, billing and membership preferences |
+| Security | `/tenant/settings/security` | Active sessions, session revocation and security events |
 
-### Frontend architecture
+## Frontend architecture
 
-- `config/navigation.ts`: grouped Tenant navigation.
-- `features/shared/tenant-feature-registry.ts`: module metadata, capability scope, field definitions and endpoint mapping.
-- `features/shared/tenant-feature-page.tsx`: reusable module workspace shell.
-- `features/shared/tenant-feature-form.tsx`: reusable form renderer with field-level validation errors.
-- `features/shared/tenant-feature-schemas.ts`: Zod schemas for invitations, roles, configuration, catalog, billing, integrations, preferences, organization profile, clinic, branch, holidays, business hours and audit filters.
-- `features/contracts/tenant-endpoints.ts`: proposed API paths grouped by domain. This file is a contract catalogue; it does not issue requests to endpoints that do not exist yet.
+- `api/`: tenant-scoped Axios client; attaches regular-user Bearer token and active tenant/clinic/branch headers.
+- `auth/`: tenant login, membership selection, session lifecycle and route guard.
+- `layout/`: Tenant shell, header, context selectors and responsive navigation.
+- `pages/`: organization overview, profile, clinics and branches.
+- `features/documents/`: document lifecycle UI and signed-access handling.
+- `features/branch-operations/`: schedule, holiday, branch settings, manager and activity workflows.
+- `features/shared/tenant-domain-workspace.page.tsx`: shared data-resource presentation and endpoint-driven module operations.
+- `features/shared/tenant-feature-registry.ts`: bilingual feature metadata, fields and API operation catalogue.
+- `features/shared/tenant-feature-schemas.ts`: Zod validation schemas and localized field errors.
+- `features/contracts/tenant-endpoints.ts`: centralized tenant API route catalogue.
+- `types/`: typed Tenant, Clinic, Branch, Membership and API envelope contracts.
 
-### Backend handoff rules
+## API and security boundaries
 
-1. Proposed endpoints shown in the Tenant modules are pending contracts. Confirm request/response envelopes, pagination, filters, status enums and permission keys with Frontend before implementation.
-2. All tenant endpoints must derive/verify tenant membership server-side. Never trust a tenant ID supplied by the browser as authorization.
-3. Keep Tenant Finance as a consolidated read/reporting layer over Clinic financial records. Do not create a duplicate Tenant transaction ledger.
-4. Keep Cutilora subscription invoices separate from Clinic patient invoices and collections.
-5. Tenant UI does not create Employee/Provider records; those remain Clinic operational entities.
-6. Invitation tokens, API secrets and webhook signing secrets must never be returned in plaintext after creation.
-7. Audit events are append-only/read-only for Tenant users and must redact secrets and unnecessary clinical data.
-8. Backend authorization and entitlement checks remain authoritative; hiding a route or button is UX only.
+All Tenant requests use the active regular-user session. The API client attaches `Authorization: Bearer`, `X-Tenant-Id`, and optional `X-Clinic-Id` / `X-Branch-Id`. The backend must independently validate tenant membership, scope, permissions and plan entitlements for every request.
 
-### Integration policy
+- Never trust a tenant, clinic or branch identifier supplied by the browser as proof of authorization.
+- Tenant Finance is a consolidated reporting layer over Clinic financial records, not a duplicate transaction ledger.
+- Cutilora subscription invoices remain separate from Clinic patient invoices and collections.
+- Employee and Provider operational records remain in the Clinic domain.
+- Integration credentials and webhook secrets must never be rendered from stored API responses. Only masked identifiers and one-time creation responses may be shown.
+- Audit events are read-only and must redact credentials, tokens, payment secrets and unnecessary clinical data.
+- Document content is accessed through backend-authorized signed URLs; private storage paths are never exposed.
+- UI guards and hidden controls are UX measures only; backend authorization remains authoritative.
 
-- Existing endpoints are used only where the current backend contract has already been verified (tenant context, clinics, branches and tenant geo).
-- New modules deliberately do not make placeholder HTTP requests. Their pages show a pending-backend state and list the proposed endpoint contract.
-- Local form validation is a UX layer and must be duplicated/enforced by the backend.
-- No placeholder form reports that data was saved. A successful local validation is explicitly labelled as validation only.
+## Integration verification
 
-### API alignment note for backend handoff
+The frontend is implemented against the agreed Tenant route and payload contracts in `features/contracts/tenant-endpoints.ts` and the feature registry. Backend runtime compatibility must be verified once Hegazy's corresponding endpoints are pushed. This does not block frontend implementation, but successful frontend compilation and API integration testing remain required before release.
 
-The Trello foundation card `00.03` lists generic `/api/v1/clinics` and `/api/v1/branches` routes, while the currently inspected backend tenant contract exposes tenant-scoped collection routes `/api/v1/tenant/clinics` and `/api/v1/tenant/branches`. The frontend keeps using the verified tenant-scoped collection routes. New clinic/branch detail, schedule, holiday, settings and activity routes are proposed under the same `/api/v1/tenant` scope for consistency; Hegazy should confirm the final route convention before implementing them.
+## Release checklist
 
-Clinic create and branch list/create use currently available backend routes. Clinic edit is intentionally UI-only and displays a backend-pending message because the current backend contract has not confirmed a clinic PATCH endpoint.
+- [ ] Run `npm run build` and resolve TypeScript/lint errors.
+- [ ] Run the Tenant route and interaction smoke test in Arabic/English and RTL/LTR.
+- [ ] Verify every endpoint against the deployed backend response envelope, enum values and payload contract.
+- [ ] Verify authorization failures, validation errors, empty states, loading states and mutation feedback.
+- [ ] Verify file upload, signed document access, invoice/report exports and session revocation.
+- [ ] Complete responsive checks at desktop, tablet and mobile breakpoints.
