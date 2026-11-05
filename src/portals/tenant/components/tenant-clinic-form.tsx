@@ -234,7 +234,7 @@ export function TenantClinicForm({ clinic, onCancel, onSave }: Props) {
               {fieldErrors.name && <FieldError id="clinic-name-error">{fieldErrors.name}</FieldError>}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="clinic-type">{copy.type}</Label>
+              <Label htmlFor="clinic-type">{copy.type} <span className="text-destructive">*</span></Label>
               <Select value={values.clinicType} onValueChange={(value) => update("clinicType", value)}>
                 <SelectTrigger id="clinic-type" aria-invalid={Boolean(fieldErrors.clinicType)} aria-describedby={fieldErrors.clinicType ? "clinic-type-error" : undefined}><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -279,7 +279,7 @@ export function TenantClinicForm({ clinic, onCancel, onSave }: Props) {
                 <Input id="clinic-address" value={values.addressLine1} onChange={(e) => update("addressLine1", e.target.value)} />
               </div>
               <div className="space-y-2 sm:col-span-2 xl:col-span-4">
-                <Label htmlFor="clinic-timezone">{copy.timezone}</Label>
+                <Label htmlFor="clinic-timezone">{copy.timezone} <span className="text-destructive">*</span></Label>
                 <Input id="clinic-timezone" value={values.timezone} aria-invalid={Boolean(fieldErrors.timezone)} aria-describedby={fieldErrors.timezone ? "clinic-timezone-error" : undefined} onChange={(e) => update("timezone", e.target.value)} />
                 {fieldErrors.timezone && <FieldError id="clinic-timezone-error">{fieldErrors.timezone}</FieldError>}
               </div>
