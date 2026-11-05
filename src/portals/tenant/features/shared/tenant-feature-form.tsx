@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Field } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Select } from "@/components/ui/select"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { useI18n } from "@/i18n/i18n-provider"
 import type { TenantFeatureDefinition } from "./tenant-feature.types"
@@ -130,16 +130,27 @@ export function TenantFeatureForm({ feature }: Props) {
               </Label>
               {field.type === "select" ? (
                 <Select
-                  id={`tenant-feature-${field.name}`}
-                  value={values[field.name] || ""}
-                  aria-invalid={Boolean(errors[field.name])}
-                  onChange={(event) => {
-                    setValues((current) => ({ ...current, [field.name]: event.target.value }))
+                  value={values[field.name] || undefined}
+                  onValueChange={(value) => {
+                    setValues((current) => ({ ...current, [field.name]: value }))
+                    setErrors((current) => ({ ...current, [field.name]: "" }))
                     setValidated(false)
                   }}
                 >
-                  <option value="">{ar ? "اختر..." : "Select..."}</option>
-                  {field.options?.map((option) => <option key={option.value} value={option.value}>{optionLabel(option.value, option.label)}</option>)}
+                  <SelectTrigger
+                    id={`tenant-feature-${field.name}`}
+                    aria-invalid={Boolean(errors[field.name])}
+                    aria-describedby={errors[field.name] ? `tenant-feature-${field.name}-error` : undefined}
+                  >
+                    <SelectValue placeholder={ar ? "اختر..." : "Select..."} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {field.options?.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {optionLabel(option.value, option.label)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
                 </Select>
               ) : field.type === "textarea" ? (
                 <Textarea
@@ -166,7 +177,7 @@ export function TenantFeatureForm({ feature }: Props) {
                   }}
                 />
               )}
-              {errors[field.name] && <p className="text-xs text-red-600">{errors[field.name]}</p>}
+              {errors[field.name] && <p id={`tenant-feature-${field.name}-error`} role="alert" className="text-xs text-destructive">{errors[field.name]}</p>}
             </Field>
           ))}
           <div className="flex flex-wrap items-center gap-3 sm:col-span-2">
