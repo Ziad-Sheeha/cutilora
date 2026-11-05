@@ -286,6 +286,7 @@ export const tenantFeatureRegistry: TenantFeatureDefinition[] = [
       { method: "GET", path: "/api/v1/tenant/clinics/{clinicId}/branches", purpose: "Clinic branches" },
       { method: "GET", path: "/api/v1/tenant/clinics/{clinicId}/users", purpose: "Assigned users" },
       { method: "GET", path: "/api/v1/tenant/clinics/{clinicId}/settings", purpose: "Clinic settings and overrides" },
+      { method: "PATCH", path: "/api/v1/tenant/clinics/{clinicId}/settings", purpose: "Update clinic settings and overrides" },
       { method: "GET", path: "/api/v1/tenant/clinics/{clinicId}/documents", purpose: "Clinic documents" },
       { method: "GET", path: "/api/v1/tenant/clinics/{clinicId}/activity", purpose: "Clinic activity" },
     ],
