@@ -3,6 +3,7 @@ import { ImagePlus, Trash2, UploadCloud } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { resolveAssetUrl } from "@/shared/utils/resolve-asset-url"
 
 interface TenantImageUploadProps {
   id: string
@@ -63,7 +64,7 @@ export function TenantImageUpload({
         {value ? (
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <div className="flex h-28 w-full shrink-0 items-center justify-center overflow-hidden rounded-xl border bg-background sm:w-36">
-              <img src={value} alt={previewLabel} className="h-full w-full object-contain" />
+              <img src={resolveAssetUrl(value)} alt={previewLabel} className="h-full w-full object-contain" onError={(event) => { event.currentTarget.style.visibility = "hidden" }} />
             </div>
             <div className="min-w-0 flex-1">
               <p className="flex items-center gap-2 text-sm font-semibold"><ImagePlus className="size-4 text-primary"/>{previewLabel}</p>
