@@ -55,7 +55,6 @@ const pageLabels: Record<string, Record<Locale, string>> = {
   edit: { en: "Edit", ar: "تعديل" },
   delete: { en: "Delete", ar: "حذف" },
   details: { en: "Record details", ar: "تفاصيل السجل" },
-  createTitle: { en: "Create record", ar: "إنشاء سجل" },
   editTitle: { en: "Edit record", ar: "تعديل السجل" },
   scope: { en: "Changes are saved for the active clinic and branch.", ar: "يتم حفظ التغييرات للعيادة والفرع الحاليين." },
   save: { en: "Save", ar: "حفظ" },
@@ -110,19 +109,3 @@ export function clinicModuleStatusLabel(status: string, locale: Locale): string 
   return labels[status.toLowerCase()]?.[locale] ?? status
 }
 
-export function clinicModuleSingular(key: ClinicModuleKey, locale: Locale): string {
-  const values: Record<ClinicModuleKey, Record<Locale, string>> = {
-    appointments: { en: "appointment", ar: "موعد" },
-    patients: { en: "patient", ar: "مريض" },
-    "clinical-records": { en: "clinical record", ar: "سجل طبي" },
-    services: { en: "service", ar: "خدمة" },
-    packages: { en: "package", ar: "باقة" },
-    billing: { en: "invoice", ar: "فاتورة" },
-    team: { en: "team member", ar: "عضو فريق" },
-    reports: { en: "report", ar: "تقرير" },
-    notifications: { en: "notification", ar: "إشعار" },
-    branches: { en: "branch", ar: "فرع" },
-    settings: { en: "setting", ar: "إعداد" },
-  }
-  return values[key]?.[locale] ?? (locale === "ar" ? "سجل" : "record")
-}
