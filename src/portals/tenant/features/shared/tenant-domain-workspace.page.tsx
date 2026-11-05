@@ -402,7 +402,7 @@ export function TenantDomainWorkspacePage({ feature, clinicId, clinics = [], bra
     }
     const missing = activeFields.find(field => field.required && !String(values[field.name] ?? "").trim())
     if (missing) { setFormError(ar ? "أكمل كل الحقول المطلوبة." : "Complete all required fields."); return }
-    if (feature.key === "invitations" && values.expiresAt && new Date(values.expiresAt).getTime() <= Date.now()) {
+    if (feature.key === "invitations" && values.expiresAt && new Date(`${values.expiresAt}T23:59:59`).getTime() <= Date.now()) {
       setFormError(ar ? "يجب أن يكون تاريخ انتهاء الدعوة في المستقبل." : "Invitation expiry must be a future date.")
       return
     }
