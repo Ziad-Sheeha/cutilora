@@ -373,7 +373,7 @@ export function TenantDomainWorkspacePage({ feature, clinicId, clinics = [], bra
       return
     }
     const customPayload = (feature.key === "subscription" && endpoint.path.endsWith("/change-request")) ||
-      (feature.key === "integrations" && endpoint.path.endsWith("/webhooks")) ||
+      (feature.key === "integrations" && (endpoint.path.endsWith("/webhooks") || /rotate/i.test(endpoint.purpose))) ||
       (feature.key === "governance" && endpoint.path.endsWith("/exports")) ||
       (feature.key === "insights" && endpoint.path.endsWith("/exports")) ||
       (feature.key === "users" && (endpoint.path.includes("/memberships/") || /scopes/i.test(endpoint.path)))
