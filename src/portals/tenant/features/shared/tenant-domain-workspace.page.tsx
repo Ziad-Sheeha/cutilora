@@ -175,6 +175,10 @@ export function TenantDomainWorkspacePage({ feature, clinicId }: { feature: Tena
   const fields = feature.fields ?? []
   const rootWriteEndpoints = writeEndpoints.filter(endpoint => !endpoint.path.includes("{") && ["POST", "PATCH", "PUT"].includes(endpoint.method) && !(feature.key === "configuration" && endpoint.path.endsWith("/apply")))
   function fieldsFor(endpoint: TenantFeatureEndpoint): TenantFeatureField[] {
+    if (feature.key === "users" && endpoint.path.includes("/memberships/")) return [
+      { name: "role", label: "Organization role", type: "select", required: true, options: [{ label: "Tenant admin", value: "tenant_admin" }, { label: "Organization manager", value: "organization_manager" }, { label: "Clinic manager", value: "clinic_manager" }, { label: "Branch manager", value: "branch_manager" }, { label: "Read-only analyst", value: "read_only_analyst" }] },
+      { name: "status", label: "Membership status", type: "select", required: true, options: [{ label: "Active", value: "active" }, { label: "Suspended", value: "suspended" }] },
+    ]
     if (feature.key === "subscription" && endpoint.path.endsWith("/change-request")) return [
       { name: "requestedPlan", label: "Requested plan", type: "select", required: true, options: [{ label: "Starter", value: "starter" }, { label: "Growth", value: "growth" }, { label: "Enterprise", value: "enterprise" }] },
       { name: "billingCycle", label: "Billing cycle", type: "select", required: true, options: [{ label: "Monthly", value: "monthly" }, { label: "Yearly", value: "yearly" }] },
@@ -222,6 +226,12 @@ export function TenantDomainWorkspacePage({ feature, clinicId }: { feature: Tena
       const permissions = permissionText.split(/[\n,]/).map(value => value.trim()).filter(Boolean)
       if (!permissions.length) { setFormError(ar ? "اختر صلاحية واحدة على الأقل." : "Select at least one permission."); return }
       await operation.mutateAsync({ endpoint, row, payload: { permissions } })
+      return
+    }
+    if (feature.key === "users" && /scopes/i.test(endpoint.path)) {
+      const clinicIds = String(values.clinicIds ?? "").split(",").map(value => value.trim()).filter(Boolean)
+      const branchIds = String(values.branchIds ?? "").split(",").map(value => value.trim()).filter(Boolean)
+      await operation.mutateAsync({ endpoint, row, payload: { clinicIds, branchIds } })
       return
     }
     const missing = activeFields.find(field => field.required && !String(values[field.name] ?? "").trim())
