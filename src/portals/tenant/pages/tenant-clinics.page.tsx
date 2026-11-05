@@ -8,7 +8,8 @@ import { TenantClinicCard } from "../components/tenant-clinic-card"
 import { TenantClinicForm } from "../components/tenant-clinic-form"
 import { TenantEmptyState } from "../components/tenant-empty-state"
 import { TenantPageHeading } from "../components/tenant-page-heading"
-import { createClinic, updateClinic } from "../api/tenant-api"
+import { activateClinic, createClinic, deactivateClinic, updateClinic } from "../api/tenant-api"
+import { ConfirmDialog } from "@/shared/components/dialogs/confirm-dialog"
 import type { Clinic } from "../types/tenant.types"
 import type { TenantOutletContext } from "../layout/tenant-layout"
 import { useI18n } from "@/i18n/i18n-provider"
@@ -22,6 +23,8 @@ export function TenantClinicsPage() {
   const [editingClinic, setEditingClinic] = useState<Clinic | null>(null)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState("")
+  const [statusTarget, setStatusTarget] = useState<Clinic | null>(null)
+  const [statusLoading, setStatusLoading] = useState(false)
 
   const copy = ar
     ? {
@@ -33,6 +36,7 @@ export function TenantClinicsPage() {
         search: "ابحث باسم العيادة",
         count: "عيادة",
         saved: "تم حفظ بيانات العيادة بنجاح.",
+        activate: "تفعيل", deactivate: "إيقاف", statusTitle: "تغيير حالة العيادة", statusDescription: "هل تريد تغيير حالة هذه العيادة؟", confirm: "تأكيد",
         empty: "لا توجد عيادات مطابقة",
         emptyDescription: "جرّب تغيير كلمات البحث أو أضف عيادة جديدة لمؤسستك.",
       }
@@ -45,6 +49,7 @@ export function TenantClinicsPage() {
         search: "Search clinics",
         count: "clinics",
         saved: "Clinic details saved successfully.",
+        activate: "Activate", deactivate: "Deactivate", statusTitle: "Change clinic status", statusDescription: "Are you sure you want to change this clinic status?", confirm: "Confirm",
         empty: "No matching clinics",
         emptyDescription: "Try another search or add a clinic to your organization.",
       }
@@ -65,6 +70,23 @@ export function TenantClinicsPage() {
     setError("")
     setSuccess("")
     setFormOpen(true)
+  }
+
+  async function toggleClinicStatus() {
+    if (!statusTarget) return
+    setStatusLoading(true)
+    setError("")
+    try {
+      if (statusTarget.status?.toLowerCase() === "active") await deactivateClinic(statusTarget._id)
+      else await activateClinic(statusTarget._id)
+      await refresh()
+      setStatusTarget(null)
+      setSuccess(ar ? "تم تحديث حالة العيادة." : "Clinic status updated.")
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : (ar ? "تعذر تحديث حالة العيادة." : "Unable to update clinic status."))
+    } finally {
+      setStatusLoading(false)
+    }
   }
 
   async function saveClinic(payload: Record<string, unknown>) {
@@ -146,7 +168,9 @@ export function TenantClinicsPage() {
                   key={clinic._id}
                   clinic={clinic}
                   onEdit={openEditForm}
+                  onToggleStatus={setStatusTarget}
                   editLabel={copy.edit}
+                  statusActionLabel={clinic.status?.toLowerCase() === "active" ? copy.deactivate : copy.activate}
                 />
               ))}
             </div>
@@ -159,6 +183,16 @@ export function TenantClinicsPage() {
           )}
         </CardContent>
       </Card>
+      <ConfirmDialog
+        open={Boolean(statusTarget)}
+        title={copy.statusTitle}
+        description={copy.statusDescription}
+        confirmLabel={copy.confirm}
+        destructive={statusTarget?.status?.toLowerCase() === "active"}
+        isLoading={statusLoading}
+        onOpenChange={open => { if (!open && !statusLoading) setStatusTarget(null) }}
+        onConfirm={() => void toggleClinicStatus()}
+      />
     </div>
   )
 }
