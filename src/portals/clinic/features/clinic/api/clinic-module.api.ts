@@ -125,13 +125,5 @@ export async function deleteClinicModuleRecord(key: ClinicModuleKey, id: string)
 }
 
 export function getClinicModuleFields(key: ClinicModuleKey) {
-  if (key === "team") return [
-    { name: "recordType", label: "Record type", type: "text" as const, required: true },
-    { name: "firstName", label: "First name", required: true },
-    { name: "lastName", label: "Last name", required: true },
-    { name: "email", label: "Work email", type: "email" as const },
-    { name: "phone", label: "Phone", type: "tel" as const },
-    { name: "jobTitle", label: "Job title" },
-  ]
   return configs[key]?.fields ?? []
 }
