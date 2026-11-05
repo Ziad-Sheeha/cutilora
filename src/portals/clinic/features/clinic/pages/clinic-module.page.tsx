@@ -37,9 +37,9 @@ function valueText(value: unknown) {
   if (typeof value === "object") return JSON.stringify(value)
   return String(value)
 }
-function rowId(record: ClinicRecord, index: number) {
+function rowId(record: ClinicRecord) {
   const id = record.id ?? record._id ?? record.uuid ?? record.code
-  return typeof id === "string" || typeof id === "number" ? String(id) : "record-" + index
+  return typeof id === "string" || typeof id === "number" ? String(id) : JSON.stringify(record)
 }
 
 export function ClinicModulePage() {
@@ -113,7 +113,7 @@ export function ClinicModulePage() {
       const bi = preferred.indexOf(b)
       return (ai < 0 ? 99 : ai) - (bi < 0 ? 99 : bi)
     })
-    const dataColumns = keys.map((field) => ({
+    const dataColumns: DataTableColumn<ClinicRecord>[] = keys.map((field) => ({
       id: field,
       header: titleCase(field),
       cell: (record: ClinicRecord) => <span className="block max-w-[260px] truncate text-sm" title={valueText(record[field])}>{valueText(record[field])}</span>,
