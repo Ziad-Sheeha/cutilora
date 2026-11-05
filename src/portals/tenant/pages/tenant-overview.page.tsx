@@ -30,6 +30,22 @@ function formatValue(value: unknown) {
   if (typeof value === "boolean") return value ? "Yes" : "No"
   return String(value)
 }
+function statusText(value: unknown, ar: boolean) {
+  const key = String(value ?? "").toLowerCase()
+  const labels: Record<string, [string, string]> = {
+    active: ["Active", "نشط"], inactive: ["Inactive", "غير نشط"], suspended: ["Suspended", "موقوف"],
+    pending: ["Pending", "قيد الانتظار"], trial: ["Trial", "تجريبي"], expired: ["Expired", "منتهي"],
+  }
+  return labels[key]?.[ar ? 1 : 0] ?? formatValue(value)
+}
+function businessTypeText(value: unknown, ar: boolean) {
+  const key = String(value ?? "").toLowerCase()
+  const labels: Record<string, [string, string]> = {
+    single_clinic: ["Single clinic", "عيادة واحدة"], clinic_group: ["Clinic group", "مجموعة عيادات"],
+    beauty_center: ["Beauty center", "مركز تجميل"],
+  }
+  return labels[key]?.[ar ? 1 : 0] ?? String(value ?? "organization").replaceAll("_", " ")
+}
 
 export function TenantOverviewPage() {
   const { context, clinics } = useOutletContext<TenantOutletContext>()
@@ -72,7 +88,7 @@ export function TenantOverviewPage() {
   const cards = [
     { label: ar ? "العيادات" : "Clinics", value: String(clinics.length), hint: ar ? "العيادات المسجلة في مؤسستك" : "Clinics registered to your organization", icon: Building2, href: "/tenant/clinics" },
     { label: ar ? "الفروع" : "Branches", value: ar ? "حسب العيادة المحددة" : "By selected clinic", hint: ar ? "اختر عيادة لعرض فروعها" : "Select a clinic to view its branches", icon: MapPinned, href: "/tenant/branches" },
-    { label: ar ? "حالة المؤسسة" : "Organization status", value: tenant?.status || "—", hint: ar ? "حالة حساب المؤسسة" : "Your organization account status", icon: ShieldCheck, href: "/tenant/organization" },
+    { label: ar ? "حالة المؤسسة" : "Organization status", value: statusText(tenant?.status, ar), hint: ar ? "حالة حساب المؤسسة" : "Your organization account status", icon: ShieldCheck, href: "/tenant/organization" },
   ]
 
   return (
@@ -85,7 +101,7 @@ export function TenantOverviewPage() {
             <h2 className="mt-5 text-3xl font-semibold tracking-tight sm:text-4xl">{ar ? "أهلاً بك في " : "Welcome to "}{tenant?.displayName || tenant?.name || (ar ? "مؤسستك" : "your organization")}</h2>
             <p className="mt-3 max-w-xl text-sm leading-7 text-white/60">{ar ? "تابع العيادات التابعة لمؤسستك، ونظّم مواقع العمل من مساحة واحدة مصممة لنمو أعمالك." : "Oversee your clinics and keep every location connected from one workspace built to scale."}</p>
           </div>
-          <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[.06] p-4"><span className="grid size-11 place-items-center rounded-xl bg-white/10"><Building2 className="size-5 text-violet-200"/></span><div><p className="text-[10px] uppercase tracking-wider text-white/45">{ar ? "نوع المؤسسة" : "BUSINESS TYPE"}</p><p className="mt-1 text-sm font-semibold capitalize">{(tenant?.businessType || "organization").replaceAll("_", " ")}</p></div></div>
+          <div className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[.06] p-4"><span className="grid size-11 place-items-center rounded-xl bg-white/10"><Building2 className="size-5 text-violet-200"/></span><div><p className="text-[10px] uppercase tracking-wider text-white/45">{ar ? "نوع المؤسسة" : "BUSINESS TYPE"}</p><p className="mt-1 text-sm font-semibold capitalize">{businessTypeText(tenant?.businessType, ar)}</p></div></div>
         </div>
       </section>
 
@@ -98,7 +114,7 @@ export function TenantOverviewPage() {
 
       <section className="grid gap-5 xl:grid-cols-[1.4fr_.8fr]">
         <Card className="border-white bg-white"><CardContent className="p-6"><div className="flex items-center justify-between gap-3"><div><h3 className="font-semibold">{ar ? "العيادات التابعة للمؤسسة" : "Your clinics"}</h3><p className="mt-1 text-xs text-muted-foreground">{ar ? "نظرة سريعة على مواقعك التشغيلية" : "A quick view of your operating locations"}</p></div><Link to="/tenant/clinics" className="text-xs font-semibold text-primary">{ar ? "إدارة العيادات" : "Manage clinics"}</Link></div>
-          {clinics.length ? <div className="mt-5 divide-y">{clinics.slice(0, 5).map(clinic => <div key={clinic._id} className="flex items-center gap-3 py-3"><span className="grid size-10 place-items-center rounded-xl bg-slate-100 text-slate-600"><Building2 className="size-4"/></span><span className="min-w-0 flex-1"><span className="block truncate text-sm font-semibold">{clinic.name}</span><span className="mt-1 block text-xs text-muted-foreground">{clinic.slug || clinic.code || "—"}</span></span><span className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-semibold text-slate-600">{clinic.status || "—"}</span></div>)}</div> : <div className="mt-5 rounded-2xl border border-dashed p-8 text-center"><Building2 className="mx-auto size-7 text-muted-foreground/50"/><p className="mt-3 text-sm font-semibold">{ar ? "لا توجد عيادات بعد" : "No clinics yet"}</p><p className="mt-1 text-xs text-muted-foreground">{ar ? "أضف أول عيادة لبدء تنظيم مؤسستك." : "Add your first clinic to start organizing your organization."}</p><Link to="/tenant/clinics" className="mt-4 inline-flex h-9 items-center justify-center rounded-lg bg-primary px-3 text-sm font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90">{ar ? "إضافة عيادة" : "Add clinic"}</Link></div>}
+          {clinics.length ? <div className="mt-5 divide-y">{clinics.slice(0, 5).map(clinic => <div key={clinic._id} className="flex items-center gap-3 py-3"><span className="grid size-10 place-items-center rounded-xl bg-slate-100 text-slate-600"><Building2 className="size-4"/></span><span className="min-w-0 flex-1"><span className="block truncate text-sm font-semibold">{clinic.name}</span><span className="mt-1 block text-xs text-muted-foreground">{clinic.slug || clinic.code || "—"}</span></span><span className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-semibold text-slate-600">{statusText(clinic.status, ar)}</span></div>)}</div> : <div className="mt-5 rounded-2xl border border-dashed p-8 text-center"><Building2 className="mx-auto size-7 text-muted-foreground/50"/><p className="mt-3 text-sm font-semibold">{ar ? "لا توجد عيادات بعد" : "No clinics yet"}</p><p className="mt-1 text-xs text-muted-foreground">{ar ? "أضف أول عيادة لبدء تنظيم مؤسستك." : "Add your first clinic to start organizing your organization."}</p><Link to="/tenant/clinics" className="mt-4 inline-flex h-9 items-center justify-center rounded-lg bg-primary px-3 text-sm font-semibold text-primary-foreground shadow-sm transition-colors hover:bg-primary/90">{ar ? "إضافة عيادة" : "Add clinic"}</Link></div>}
         </CardContent></Card>
         <Card className="border-white bg-white"><CardContent className="p-6"><div className="mb-4 flex items-center gap-2"><AlertTriangle className="size-5 text-amber-600"/><h3 className="font-semibold">{ar ? "التنبيهات" : "Organization alerts"}</h3></div>{alertsQuery.isError && <p role="alert" className="text-sm text-destructive">{alertsQuery.error instanceof Error ? alertsQuery.error.message : (ar ? "تعذر تحميل التنبيهات." : "Unable to load alerts.")}</p>}{alertsQuery.isLoading ? <p className="py-6 text-center text-sm text-muted-foreground">{ar ? "جارٍ تحميل التنبيهات..." : "Loading alerts..."}</p> : (alertsQuery.data ?? []).length ? <div className="space-y-3">{(alertsQuery.data ?? []).map((alert,index) => <div key={String(alert.id ?? alert._id ?? index)} className="rounded-xl border p-3"><p className="text-sm font-semibold">{String(alert.title ?? alert.message ?? "—")}</p>{alert.description && <p className="mt-1 text-xs text-muted-foreground">{String(alert.description)}</p>}</div>)}</div> : <p className="py-8 text-center text-sm text-muted-foreground">{ar ? "لا توجد تنبيهات حالياً." : "No active alerts."}</p>}</CardContent></Card>
       </section>
