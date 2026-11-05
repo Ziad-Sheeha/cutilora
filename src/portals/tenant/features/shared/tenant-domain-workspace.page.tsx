@@ -45,7 +45,7 @@ function toRows(value: unknown): Row[] {
   return []
 }
 function rowId(row: Row) {
-  const value = row.id ?? row._id ?? row.uuid ?? row.key ?? row.reportKey ?? row.membershipId ?? row.membership_id ?? row.userId ?? row.user_id ?? row.invitationId ?? row.invitation_id ?? row.roleId ?? row.role_id ?? row.integrationId ?? row.integration_id ?? row.webhookId ?? row.webhook_id ?? row.invoiceId ?? row.invoice_id ?? row.reportId ?? row.report_id ?? row.auditEventId ?? row.audit_event_id ?? row.sessionId ?? row.session_id
+  const value = row.id ?? row._id ?? row.uuid ?? row.key ?? row.reportKey ?? row.membershipId ?? row.membership_id ?? row.userId ?? row.user_id ?? row.invitationId ?? row.invitation_id ?? row.roleId ?? row.role_id ?? row.templateId ?? row.template_id ?? row.integrationId ?? row.integration_id ?? row.webhookId ?? row.webhook_id ?? row.invoiceId ?? row.invoice_id ?? row.reportId ?? row.report_id ?? row.auditEventId ?? row.audit_event_id ?? row.sessionId ?? row.session_id
   return value === undefined || value === null ? "" : String(value)
 }
 function label(value: string, ar: boolean) {
@@ -149,7 +149,7 @@ function display(value: unknown, ar: boolean) {
 function resolvePath(path: string, row?: Row) {
   return path.replace(/\{([^}]+)\}/g, (_match, token: string) => {
     const aliases: Record<string, unknown> = {
-      id: row?.id ?? row?._id ?? row?.uuid ?? row?.invitationId ?? row?.invitation_id ?? row?.roleId ?? row?.role_id ?? row?.integrationId ?? row?.integration_id ?? row?.webhookId ?? row?.webhook_id ?? row?.invoiceId ?? row?.invoice_id ?? row?.reportId ?? row?.report_id ?? row?.auditEventId ?? row?.audit_event_id ?? row?.sessionId ?? row?.session_id, membershipId: row?.membershipId ?? row?.membership_id ?? row?.id ?? row?._id, invitationId: row?.invitationId ?? row?.invitation_id ?? row?.id ?? row?._id, roleId: row?.roleId ?? row?.role_id ?? row?.id ?? row?._id, integrationId: row?.integrationId ?? row?.integration_id ?? row?.id ?? row?._id,
+      id: row?.id ?? row?._id ?? row?.uuid ?? row?.invitationId ?? row?.invitation_id ?? row?.roleId ?? row?.role_id ?? row?.templateId ?? row?.template_id ?? row?.integrationId ?? row?.integration_id ?? row?.webhookId ?? row?.webhook_id ?? row?.invoiceId ?? row?.invoice_id ?? row?.reportId ?? row?.report_id ?? row?.auditEventId ?? row?.audit_event_id ?? row?.sessionId ?? row?.session_id, membershipId: row?.membershipId ?? row?.membership_id ?? row?.id ?? row?._id, invitationId: row?.invitationId ?? row?.invitation_id ?? row?.id ?? row?._id, roleId: row?.roleId ?? row?.role_id ?? row?.id ?? row?._id, integrationId: row?.integrationId ?? row?.integration_id ?? row?.id ?? row?._id,
       userId: row?.userId ?? row?.user_id ?? row?.id ?? row?._id, reportKey: row?.key ?? row?.reportKey ?? row?.id,
       webhookId: row?.webhookId ?? row?.webhook_id ?? row?.id ?? row?._id,
       clinicId: row?.clinicId ?? row?.id ?? row?._id,
@@ -199,6 +199,7 @@ export function TenantDomainWorkspacePage({ feature, clinicId, clinics = [], bra
   const [dateFrom, setDateFrom] = useState("")
   const [dateTo, setDateTo] = useState("")
   const [actorFilter, setActorFilter] = useState("")
+  const [actionFilter, setActionFilter] = useState("")
   const [moduleFilter, setModuleFilter] = useState("")
   const [formError, setFormError] = useState("")
   const [oneTimeCredential, setOneTimeCredential] = useState("")
@@ -217,13 +218,13 @@ export function TenantDomainWorkspacePage({ feature, clinicId, clinics = [], bra
   const writeEndpoints = feature.endpoints.filter(endpoint => endpoint.method !== "GET")
   const resourcesQuery = useQueries({
     queries: getEndpoints.map(endpoint => ({
-      queryKey: ["tenant-domain", feature.key, endpoint.path, clinicId, search, page, perPage, dateFrom, dateTo, actorFilter, moduleFilter],
+      queryKey: ["tenant-domain", feature.key, endpoint.path, clinicId, search, page, perPage, dateFrom, dateTo, actorFilter, actionFilter, moduleFilter],
       queryFn: async () => {
         const resolvedEndpointPath = resolvePath(endpoint.path, feature.key === "clinic-workspace" ? { clinicId, id: clinicId } : undefined)
         const response = await tenantApi.get(apiPath(resolvedEndpointPath), { params: {
           page, per_page: perPage, search: search.trim() || undefined,
           ...(feature.key === "governance" || feature.key === "finance" ? { from: dateFrom || undefined, to: dateTo || undefined } : {}),
-          ...(feature.key === "governance" ? { actorId: actorFilter || undefined, module: moduleFilter || undefined } : {}),
+          ...(feature.key === "governance" ? { actorId: actorFilter || undefined, action: actionFilter || undefined, module: moduleFilter || undefined } : {}),
         } })
         const envelope = response.data && typeof response.data === "object" ? response.data as Record<string, unknown> : {}
         const nestedEnvelope = envelope.data && typeof envelope.data === "object" ? envelope.data as Record<string, unknown> : {}
@@ -495,6 +496,7 @@ export function TenantDomainWorkspacePage({ feature, clinicId, clinics = [], bra
           <div><Label>{ar ? "إلى تاريخ" : "To date"}</Label><Input type="date" value={dateTo} onChange={event => { setDateTo(event.target.value); setPage(1) }} className="mt-2"/></div>
           {feature.key === "governance" && <>
             <div><Label>{ar ? "المنفذ" : "Actor"}</Label><Input value={actorFilter} onChange={event => { setActorFilter(event.target.value); setPage(1) }} className="mt-2"/></div>
+            <div><Label>{ar ? "الإجراء" : "Action"}</Label><Input value={actionFilter} onChange={event => { setActionFilter(event.target.value); setPage(1) }} className="mt-2"/></div>
             <div><Label>{ar ? "الوحدة" : "Module"}</Label><Input value={moduleFilter} onChange={event => { setModuleFilter(event.target.value); setPage(1) }} className="mt-2"/></div>
           </>}
           {dateFrom && dateTo && dateFrom > dateTo && <p role="alert" className="text-xs text-destructive sm:col-span-2 xl:col-span-4">{ar ? "يجب أن يكون تاريخ البداية قبل تاريخ النهاية." : "The start date must be on or before the end date."}</p>}
