@@ -248,7 +248,7 @@ export function TenantDomainWorkspacePage({ feature, clinicId, clinics = [], bra
       const settings = clinicSettingsResource?.summary
       if (!profile && !settings) return
       const contact = profile?.contact && typeof profile.contact === "object" ? profile.contact as Record<string, unknown> : {}
-      source = { ...profile, ...settings, email: contact.email ?? profile?.email, phone: contact.phone ?? profile?.phone }
+      source = { ...(profile ?? {}), ...(settings ?? {}), email: contact.email ?? profile?.email, phone: contact.phone ?? profile?.phone }
     } else if (feature.key === "settings/preferences" || feature.key === "settings/notifications") {
       source = preferenceResource?.summary ?? null
     } else if (feature.key === "subscription") {
