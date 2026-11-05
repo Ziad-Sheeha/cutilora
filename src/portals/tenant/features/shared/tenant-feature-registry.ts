@@ -342,7 +342,7 @@ export const tenantFeatureRegistry: TenantFeatureDefinition[] = [
     note: { en: "Changing the organization timezone must not overwrite a branch's own timezone.", ar: "تغيير المنطقة الزمنية للمؤسسة يجب ألا يستبدل المنطقة الزمنية الخاصة بأي فرع." },
   },
   {
-    key: "settings/notifications", group: "Settings", icon: "bell",
+    key: "settings/notifications", group: "Settings", icon: "bell", schemaKey: "notification",
     title: { en: "Notifications", ar: "الإشعارات" },
     eyebrow: { en: "WORKSPACE SETTINGS", ar: "إعدادات مساحة العمل" },
     description: { en: "Manage organization-level notification preferences and delivery channels.", ar: "إدارة تفضيلات إشعارات المؤسسة وقنوات إرسالها." },
