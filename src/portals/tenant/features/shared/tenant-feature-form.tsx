@@ -11,14 +11,14 @@ import { useI18n } from "@/i18n/i18n-provider"
 import type { TenantFeatureDefinition } from "./tenant-feature.types"
 import { getTenantFieldErrors, validateTenantFeatureForm, type TenantFeatureSchemaKey } from "./tenant-feature-schemas"
 
-type Props = { feature: TenantFeatureDefinition }
+type Props = { feature: TenantFeatureDefinition; onSave?: (payload: Record<string, unknown>) => Promise<void> }
 
-export function TenantFeatureForm({ feature }: Props) {
+export function TenantFeatureForm({ feature, onSave }: Props) {
   const { locale } = useI18n()
   const ar = locale === "ar"
   const [values, setValues] = useState<Record<string, string>>({})
   const [errors, setErrors] = useState<Record<string, string>>({})
-  const [validated, setValidated] = useState(false)
+  const [validated, setValidated] = useState(false)\n  const [saving, setSaving] = useState(false)\n  const [saveError, setSaveError] = useState<string | null>(null)
 
   if (!feature.fields?.length || !feature.schemaKey) return null
 
@@ -98,7 +98,28 @@ export function TenantFeatureForm({ feature }: Props) {
       return
     }
     setErrors({})
-    setValidated(true)
+    setSaveError(null)
+    if (!onSave) {
+      setValidated(true)
+      return
+    }
+    const payload = Object.fromEntries(
+      Object.entries(values)
+        .filter(([, value]) => value !== "")
+        .map(([key, value]) => {
+          const field = feature.fields?.find((item) => item.name === key)
+          return [key, field?.type === "number" ? Number(value) : value]
+        }),
+    )
+    setSaving(true)
+    try {
+      await onSave(payload)
+      setValidated(true)
+    } catch (error) {
+      setSaveError(error instanceof Error ? error.message : (ar ? "تعذر حفظ البيانات" : "Unable to save changes"))
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -109,9 +130,9 @@ export function TenantFeatureForm({ feature }: Props) {
             <ClipboardCheck className="size-5" />
           </span>
           <div>
-            <h3 className="font-semibold">{ar ? "مسودة وتجهيز التحقق" : "Draft & validation"}</h3>
+            <h3 className="font-semibold">{ar ? (onSave ? "إضافة سجل جديد" : "مسودة وتجهيز التحقق") : (onSave ? "Create new record" : "Draft & validation")}</h3>
             <p className="mt-1 text-xs leading-5 text-muted-foreground">
-              {ar ? "هذه مسودة محلية للمراجعة والتحقق فقط. لن يتم حفظها أو إرسالها إلى الباك قبل تنفيذ واعتماد عقد API الخاص بهذه الوحدة." : "This is a local draft for review and validation only. It is not saved or sent until this module has an implemented and approved backend API."}
+              {onSave ? (ar ? "أدخل البيانات المطلوبة وسيتم حفظها في المؤسسة الحالية." : "Enter the required details. The record will be saved within the active organization.") : (ar ? "هذه مسودة محلية للمراجعة والتحقق فقط." : "This form is for local validation only.")}
             </p>
           </div>
         </div>
@@ -183,7 +204,7 @@ export function TenantFeatureForm({ feature }: Props) {
             {validated && (
               <span role="status" className="inline-flex items-center gap-2 text-xs font-medium text-emerald-700">
                 <CheckCircle2 className="size-4" />
-                {ar ? "المسودة اجتازت التحقق المحلي — لم يتم الحفظ" : "Draft passed local validation — nothing was saved"}
+                {onSave ? (ar ? "تم الحفظ بنجاح" : "Saved successfully") : (ar ? "المسودة اجتازت التحقق المحلي — لم يتم الحفظ" : "Draft passed local validation — nothing was saved")}
               </span>
             )}
           </div>
