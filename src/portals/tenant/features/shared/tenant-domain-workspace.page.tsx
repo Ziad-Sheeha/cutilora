@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react"
+import { useEffect, useState, type FormEvent } from "react"
 import { useQueries, useMutation, useQueryClient } from "@tanstack/react-query"
 import { Activity, Check, Copy, Eye, LoaderCircle, Plus, RefreshCw, RotateCw, Search, Send, ShieldCheck, Trash2, XCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -132,7 +132,8 @@ function resolvePath(path: string, row?: Row) {
     const aliases: Record<string, unknown> = {
       id: row?.id ?? row?._id ?? row?.uuid ?? row?.invoiceId ?? row?.reportId ?? row?.auditEventId ?? row?.sessionId, membershipId: row?.membershipId ?? row?.membership_id ?? row?.id ?? row?._id,
       userId: row?.userId ?? row?.user_id ?? row?.id ?? row?._id, reportKey: row?.key ?? row?.reportKey ?? row?.id,
-      webhookId: row?.id ?? row?._id,
+      webhookId: row?.webhookId ?? row?.id ?? row?._id,
+      clinicId: row?.clinicId ?? row?.id ?? row?._id,
     }
     const value = aliases[token] ?? row?.[token]
     return encodeURIComponent(value === undefined || value === null ? "" : String(value))
@@ -191,13 +192,14 @@ export function TenantDomainWorkspacePage({ feature, clinicId, clinics = [], bra
   const [invitationClinicIds, setInvitationClinicIds] = useState<string[]>([])
   const [invitationBranchIds, setInvitationBranchIds] = useState<string[]>([])
   const [pendingPreview, setPendingPreview] = useState<{ payload: Record<string, unknown>; preview: Record<string, unknown> } | null>(null)
-  const getEndpoints = feature.endpoints.filter(endpoint => endpoint.method === "GET" && !endpoint.path.includes("{"))
+  const getEndpoints = feature.endpoints.filter(endpoint => endpoint.method === "GET" && (!endpoint.path.includes("{") || (feature.key === "clinic-workspace" && endpoint.path.includes("{clinicId}"))))
   const writeEndpoints = feature.endpoints.filter(endpoint => endpoint.method !== "GET")
   const resourcesQuery = useQueries({
     queries: getEndpoints.map(endpoint => ({
       queryKey: ["tenant-domain", feature.key, endpoint.path, search, page, perPage, dateFrom, dateTo, actorFilter, moduleFilter],
       queryFn: async () => {
-        const response = await tenantApi.get(apiPath(endpoint.path), { params: {
+        const resolvedEndpointPath = resolvePath(endpoint.path, feature.key === "clinic-workspace" ? { clinicId, id: clinicId } : undefined)
+        const response = await tenantApi.get(apiPath(resolvedEndpointPath), { params: {
           page, per_page: perPage, search: search.trim() || undefined,
           ...(feature.key === "governance" || feature.key === "finance" ? { from: dateFrom || undefined, to: dateTo || undefined } : {}),
           ...(feature.key === "governance" ? { actorId: actorFilter || undefined, module: moduleFilter || undefined } : {}),
@@ -212,7 +214,7 @@ export function TenantDomainWorkspacePage({ feature, clinicId, clinics = [], bra
           total_pages: Number(meta.total_pages ?? meta.last_page) || undefined,
         } : undefined
         const data = unwrap(response.data)
-        const isSummaryResource = /summary|subscription|configuration|preferences/.test(endpoint.path)
+        const isSummaryResource = /summary|subscription|configuration|preferences|billing-profile|notification-preferences/.test(endpoint.path)
         const record = data && typeof data === "object" && !Array.isArray(data) ? data as Record<string, unknown> : null
         const nestedSummary = record?.summary && typeof record.summary === "object" ? record.summary as Record<string, unknown> : null
         const summary = record ? { ...record, ...(nestedSummary ?? {}) } : null
@@ -226,12 +228,22 @@ export function TenantDomainWorkspacePage({ feature, clinicId, clinics = [], bra
   const resources: Resource[] = getEndpoints.map((endpoint, index) => ({
     endpoint, rows: resourcesQuery[index]?.data?.rows ?? [], summary: resourcesQuery[index]?.data?.summary ?? null, pagination: resourcesQuery[index]?.data?.pagination,
   }))
+  const preferenceResource = resources.find(resource => resource.endpoint.path.endsWith("/preferences") || resource.endpoint.path.endsWith("/notification-preferences"))
+  const billingProfileResource = resources.find(resource => resource.endpoint.path.endsWith("/billing-profile"))
+  useEffect(() => {
+    if (feature.key !== "settings/preferences" && feature.key !== "settings/notifications" && feature.key !== "subscription") return
+    if (Object.keys(values).length) return
+    const source = feature.key === "settings/preferences" || feature.key === "settings/notifications" ? preferenceResource?.summary : billingProfileResource?.summary
+    if (!source) return
+    const next = Object.fromEntries(Object.entries(source).filter(([key, value]) => !hidden.has(key) && !sensitive.test(key) && (typeof value === "string" || typeof value === "number" || typeof value === "boolean")).map(([key, value]) => [key, String(value)]))
+    if (Object.keys(next).length) setValues(next)
+  }, [feature.key, preferenceResource?.summary, billingProfileResource?.summary, values])
   const busy = resourcesQuery.some(query => query.isLoading)
   const hasError = resourcesQuery.find(query => query.isError)?.error
 
   const operation = useMutation({
     mutationFn: async ({ endpoint, row, payload }: { endpoint: TenantFeatureEndpoint; row?: Row; payload?: Record<string, unknown> }) => {
-      const path = resolvePath(endpoint.path, row)
+      const path = resolvePath(endpoint.path, row ?? (feature.key === "clinic-workspace" && clinicId ? { clinicId, id: clinicId } : undefined))
       if (/\{[^}]+\}/.test(path) || path.includes("/undefined")) throw new Error(ar ? "تعذر تحديد السجل المطلوب." : "The target record could not be identified.")
       const response = await tenantApi.request({ method: endpoint.method, url: apiPath(path), data: payload })
       return response.data
@@ -256,7 +268,7 @@ export function TenantDomainWorkspacePage({ feature, clinicId, clinics = [], bra
   })
 
   const fields = feature.fields ?? []
-  const rootWriteEndpoints = writeEndpoints.filter(endpoint => !endpoint.path.includes("{") && ["POST", "PATCH", "PUT"].includes(endpoint.method) && !(feature.key === "configuration" && endpoint.path.endsWith("/apply")))
+  const rootWriteEndpoints = writeEndpoints.filter(endpoint => (!endpoint.path.includes("{") || (feature.key === "clinic-workspace" && endpoint.path.includes("{clinicId}"))) && ["POST", "PATCH", "PUT"].includes(endpoint.method) && !(feature.key === "configuration" && endpoint.path.endsWith("/apply")))
   function fieldsFor(endpoint: TenantFeatureEndpoint): TenantFeatureField[] {
     if (feature.key === "integrations" && endpoint.path.includes("/integrations")) {
       return [
@@ -378,7 +390,7 @@ export function TenantDomainWorkspacePage({ feature, clinicId, clinics = [], bra
   }
 
   const readActions = feature.endpoints.filter(endpoint => endpoint.method === "GET" && endpoint.path.includes("{"))
-  const rowActions = writeEndpoints.filter(endpoint => endpoint.path.includes("{"))
+  const rowActions = writeEndpoints.filter(endpoint => endpoint.path.includes("{") && !(feature.key === "clinic-workspace" && endpoint.path.includes("{clinicId}")) )
   const permissionRows = resources.find(resource => resource.endpoint.path.endsWith("/permissions"))?.rows ?? []
   const selectedPermissions = permissionText.split(",").map(value => value.trim()).filter(Boolean)
 
@@ -406,8 +418,8 @@ export function TenantDomainWorkspacePage({ feature, clinicId, clinics = [], bra
       {hasError && <p role="alert" className="text-sm text-destructive">{hasError instanceof Error ? hasError.message : (ar ? "تعذر تحميل بعض البيانات." : "Some data could not be loaded.")}</p>}
       {resources.map((resource, index) => {
         const rows = resource.rows
-        const matchingReadActions = readActions.filter(endpoint => endpoint.path.startsWith(resource.endpoint.path + "/"))
-        const matchingRowActions = rowActions.filter(endpoint => endpoint.path.startsWith(resource.endpoint.path + "/"))
+        const matchingReadActions = readActions.filter(endpoint => resolvePath(endpoint.path, feature.key === "clinic-workspace" ? { clinicId, id: clinicId } : undefined).startsWith(resource.endpoint.path.replace(/\/$/, "") + "/"))
+        const matchingRowActions = rowActions.filter(endpoint => resolvePath(endpoint.path, feature.key === "clinic-workspace" ? { clinicId, id: clinicId } : undefined).startsWith(resource.endpoint.path.replace(/\/$/, "") + "/"))
         const isSummary = /summary|subscription|configuration|preferences/.test(resource.endpoint.path)
         const summaryEntries = Object.entries(resource.summary ?? {}).filter(([key, value]) => !hidden.has(key) && !sensitive.test(key) && value !== null && typeof value !== "object").slice(0, 12)
         return (
