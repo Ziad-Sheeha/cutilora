@@ -29,14 +29,16 @@ export function TenantMembershipPicker({
           ? "•••" + membership.tenant.slice(-6)
           : membership.tenant)
         return (
-          <button
+          <Button
             key={membership.tenant}
             type="button"
+            variant="ghost"
             onClick={() => onSelect(membership.tenant)}
+            aria-pressed={selected}
             className={
-              "flex w-full items-center gap-3 rounded-xl border p-4 text-start transition-all " +
+              "h-auto w-full justify-start gap-3 whitespace-normal rounded-xl border p-4 text-start transition-all " +
               (selected
-                ? "border-primary bg-primary/5 ring-2 ring-primary/10"
+                ? "border-primary bg-primary/5 ring-2 ring-primary/10 hover:bg-primary/5"
                 : "border-border hover:border-primary/40")
             }
           >
