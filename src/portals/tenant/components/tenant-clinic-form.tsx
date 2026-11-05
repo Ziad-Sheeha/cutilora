@@ -144,7 +144,7 @@ export function TenantClinicForm({ clinic, onCancel, onSave }: Props) {
     }
     getTenantGeo("cities", { governorate_id: values.governorateId })
       .then(setCities)
-      .catch((e) => setError(e.message))
+      .catch((e: Error) => setServerError(e.message))
   }, [values.governorateId])
 
   useEffect(() => {
