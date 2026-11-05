@@ -59,7 +59,7 @@ export function TenantDocumentsPage() {
   const upload = useMutation({
     mutationFn: async () => {
       if (!file) throw new Error(ar ? "اختر ملفاً أولاً" : "Choose a file first")
-      const allowedExtensions = /\\.(pdf|png|jpe?g|webp|docx?|xlsx?)$/i
+      const allowedExtensions = /\.(pdf|png|jpe?g|webp|docx?|xlsx?)$/i
       if (!allowedExtensions.test(file.name)) throw new Error(ar ? "نوع الملف غير مدعوم. استخدم PDF أو صورة أو مستند Office." : "Unsupported file type. Use PDF, an image, or an Office document.")
       if (file.size > 20 * 1024 * 1024) throw new Error(ar ? "الحد الأقصى لحجم الملف 20 ميجابايت." : "The maximum file size is 20 MB.")
       const body = new FormData()
