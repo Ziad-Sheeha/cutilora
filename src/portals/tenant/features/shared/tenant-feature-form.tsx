@@ -200,7 +200,7 @@ export function TenantFeatureForm({ feature, onSave }: Props) {
             </Field>
           ))}
           <div className="flex flex-wrap items-center gap-3 sm:col-span-2">
-            <Button type="submit">{ar ? "التحقق من المسودة" : "Validate draft"}</Button>
+            <Button type="submit" disabled={saving}>{saving ? (ar ? "جارٍ الحفظ..." : "Saving...") : onSave ? (ar ? "حفظ" : "Save") : (ar ? "التحقق من المسودة" : "Validate draft")}</Button>\n            {saveError && <span role="alert" className="text-xs text-destructive">{saveError}</span>}
             {validated && (
               <span role="status" className="inline-flex items-center gap-2 text-xs font-medium text-emerald-700">
                 <CheckCircle2 className="size-4" />
