@@ -20,6 +20,7 @@ import {
 } from "./tenant-feature-api"
 import { TenantFeatureForm } from "./tenant-feature-form"
 import { TenantDocumentsPage } from "../documents/tenant-documents.page"
+import { TenantDomainWorkspacePage } from "./tenant-domain-workspace.page"
 import type { TenantOutletContext } from "../../layout/tenant-layout"
 
 const PAGE_SIZE = 10
@@ -146,6 +147,9 @@ export function TenantFeaturePage() {
   }, [records, ar])
 
   if (key === "documents") return <TenantDocumentsPage />
+  if (feature && ["users", "invitations", "roles", "configuration", "catalog", "finance", "subscription", "integrations", "insights", "governance", "settings/preferences", "settings/notifications", "settings/security"].includes(key)) {
+    return <TenantDomainWorkspacePage feature={feature} />
+  }
 
   if (!feature) {
     return <Card><CardContent className="p-10 text-center"><h2 className="text-lg font-semibold">{ar ? "الصفحة غير موجودة" : "Page not found"}</h2><p className="mt-2 text-sm text-muted-foreground">{key}</p></CardContent></Card>
