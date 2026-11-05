@@ -1,43 +1,162 @@
-import { useEffect, useState, type FormEvent } from "react"
+import { useState } from "react"
 import { useOutletContext } from "react-router"
-import { Building2, Plus, Search, MapPin, Mail, Phone, Pencil, X } from "lucide-react"
+import { Building2, Plus, Search } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Select } from "@/components/ui/select"
-import { useI18n } from "@/i18n/i18n-provider"
-import { createClinic, getTenantGeo, updateClinic } from "../api/tenant-api"
-import type { TenantOutletContext } from "../layout/tenant-layout"
+import { TenantClinicCard } from "../components/tenant-clinic-card"
+import { TenantClinicForm } from "../components/tenant-clinic-form"
+import { TenantEmptyState } from "../components/tenant-empty-state"
+import { TenantPageHeading } from "../components/tenant-page-heading"
+import { createClinic, updateClinic } from "../api/tenant-api"
 import type { Clinic } from "../types/tenant.types"
-type GeoOption = { id: string; name_en: string; name_ar?: string | null }
-const emptyForm = { name:"", clinicType:"aesthetic", description:"", email:"", phone:"", countryId:"", governorateId:"", cityId:"", districtId:"", addressLine1:"", timezone:"Africa/Cairo" }
+import type { TenantOutletContext } from "../layout/tenant-layout"
+import { useI18n } from "@/i18n/i18n-provider"
+
 export function TenantClinicsPage() {
   const { clinics, refresh } = useOutletContext<TenantOutletContext>()
-  const { locale } = useI18n(); const ar = locale === "ar"
-  const [search,setSearch]=useState(""); const [formOpen,setFormOpen]=useState(false); const [editingId,setEditingId]=useState<string|null>(null)
-  const [form,setForm]=useState(emptyForm); const [saving,setSaving]=useState(false); const [error,setError]=useState(""); const [success,setSuccess]=useState("")
-  const [countries,setCountries]=useState<GeoOption[]>([]); const [governorates,setGovernorates]=useState<GeoOption[]>([]); const [cities,setCities]=useState<GeoOption[]>([]); const [districts,setDistricts]=useState<GeoOption[]>([])
-  const [geoLoading,setGeoLoading]=useState(false)
-  const copy = ar ? { title:"العيادات", desc:"إدارة العيادات التابعة لمؤسستك من مكان واحد.", add:"إضافة عيادة", edit:"تعديل", name:"اسم العيادة", namePlaceholder:"مثال: عيادات نوفا", create:"حفظ العيادة", cancel:"إلغاء", empty:"لا توجد عيادات مطابقة", search:"ابحث باسم العيادة", count:"عيادة", type:"نوع العيادة", description:"نبذة", contact:"بيانات التواصل", email:"البريد الإلكتروني", phone:"الهاتف", address:"العنوان", line:"العنوان بالتفصيل", country:"الدولة", governorate:"المحافظة", city:"المدينة", district:"الحي", choose:"اختر", timezone:"المنطقة الزمنية", created:"تم حفظ بيانات العيادة بنجاح.", types:["جلدية","تجميل","جمال","مركز طبي","أخرى"] } : { title:"Clinics", desc:"Manage every clinic owned by your organization from one place.", add:"Add clinic", edit:"Edit", name:"Clinic name", namePlaceholder:"e.g. Nova Clinics", create:"Save clinic", cancel:"Cancel", empty:"No matching clinics", search:"Search clinics", count:"clinics", type:"Clinic type", description:"Description", contact:"Contact details", email:"Email", phone:"Phone", address:"Location", line:"Address line", country:"Country", governorate:"Governorate", city:"City", district:"District", choose:"Select", timezone:"Timezone", created:"Clinic details saved successfully.", types:["Dermatology","Aesthetic","Beauty","Medical center","Other"] }
-  const filtered=clinics.filter(c=>c.name.toLowerCase().includes(search.toLowerCase()))
-  useEffect(()=>{let alive=true;setGeoLoading(true);getTenantGeo("countries").then(items=>{if(alive)setCountries(items)}).catch(e=>{if(alive)setError(e instanceof Error?e.message:"Unable to load countries")}).finally(()=>{if(alive)setGeoLoading(false)});return()=>{alive=false}},[])
-  useEffect(()=>{let alive=true;if(!form.countryId){setGovernorates([]);return}getTenantGeo("governorates",{country_id:form.countryId}).then(items=>{if(alive)setGovernorates(items)}).catch(e=>{if(alive)setError(e instanceof Error?e.message:"Unable to load governorates")});return()=>{alive=false}},[form.countryId])
-  useEffect(()=>{let alive=true;if(!form.governorateId){setCities([]);return}getTenantGeo("cities",{governorate_id:form.governorateId}).then(items=>{if(alive)setCities(items)}).catch(e=>{if(alive)setError(e instanceof Error?e.message:"Unable to load cities")});return()=>{alive=false}},[form.governorateId])
-  useEffect(()=>{let alive=true;if(!form.cityId){setDistricts([]);return}getTenantGeo("districts",{city_id:form.cityId}).then(items=>{if(alive)setDistricts(items)}).catch(e=>{if(alive)setError(e instanceof Error?e.message:"Unable to load districts")});return()=>{alive=false}},[form.cityId])
-  function openCreate(){setEditingId(null);setForm(emptyForm);setError("");setSuccess("");setFormOpen(true)}
-  function openEdit(clinic:Clinic){setEditingId(clinic._id);setForm({...emptyForm,name:clinic.name,clinicType:clinic.clinicType||"aesthetic",description:(clinic as Clinic & {description?:string}).description||"",email:clinic.contact?.email||"",phone:clinic.contact?.phone||"",countryId:clinic.address?.countryId||"",governorateId:clinic.address?.governorateId||"",cityId:clinic.address?.cityId||"",districtId:clinic.address?.districtId||"",addressLine1:clinic.address?.addressLine1||"",timezone:(clinic as Clinic & {timezone?:string}).timezone||"Africa/Cairo"});setError("");setSuccess("");setFormOpen(true)}
-  function set<K extends keyof typeof emptyForm>(key:K,value:string){setForm(current=>({...current,[key]:value,...(key==="countryId"?{governorateId:"",cityId:"",districtId:""}:{}),...(key==="governorateId"?{cityId:"",districtId:""}:{}),...(key==="cityId"?{districtId:""}:{})}))}
-  async function submit(e:FormEvent){e.preventDefault();setSaving(true);setError("");setSuccess("");const payload={name:form.name.trim(),clinicType:form.clinicType,description:form.description.trim(),timezone:form.timezone,contact:{...(form.email.trim()?{email:form.email.trim()}:{}),...(form.phone.trim()?{phone:form.phone.trim()}:{})},address:{...(form.countryId?{countryId:form.countryId}:{}),...(form.governorateId?{governorateId:form.governorateId}:{}),...(form.cityId?{cityId:form.cityId}:{}),...(form.districtId?{districtId:form.districtId}:{}),...(form.addressLine1.trim()?{addressLine1:form.addressLine1.trim()}:{})}}
-    try{if(editingId)await updateClinic(editingId,payload);else await createClinic(payload);setFormOpen(false);setForm(emptyForm);await refresh();setSuccess(copy.created)}catch(err){setError(err instanceof Error?err.message:"Unable to save clinic")}finally{setSaving(false)}}
-  const optionName=(item:GeoOption)=>ar?(item.name_ar||item.name_en):item.name_en
-  return <div className="space-y-7"><div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-end"><div><p className="text-xs font-bold uppercase tracking-[.16em] text-primary">{ar?"إدارة المؤسسة":"ORGANIZATION MANAGEMENT"}</p><h2 className="mt-2 text-3xl font-semibold tracking-tight">{copy.title}</h2><p className="mt-2 text-sm text-muted-foreground">{copy.desc}</p></div><Button onClick={openCreate}><Plus className="size-4"/>{copy.add}</Button></div>
-  {success&&<p role="status" className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">{success}</p>}
-  {formOpen&&<Card className="border-violet-200 bg-white shadow-lg shadow-violet-950/5"><CardContent className="p-5 sm:p-6"><div className="mb-5 flex items-center justify-between"><div><h3 className="font-semibold">{editingId?(ar?"تعديل بيانات العيادة":"Edit clinic"):copy.add}</h3><p className="mt-1 text-xs text-muted-foreground">{ar?"الحقول الجغرافية مرتبطة بتسلسل الدولة والمحافظة والمدينة والحي.":"Location fields follow the country, governorate, city and district hierarchy."}</p></div><Button size="icon" variant="ghost" onClick={()=>setFormOpen(false)} aria-label={copy.cancel}><X className="size-4"/></Button></div>
-  <form onSubmit={submit} className="space-y-6"><section className="grid gap-4 md:grid-cols-2"><div className="space-y-2"><Label htmlFor="clinic-name">{copy.name} *</Label><Input id="clinic-name" required minLength={2} maxLength={160} placeholder={copy.namePlaceholder} value={form.name} onChange={e=>set("name",e.target.value)}/></div><div className="space-y-2"><Label htmlFor="clinic-type">{copy.type}</Label><Select id="clinic-type" value={form.clinicType} onChange={e=>set("clinicType",e.target.value)}>{["dermatology","aesthetic","beauty","medical_center","other"].map((v,i)=><option key={v} value={v}>{copy.types[i]}</option>)}</Select></div><div className="space-y-2 md:col-span-2"><Label htmlFor="clinic-description">{copy.description}</Label><Input id="clinic-description" maxLength={2000} value={form.description} onChange={e=>set("description",e.target.value)}/></div></section>
-  <section className="space-y-3"><h4 className="text-sm font-semibold">{copy.contact}</h4><div className="grid gap-4 md:grid-cols-2"><div className="space-y-2"><Label htmlFor="clinic-email">{copy.email}</Label><Input id="clinic-email" type="email" value={form.email} onChange={e=>set("email",e.target.value)}/></div><div className="space-y-2"><Label htmlFor="clinic-phone">{copy.phone}</Label><Input id="clinic-phone" value={form.phone} onChange={e=>set("phone",e.target.value)}/></div></div></section>
-  <section className="space-y-3"><h4 className="text-sm font-semibold">{copy.address}</h4><div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4"><div className="space-y-2"><Label>{copy.country}</Label><Select value={form.countryId} disabled={geoLoading} onChange={e=>set("countryId",e.target.value)}><option value="">{copy.choose}</option>{countries.map(x=><option key={x.id} value={x.id}>{optionName(x)}</option>)}</Select></div><div className="space-y-2"><Label>{copy.governorate}</Label><Select value={form.governorateId} disabled={!form.countryId} onChange={e=>set("governorateId",e.target.value)}><option value="">{copy.choose}</option>{governorates.map(x=><option key={x.id} value={x.id}>{optionName(x)}</option>)}</Select></div><div className="space-y-2"><Label>{copy.city}</Label><Select value={form.cityId} disabled={!form.governorateId} onChange={e=>set("cityId",e.target.value)}><option value="">{copy.choose}</option>{cities.map(x=><option key={x.id} value={x.id}>{optionName(x)}</option>)}</Select></div><div className="space-y-2"><Label>{copy.district}</Label><Select value={form.districtId} disabled={!form.cityId} onChange={e=>set("districtId",e.target.value)}><option value="">{copy.choose}</option>{districts.map(x=><option key={x.id} value={x.id}>{optionName(x)}</option>)}</Select></div><div className="space-y-2 sm:col-span-2 xl:col-span-4"><Label htmlFor="clinic-address">{copy.line}</Label><Input id="clinic-address" value={form.addressLine1} onChange={e=>set("addressLine1",e.target.value)}/></div></div></section>
-  {error&&<p role="alert" className="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>}<div className="flex flex-wrap gap-2 border-t pt-4"><Button type="submit" loading={saving}>{copy.create}</Button><Button type="button" variant="outline" onClick={()=>setFormOpen(false)}>{copy.cancel}</Button></div></form></CardContent></Card>}
-  <Card className="border-white bg-white"><CardContent className="p-5 sm:p-6"><div className="mb-5 flex flex-col justify-between gap-3 sm:flex-row sm:items-center"><div><h3 className="font-semibold">{ar?"كل العيادات":"All clinics"}</h3><p className="mt-1 text-xs text-muted-foreground">{clinics.length} {copy.count}</p></div><div className="relative w-full sm:max-w-xs"><Search className="absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"/><Input value={search} onChange={e=>setSearch(e.target.value)} placeholder={copy.search} className="ps-9"/></div></div>
-  {filtered.length?<div className="grid gap-3 md:grid-cols-2 2xl:grid-cols-3">{filtered.map(c=><article key={c._id} className="group rounded-2xl border border-border/70 p-4 transition-all hover:border-violet-200 hover:shadow-md"><div className="flex items-start gap-3"><span className="grid size-11 shrink-0 place-items-center rounded-xl bg-violet-50 text-violet-700"><Building2 className="size-5"/></span><div className="min-w-0 flex-1"><h4 className="truncate font-semibold">{c.name}</h4><p className="mt-1 truncate text-xs text-muted-foreground">{c.slug||c.code||"—"}</p></div><span className={"rounded-full px-2.5 py-1 text-[10px] font-semibold "+(c.status==="active"?"bg-emerald-50 text-emerald-700":"bg-slate-100 text-slate-600")}>{c.status||"—"}</span></div><div className="mt-5 space-y-2 border-t pt-4 text-xs text-muted-foreground"><p className="flex items-center gap-2"><Mail className="size-3.5"/>{c.contact?.email||"—"}</p><p className="flex items-center gap-2"><Phone className="size-3.5"/>{c.contact?.phone||"—"}</p><p className="flex items-center gap-2"><MapPin className="size-3.5"/>{c.address?.addressLine1||"—"}</p></div><Button variant="outline" size="sm" className="mt-4 w-full" onClick={()=>openEdit(c)}><Pencil className="size-3.5"/>{copy.edit}</Button></article>)}</div>:<div className="rounded-2xl border border-dashed px-5 py-16 text-center"><Building2 className="mx-auto size-8 text-muted-foreground/40"/><p className="mt-3 text-sm font-semibold">{copy.empty}</p></div>}</CardContent></Card></div>
+  const { locale } = useI18n()
+  const ar = locale === "ar"
+  const [search, setSearch] = useState("")
+  const [formOpen, setFormOpen] = useState(false)
+  const [editingClinic, setEditingClinic] = useState<Clinic | null>(null)
+  const [error, setError] = useState("")
+  const [success, setSuccess] = useState("")
+
+  const copy = ar
+    ? {
+        eyebrow: "إدارة المؤسسة",
+        title: "العيادات",
+        description: "إدارة العيادات التابعة لمؤسستك من مكان واحد.",
+        add: "إضافة عيادة",
+        edit: "تعديل",
+        search: "ابحث باسم العيادة",
+        count: "عيادة",
+        saved: "تم حفظ بيانات العيادة بنجاح.",
+        empty: "لا توجد عيادات مطابقة",
+        emptyDescription: "جرّب تغيير كلمات البحث أو أضف عيادة جديدة لمؤسستك.",
+      }
+    : {
+        eyebrow: "ORGANIZATION MANAGEMENT",
+        title: "Clinics",
+        description: "Manage every clinic owned by your organization from one place.",
+        add: "Add clinic",
+        edit: "Edit",
+        search: "Search clinics",
+        count: "clinics",
+        saved: "Clinic details saved successfully.",
+        empty: "No matching clinics",
+        emptyDescription: "Try another search or add a clinic to your organization.",
+      }
+
+  const filteredClinics = clinics.filter((clinic) =>
+    clinic.name.toLowerCase().includes(search.toLowerCase()),
+  )
+
+  function openCreateForm() {
+    setEditingClinic(null)
+    setError("")
+    setSuccess("")
+    setFormOpen(true)
+  }
+
+  function openEditForm(clinic: Clinic) {
+    setEditingClinic(clinic)
+    setError("")
+    setSuccess("")
+    setFormOpen(true)
+  }
+
+  async function saveClinic(payload: Record<string, unknown>) {
+    try {
+      if (editingClinic) {
+        await updateClinic(editingClinic._id, payload)
+      } else {
+        await createClinic(payload)
+      }
+      await refresh()
+      setFormOpen(false)
+      setSuccess(copy.saved)
+    } catch (e) {
+      const message = e instanceof Error ? e.message : "Unable to save clinic"
+      setError(message)
+      throw e
+    }
+  }
+
+  return (
+    <div className="space-y-7">
+      <TenantPageHeading
+        eyebrow={copy.eyebrow}
+        title={copy.title}
+        description={copy.description}
+        action={
+          <Button onClick={openCreateForm}>
+            <Plus className="size-4" />
+            {copy.add}
+          </Button>
+        }
+      />
+
+      {success && (
+        <p role="status" className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
+          {success}
+        </p>
+      )}
+      {error && !formOpen && (
+        <p role="alert" className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {error}
+        </p>
+      )}
+
+      {formOpen && (
+        <TenantClinicForm
+          clinic={editingClinic}
+          onCancel={() => setFormOpen(false)}
+          onSave={saveClinic}
+        />
+      )}
+
+      <Card className="border-white bg-white">
+        <CardContent className="p-5 sm:p-6">
+          <div className="mb-5 flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
+            <div>
+              <h3 className="font-semibold">{ar ? "كل العيادات" : "All clinics"}</h3>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {clinics.length} {copy.count}
+              </p>
+            </div>
+            <div className="relative w-full sm:max-w-xs">
+              <Search className="absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+              <Input
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder={copy.search}
+                className="ps-9"
+              />
+            </div>
+          </div>
+
+          {filteredClinics.length ? (
+            <div className="grid gap-3 md:grid-cols-2 2xl:grid-cols-3">
+              {filteredClinics.map((clinic) => (
+                <TenantClinicCard
+                  key={clinic._id}
+                  clinic={clinic}
+                  onEdit={openEditForm}
+                  editLabel={copy.edit}
+                />
+              ))}
+            </div>
+          ) : (
+            <TenantEmptyState
+              icon={Building2}
+              title={copy.empty}
+              description={copy.emptyDescription}
+            />
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  )
 }
