@@ -96,10 +96,10 @@ export interface TenantPayload {
   businessType: TenantBusinessType
   description?: string
   industry: string
-  contact?: Partial<TenantContact>
+  contact?: { email?: string; phone?: string; alternatePhone?: string; whatsapp?: string; website?: string }
   address?: Partial<TenantAddress> & { landmark?: string }
   legal?: Partial<TenantLegal>
-  branding?: Partial<TenantBranding>
+  branding?: { logoBase64?: string; coverImageBase64?: string; primaryColor?: string }
   preferences?: Partial<TenantPreferences>
 }
 export interface TenantSubscription {
