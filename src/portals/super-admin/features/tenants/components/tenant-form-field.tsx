@@ -33,7 +33,7 @@ export function TenantFormField({ id, label, value, onChange, type = "text", pla
       {multiline
         ? <Textarea id={id} value={value} onChange={(event) => onChange(event.target.value)} placeholder={placeholder} required={required} aria-invalid={required && !value.trim() ? true : undefined} disabled={disabled} rows={rows} />
         : type === "date"
-          ? <DatePicker value={value} onChange={onChange} placeholder={placeholder ?? "Select date"} minDate={min ? new Date(min) : undefined} maxDate={max ? new Date(max) : undefined} />
+          ? <DatePicker id={id} disabled={disabled} value={value} onChange={onChange} placeholder={placeholder ?? "Select date"} minDate={min ? new Date(min) : undefined} maxDate={max ? new Date(max) : undefined} />
           : <Input id={id} type={type} value={value} onChange={(event) => onChange(event.target.value)} placeholder={placeholder} required={required} aria-invalid={required && !value.trim() ? true : undefined} disabled={disabled} min={min} max={max} step={step} autoComplete={autoComplete} />}
       {hint && <p className="text-xs leading-5 text-muted-foreground">{hint}</p>}
     </div>
