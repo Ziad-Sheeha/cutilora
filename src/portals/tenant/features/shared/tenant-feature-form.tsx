@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from "react"
-import { AlertCircle, CheckCircle2, ClipboardCheck, LoaderCircle } from "lucide-react"
+import { AlertCircle, CheckCircle2, ClipboardCheck } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Field, FieldError } from "@/components/ui/field"
@@ -10,19 +10,16 @@ import { Textarea } from "@/components/ui/textarea"
 import { useI18n } from "@/i18n/i18n-provider"
 import type { TenantFeatureDefinition } from "./tenant-feature.types"
 import { getTenantFieldErrors, validateTenantFeatureForm, type TenantFeatureSchemaKey } from "./tenant-feature-schemas"
-import { createTenantFeatureRecord, getTenantFeatureCreateEndpoint } from "./tenant-feature-api"
 
-type Props = { feature: TenantFeatureDefinition; onCreated?: () => void }
+type Props = { feature: TenantFeatureDefinition }
 
-export function TenantFeatureForm({ feature, onCreated }: Props) {
+export function TenantFeatureForm({ feature }: Props) {
   const { locale } = useI18n()
   const ar = locale === "ar"
   const [values, setValues] = useState<Record<string, string>>({})
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [validated, setValidated] = useState(false)
-  const [submitting, setSubmitting] = useState(false)
   const [serverError, setServerError] = useState<string | null>(null)
-  const createEndpoint = getTenantFeatureCreateEndpoint(feature)
 
   if (!feature.fields?.length || !feature.schemaKey) return null
 
@@ -103,24 +100,7 @@ export function TenantFeatureForm({ feature, onCreated }: Props) {
     }
     setErrors({})
     setServerError(null)
-    if (!createEndpoint) {
-      setValidated(true)
-      return
-    }
-    setSubmitting(true)
-    try {
-      const payload = Object.fromEntries(
-        Object.entries(result.data).filter(([, value]) => value !== ""),
-      ) as Record<string, unknown>
-      await createTenantFeatureRecord(createEndpoint, payload)
-      setValues({})
-      setValidated(true)
-      onCreated?.()
-    } catch (error) {
-      setServerError(error instanceof Error ? error.message : (ar ? "تعذر حفظ البيانات" : "Unable to save the record"))
-    } finally {
-      setSubmitting(false)
-    }
+    setValidated(true)
   }
 
   return (
@@ -131,9 +111,9 @@ export function TenantFeatureForm({ feature, onCreated }: Props) {
             <ClipboardCheck className="size-5" />
           </span>
           <div>
-            <h3 className="font-semibold">{ar ? "نموذج وتجهيز التحقق" : "Form & validation scaffold"}</h3>
+            <h3 className="font-semibold">{ar ? "مسودة وتجهيز التحقق" : "Draft & validation"}</h3>
             <p className="mt-1 text-xs leading-5 text-muted-foreground">
-              {createEndpoint ? (ar ? "سيتم إرسال البيانات إلى واجهة الباك بعد اجتياز التحقق المحلي." : "Validated data will be submitted to the backend endpoint.") : (ar ? "النموذج مخصص للتحقق المحلي فقط؛ لا يوجد Endpoint إنشاء معرّف لهذه الوحدة." : "This form is validation-only because no create endpoint is defined for this module.")}
+              {ar ? "هذه مسودة محلية للمراجعة والتحقق فقط. لن يتم حفظها أو إرسالها إلى الباك قبل تنفيذ واعتماد عقد API الخاص بهذه الوحدة." : "This is a local draft for review and validation only. It is not saved or sent until this module has an implemented and approved backend API."}
             </p>
           </div>
         </div>
@@ -202,11 +182,11 @@ export function TenantFeatureForm({ feature, onCreated }: Props) {
           ))}
           {serverError && <div role="alert" className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800 sm:col-span-2"><AlertCircle className="mt-0.5 size-4 shrink-0" />{serverError}</div>}
           <div className="flex flex-wrap items-center gap-3 sm:col-span-2">
-            <Button type="submit" disabled={submitting}>{submitting && <LoaderCircle className="me-2 size-4 animate-spin" />}{createEndpoint ? (ar ? "حفظ" : "Save") : (ar ? "التحقق من البيانات" : "Validate form")}</Button>
+            <Button type="submit">{ar ? "التحقق من المسودة" : "Validate draft"}</Button>
             {validated && (
               <span role="status" className="inline-flex items-center gap-2 text-xs font-medium text-emerald-700">
                 <CheckCircle2 className="size-4" />
-                {createEndpoint ? (ar ? "تم الحفظ بنجاح" : "Saved successfully") : (ar ? "البيانات اجتازت التحقق المحلي — لم يتم الحفظ" : "Local validation passed — nothing was saved")}
+                {ar ? "المسودة اجتازت التحقق المحلي — لم يتم الحفظ" : "Draft passed local validation — nothing was saved"}
               </span>
             )}
           </div>
