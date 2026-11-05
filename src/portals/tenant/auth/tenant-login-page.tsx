@@ -121,6 +121,7 @@ export function TenantLoginPage() {
       setPending(login)
 
       if (memberships.length === 1) {
+        setSelectedTenantId(memberships[0].tenant)
         await establishSession(memberships[0], login)
       } else {
         setSelectedTenantId(memberships[0].tenant)
