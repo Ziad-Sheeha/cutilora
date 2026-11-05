@@ -38,9 +38,9 @@ function extractContext(payload: unknown): ClinicSessionContext {
   const clinic = object(root.clinic) ?? object(data.clinic) ?? object(membership.clinic) ?? {}
   const branch = object(root.branch) ?? object(data.branch) ?? object(membership.branch) ?? {}
   return {
-    tenantId: firstString(root.tenantId, data.tenantId, membership.tenantId, tenant.id, tenant._id),
-    clinicId: firstString(root.clinicId, data.clinicId, membership.clinicId, clinic.id, clinic._id),
-    branchId: firstString(root.branchId, data.branchId, membership.branchId, branch.id, branch._id),
+    tenantId: firstString(root.tenantId, data.tenantId, context.tenantId, membership.tenantId, tenant.id, tenant._id),
+    clinicId: firstString(root.clinicId, data.clinicId, context.clinicId, membership.clinicId, clinic.id, clinic._id),
+    branchId: firstString(root.branchId, data.branchId, context.branchId, membership.branchId, branch.id, branch._id),
     userName: firstString(user.fullName, user.full_name, user.name, root.name, data.name),
     email: firstString(user.email, root.email, data.email),
   }
