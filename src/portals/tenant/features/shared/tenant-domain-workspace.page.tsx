@@ -570,7 +570,7 @@ export function TenantDomainWorkspacePage({ feature, clinicId, clinics = [], bra
           </Card>
         )
       })}
-      {rootWriteEndpoints.map(endpoint => {
+      {!selectedOperation && rootWriteEndpoints.map(endpoint => {
         const activeFields = fieldsFor(endpoint)
         return <Card key={endpoint.path}><CardContent className="p-5">
           <div className="mb-4 flex items-center gap-2"><Plus className="size-5 text-primary"/><h2 className="font-semibold">{operationLabel(endpoint, ar)} · {feature.title[ar ? "ar" : "en"]}</h2></div>
@@ -616,7 +616,7 @@ export function TenantDomainWorkspacePage({ feature, clinicId, clinics = [], bra
         </CardContent></Card>
       })()}
       {selectedOperation && <Card><CardContent className="p-5">
-        <div className="mb-4 flex items-center justify-between gap-3"><div><h2 className="font-semibold">{operationLabel(selectedOperation.endpoint, ar)}</h2><p className="mt-1 text-xs text-muted-foreground">{String(selectedOperation.row.name ?? selectedOperation.row.email ?? rowId(selectedOperation.row))}</p></div><Button variant="ghost" size="sm" onClick={() => setSelectedOperation(null)}><XCircle className="me-2 size-4"/>{ar ? "إغلاق" : "Close"}</Button></div>
+        <div className="mb-4 flex items-center justify-between gap-3"><div><h2 className="font-semibold">{operationLabel(selectedOperation.endpoint, ar)}</h2><p className="mt-1 text-xs text-muted-foreground">{String(selectedOperation.row.name ?? selectedOperation.row.email ?? rowId(selectedOperation.row))}</p></div><Button variant="ghost" size="sm" onClick={() => { setSelectedOperation(null); setValues({}); setPermissionText(""); setSelectedClinicIds([]); setSelectedBranchIds([]) }}><XCircle className="me-2 size-4"/>{ar ? "إغلاق" : "Close"}</Button></div>
         <form onSubmit={event => void submitForm(event, selectedOperation.endpoint, selectedOperation.row)} className="grid gap-4 sm:grid-cols-2">
           {feature.key === "roles" && /permissions/i.test(selectedOperation.endpoint.path) ? <div className="sm:col-span-2"><Label>{ar ? "صلاحيات الدور" : "Role permissions"}</Label>{permissionRows.length ? <div className="mt-2 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">{permissionRows.map(permission => {
               const code = String(permission.key ?? permission.code ?? permission.name ?? permission.id ?? permission._id ?? "")
