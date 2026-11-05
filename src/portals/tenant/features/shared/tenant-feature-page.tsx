@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useParams } from "react-router"
-import { AlertCircle, CheckCircle2, Database, RefreshCw, Search, ServerCog } from "lucide-react"
+import { AlertCircle, Database, RefreshCw, Search } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { DataTable, type DataTableColumn } from "@/components/ui/data-table"
@@ -19,6 +19,7 @@ import {
   type TenantFeatureRecord,
 } from "./tenant-feature-api"
 import { TenantFeatureForm } from "./tenant-feature-form"
+import { TenantDocumentsPage } from "../documents/tenant-documents.page"
 
 const PAGE_SIZE = 10
 const hiddenKeys = new Set(["id", "_id", "tenantId", "tenant_id", "createdAt", "updatedAt", "created_at", "updated_at"])
@@ -45,6 +46,7 @@ export function TenantFeaturePage() {
   const queryClient = useQueryClient()
   const key = section ? featureParam + "/" + section : featureParam || ""
   const feature = getTenantFeature(key)
+  if (key === "documents") return <TenantDocumentsPage />
   const [search, setSearch] = useState("")
   const [debouncedSearch, setDebouncedSearch] = useState("")
   const [page, setPage] = useState(1)
@@ -134,21 +136,6 @@ export function TenantFeaturePage() {
     <div className="space-y-7">
       <TenantPageHeading eyebrow={feature.eyebrow[ar ? "ar" : "en"]} title={title} description={description} />
 
-      <section className="grid gap-4 md:grid-cols-3">
-        <StatusCard icon={ServerCog} label={ar ? "مصدر البيانات" : "Data source"} value={listEndpoint ? (ar ? "واجهة API" : "API endpoint") : (ar ? "إجراءات مخصصة" : "Custom workflow")} description={listEndpoint?.path ?? (ar ? "تعتمد هذه الوحدة على إجراءات مخصصة." : "This module uses dedicated actions.")} />
-        <StatusCard icon={Database} label={ar ? "نطاق البيانات" : "Data boundary"} value="Tenant-scoped" description={ar ? "الطلبات تستخدم جلسة المؤسسة الحالية ولا تقبل معرف مؤسسة من الواجهة." : "Requests use the active tenant session; tenant identity is not accepted from page input."} />
-        <StatusCard icon={CheckCircle2} label={ar ? "حالة الطلب" : "Request state"} value={listQuery.isSuccess ? (ar ? "متصل" : "Connected") : listQuery.isError ? (ar ? "تعذر الاتصال" : "Request failed") : (ar ? "جاهز للتحميل" : "Ready to load")} description={ar ? "يتم عرض الحالة الفعلية للطلب." : "Reflects the actual API request state."} />
-      </section>
-
-      {feature.capabilities.length > 0 && (
-        <Card><CardContent className="p-5 sm:p-6">
-          <h2 className="font-semibold">{ar ? "نطاق الوحدة" : "Feature scope"}</h2>
-          <div className="mt-4 grid gap-3 md:grid-cols-2">
-            {feature.capabilities.map((item, index) => <div key={index} className="flex gap-3 rounded-xl border p-3"><CheckCircle2 className="mt-0.5 size-4 shrink-0 text-emerald-600"/><p className="text-sm leading-6">{item[ar ? "ar" : "en"]}</p></div>)}
-          </div>
-        </CardContent></Card>
-      )}
-
       {listEndpoint && (
         <section className="overflow-hidden rounded-2xl border bg-card shadow-sm">
           <div className="flex flex-col gap-3 border-b p-5 lg:flex-row lg:items-center lg:justify-between">
@@ -184,11 +171,3 @@ export function TenantFeaturePage() {
   )
 }
 
-function StatusCard({ icon: Icon, label, value, description }: {
-  icon: typeof ServerCog
-  label: string
-  value: string
-  description: string
-}) {
-  return <Card><CardContent className="p-5"><div className="flex items-start justify-between gap-3"><div><p className="text-xs text-muted-foreground">{label}</p><p className="mt-2 text-lg font-semibold">{value}</p></div><span className="grid size-10 place-items-center rounded-xl bg-primary/10 text-primary"><Icon className="size-5"/></span></div><p className="mt-3 break-all text-xs leading-5 text-muted-foreground">{description}</p></CardContent></Card>
-}
