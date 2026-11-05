@@ -1,6 +1,8 @@
 export type TenantRole =
   | "tenant_owner"
   | "tenant_admin"
+  | "organization_manager"
+  | "read_only_analyst"
   | "billing_admin"
   | "clinic_admin"
   | "clinic_manager"
