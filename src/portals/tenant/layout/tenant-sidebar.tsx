@@ -1,4 +1,4 @@
-import { memo, useMemo, useState } from "react"
+import { memo, useEffect, useMemo, useState } from "react"
 import { NavLink, useLocation } from "react-router"
 import {
   ChevronDown,
@@ -6,9 +6,12 @@ import {
   PanelLeftClose,
   PanelLeftOpen,
   Sparkles,
+  Search,
+  X,
 } from "lucide-react"
 import { BrandLogo } from "@/components/brand/brand-logo"
 import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -60,12 +63,33 @@ function TenantSidebarView({ collapsed = false, onToggleCollapse, onNavigate }: 
   const { pathname } = useLocation()
   const ar = locale === "ar"
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({})
+  const [searchQuery, setSearchQuery] = useState("")
+  useEffect(() => {
+    const activeGroup = tenantNavigation.find((group) => isGroupActive(group))
+    if (activeGroup) {
+      setExpandedGroups((current) => ({ ...current, [activeGroup.key]: true }))
+    }
+  }, [pathname])
+
   const labels = useMemo(
     () => Object.fromEntries(
       Object.entries(itemLabels).map(([key, value]) => [key, value[ar ? "ar" : "en"]]),
     ) as Record<string, string>,
     [ar],
   )
+
+  const filteredNavigation = useMemo(() => {
+    const query = searchQuery.trim().toLocaleLowerCase(ar ? "ar" : "en")
+    if (!query) return tenantNavigation
+    return tenantNavigation
+      .map((group) => ({
+        ...group,
+        items: group.items.filter((item) =>
+          (labels[item.key] || item.key).toLocaleLowerCase(ar ? "ar" : "en").includes(query),
+        ),
+      }))
+      .filter((group) => group.items.length > 0)
+  }, [ar, labels, searchQuery])
 
   async function signOut() {
     try {
@@ -167,7 +191,38 @@ function TenantSidebarView({ collapsed = false, onToggleCollapse, onNavigate }: 
           className={`min-h-0 flex-1 space-y-3 overflow-y-auto pb-5 ${collapsed ? "px-2 pt-4" : "px-3"}`}
           aria-label={ar ? "التنقل الرئيسي" : "Main navigation"}
         >
-          {tenantNavigation.map((group) => {
+          {!collapsed && (
+            <div className="px-1 pb-1">
+              <div className="relative">
+                <Search className={`pointer-events-none absolute top-1/2 size-4 -translate-y-1/2 text-white/35 ${ar ? "right-3" : "left-3"}`} />
+                <Input
+                  value={searchQuery}
+                  onChange={(event) => setSearchQuery(event.target.value)}
+                  placeholder={ar ? "ابحث في القائمة..." : "Search navigation..."}
+                  aria-label={ar ? "ابحث في عناصر القائمة" : "Search navigation"}
+                  className={`h-10 border-white/10 bg-white/[.06] text-sm text-white placeholder:text-white/35 focus-visible:ring-violet-400 ${ar ? "pr-9 pl-9" : "pl-9 pr-9"}`}
+                />
+                {searchQuery && (
+                  <Button
+                    type="button"
+                    size="icon"
+                    variant="ghost"
+                    aria-label={ar ? "مسح البحث" : "Clear search"}
+                    onClick={() => setSearchQuery("")}
+                    className={`absolute top-1/2 size-7 -translate-y-1/2 text-white/50 hover:bg-white/10 hover:text-white ${ar ? "left-1" : "right-1"}`}
+                  >
+                    <X className="size-3.5" />
+                  </Button>
+                )}
+              </div>
+            </div>
+          )}
+          {filteredNavigation.length === 0 && (
+            <p className="px-3 py-8 text-center text-xs text-white/45">
+              {ar ? "مفيش نتائج مطابقة" : "No navigation results"}
+            </p>
+          )}
+          {filteredNavigation.map((group) => {
             const GroupIcon = group.items[0]?.icon || Sparkles
             const groupLabel = group.label[ar ? "ar" : "en"]
             const isOpen = expandedGroups[group.key] ?? isGroupActive(group)
