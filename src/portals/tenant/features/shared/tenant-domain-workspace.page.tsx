@@ -389,6 +389,16 @@ export function TenantDomainWorkspacePage({ feature, clinicId, clinics = [], bra
     }
     const missing = activeFields.find(field => field.required && !String(values[field.name] ?? "").trim())
     if (missing) { setFormError(ar ? "أكمل كل الحقول المطلوبة." : "Complete all required fields."); return }
+    if (feature.key === "invitations" && values.expiresAt && new Date(values.expiresAt).getTime() <= Date.now()) {
+      setFormError(ar ? "يجب أن يكون تاريخ انتهاء الدعوة في المستقبل." : "Invitation expiry must be a future date.")
+      return
+    }
+    if (feature.key === "invitations" && values.scope === "tenant") {
+      setInvitationClinicIds([])
+      setInvitationBranchIds([])
+    }
+    if (feature.key === "invitations" && values.scope === "clinic") setInvitationBranchIds([])
+    if (feature.key === "invitations" && values.scope === "branch") setInvitationClinicIds([])
     if (feature.key === "invitations" && values.scope === "clinic" && invitationClinicIds.length === 0) {
       setFormError(ar ? "اختر عيادة واحدة على الأقل." : "Select at least one clinic.")
       return
@@ -545,6 +555,7 @@ export function TenantDomainWorkspacePage({ feature, clinicId, clinics = [], bra
             </div>)}
             {feature.key === "invitations" && values.scope === "clinic" && <div className="sm:col-span-2"><Label>{ar ? "العيادات المسموح بها" : "Allowed clinics"}</Label><div className="mt-2 grid gap-2 rounded-xl border p-3 sm:grid-cols-2">{clinics.map(clinic => <label key={clinic._id} className="flex items-center gap-2 text-sm"><Checkbox checked={invitationClinicIds.includes(clinic._id)} onChange={event => setInvitationClinicIds(current => event.target.checked ? [...new Set([...current, clinic._id])] : current.filter(id => id !== clinic._id))}/>{clinic.name}</label>)}</div></div>}
             {feature.key === "invitations" && values.scope === "branch" && <div className="sm:col-span-2"><Label>{ar ? "الفروع المسموح بها" : "Allowed branches"}</Label><div className="mt-2 grid gap-2 rounded-xl border p-3 sm:grid-cols-2">{branches.map(branch => <label key={branch._id} className="flex items-center gap-2 text-sm"><Checkbox checked={invitationBranchIds.includes(branch._id)} onChange={event => setInvitationBranchIds(current => event.target.checked ? [...new Set([...current, branch._id])] : current.filter(id => id !== branch._id))}/>{branch.name}</label>)}</div></div>}
+            {feature.key === "invitations" && values.email && values.role && values.scope && <div className="sm:col-span-2 rounded-xl border bg-muted/20 p-4"><p className="text-sm font-semibold">{ar ? "معاينة الدعوة قبل الإرسال" : "Invitation preview"}</p><div className="mt-3 grid gap-2 text-sm sm:grid-cols-2"><p><span className="text-muted-foreground">{ar ? "البريد: " : "Email: "}</span>{values.email}</p><p><span className="text-muted-foreground">{ar ? "الدور: " : "Role: "}</span>{values.role}</p><p><span className="text-muted-foreground">{ar ? "النطاق: " : "Scope: "}</span>{ar ? ({tenant:"المؤسسة بالكامل",clinic:"عيادات محددة",branch:"فروع محددة"} as Record<string,string>)[values.scope] : values.scope}</p><p><span className="text-muted-foreground">{ar ? "تنتهي في: " : "Expires: "}</span>{values.expiresAt || (ar ? "حسب سياسة الدعوات" : "According to invitation policy")}</p><p className="sm:col-span-2 text-muted-foreground">{ar ? "عدد العيادات المحددة: " + invitationClinicIds.length + " — عدد الفروع المحددة: " + invitationBranchIds.length : "Selected clinics: " + invitationClinicIds.length + " — selected branches: " + invitationBranchIds.length}</p></div></div>}
             <div className="flex flex-wrap items-center gap-2 sm:col-span-2"><Button type="submit" disabled={operation.isPending}>{operation.isPending ? <LoaderCircle className="me-2 size-4 animate-spin"/> : <Check className="me-2 size-4"/>}{operationLabel(endpoint, ar)}</Button><Button type="button" variant="outline" onClick={() => setValues({})}>{ar ? "مسح الحقول" : "Clear fields"}</Button></div>
           </form>
         </CardContent></Card>
