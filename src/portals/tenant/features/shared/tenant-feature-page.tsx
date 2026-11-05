@@ -152,7 +152,7 @@ export function TenantFeaturePage() {
             getRowId={recordId}
             isLoading={listQuery.isLoading}
             loadingLabel={ar ? "جارٍ تحميل البيانات..." : "Loading records..."}
-            emptyState={<div className="px-6 py-16 text-center"><Database className="mx-auto size-9 text-muted-foreground/40"/><p className="mt-3 font-semibold">{ar ? "لا توجد سجلات" : "No records found"}</p><p className="mt-1 text-sm text-muted-foreground">{ar ? "ستظهر البيانات هنا بعد تحميلها من الباك." : "Records will appear here when returned by the API."}</p></div>}
+            emptyState={<div className="px-6 py-16 text-center"><Database className="mx-auto size-9 text-muted-foreground/40"/><p className="mt-3 font-semibold">{ar ? "لا توجد سجلات" : "No records found"}</p><p className="mt-1 text-sm text-muted-foreground">{ar ? "لا توجد بيانات لعرضها حالياً." : "There is no information to display yet."}</p></div>}
             pagination={pagination}
             onPageChange={setPage}
             onPerPageChange={(size) => { setPerPage(size); setPage(1) }}
@@ -164,9 +164,7 @@ export function TenantFeaturePage() {
         <TenantFeatureForm feature={feature} onSave={(payload) => saveMutation.mutateAsync(payload)} />
       )}
 
-      {!listEndpoint && !writeEndpoint && (
-        <Card><CardContent className="p-8 text-center"><Database className="mx-auto size-8 text-muted-foreground"/><p className="mt-3 font-semibold">{ar ? "إجراءات هذه الوحدة" : "Module actions"}</p><p className="mt-1 text-sm text-muted-foreground">{feature.note?.[ar ? "ar" : "en"] ?? (ar ? "لم يتم تعريف عملية قائمة لهذه الوحدة في عقد الـ API." : "No collection operation is defined for this module in the API contract.")}</p></CardContent></Card>
-      )}
+}
     </div>
   )
 }
