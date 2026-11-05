@@ -5,14 +5,37 @@ import { useI18n } from "@/i18n/i18n-provider"
 import { TenantPageHeading } from "../components/tenant-page-heading"
 import { getTenantFeature } from "../features/shared/tenant-feature-registry"
 import { TenantFeatureForm } from "../features/shared/tenant-feature-form"
-import type { TenantOutletContext } from "../layout/tenant-layout"\nimport { updateTenantProfile } from "../api/tenant-api"
+import type { TenantOutletContext } from "../layout/tenant-layout"
+import { updateTenantProfile } from "../api/tenant-api"
 
 export function TenantOrganizationPage() {
   const { context, refresh } = useOutletContext<TenantOutletContext>()
   const { locale } = useI18n()
   const ar = locale === "ar"
   const tenant = context?.tenant
-  const profileFeature = getTenantFeature("organization-profile")\n  const initialValues = {\n    displayName: tenant?.displayName || tenant?.name || "",\n    legalName: tenant?.legalName || "",\n    businessType: tenant?.businessType || "single_clinic",\n    contactEmail: tenant?.contact?.email || "",\n    contactPhone: tenant?.contact?.phone || "",\n    website: tenant?.contact?.website || "",\n    countryId: tenant?.address?.countryId || "",\n    cityId: tenant?.address?.cityId || "",\n    addressLine1: tenant?.address?.addressLine1 || "",\n  }\n\n  async function saveProfile(values: Record<string, unknown>) {\n    await updateTenantProfile({\n      displayName: values.displayName,\n      legalName: values.legalName,\n      businessType: values.businessType,\n      contact: { email: values.contactEmail, phone: values.contactPhone, website: values.website },\n      address: { countryId: values.countryId, cityId: values.cityId, addressLine1: values.addressLine1 },\n    })\n    await refresh()\n  }
+  const profileFeature = getTenantFeature("organization-profile")
+  const initialValues = {
+    displayName: tenant?.displayName || tenant?.name || "",
+    legalName: tenant?.legalName || "",
+    businessType: tenant?.businessType || "single_clinic",
+    contactEmail: tenant?.contact?.email || "",
+    contactPhone: tenant?.contact?.phone || "",
+    website: tenant?.contact?.website || "",
+    countryId: tenant?.address?.countryId || "",
+    cityId: tenant?.address?.cityId || "",
+    addressLine1: tenant?.address?.addressLine1 || "",
+  }
+
+  async function saveProfile(values: Record<string, unknown>) {
+    await updateTenantProfile({
+      displayName: values.displayName,
+      legalName: values.legalName,
+      businessType: values.businessType,
+      contact: { email: values.contactEmail, phone: values.contactPhone, website: values.website },
+      address: { countryId: values.countryId, cityId: values.cityId, addressLine1: values.addressLine1 },
+    })
+    await refresh()
+  }
 
   const fields = [
     { label: ar ? "الاسم التجاري" : "Display name", value: tenant?.displayName || tenant?.name, icon: Building2 },
