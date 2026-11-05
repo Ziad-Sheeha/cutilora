@@ -17,7 +17,7 @@ import type { TenantFeatureDefinition, TenantFeatureEndpoint, TenantFeatureField
 import { getTenantFieldErrors, validateTenantFeatureForm, type TenantFeatureSchemaKey } from "./tenant-feature-schemas"
 
 type Row = Record<string, unknown> & { id?: string; _id?: string; uuid?: string }
-type Resource = { endpoint: TenantFeatureEndpoint; rows: Row[]; summary: Record<string, unknown> | null }
+type Resource = { endpoint: TenantFeatureEndpoint; rows: Row[]; summary: Record<string, unknown> | null; pagination?: { page?: number; per_page?: number; total?: number; total_pages?: number } }
 type SelectedOperation = { endpoint: TenantFeatureEndpoint; row: Row }
 const hidden = new Set(["id", "_id", "uuid", "tenantId", "tenant_id", "createdAt", "updatedAt", "created_at", "updated_at", "deletedAt"])
 const sensitive = /password|token|secret|credential|authorization|signature/i
@@ -120,6 +120,8 @@ export function TenantDomainWorkspacePage({ feature, clinicId }: { feature: Tena
   const client = useQueryClient()
   const [values, setValues] = useState<Record<string, string>>({})
   const [search, setSearch] = useState("")
+  const [page, setPage] = useState(1)
+  const [perPage, setPerPage] = useState(10)
   const [formError, setFormError] = useState("")
   const [success, setSuccess] = useState("")
   const [confirm, setConfirm] = useState<{ endpoint: TenantFeatureEndpoint; row?: Row } | null>(null)
@@ -131,22 +133,31 @@ export function TenantDomainWorkspacePage({ feature, clinicId }: { feature: Tena
   const writeEndpoints = feature.endpoints.filter(endpoint => endpoint.method !== "GET")
   const resourcesQuery = useQueries({
     queries: getEndpoints.map(endpoint => ({
-      queryKey: ["tenant-domain", feature.key, endpoint.path, search],
+      queryKey: ["tenant-domain", feature.key, endpoint.path, search, page, perPage],
       queryFn: async () => {
-        const response = await tenantApi.get(apiPath(endpoint.path), { params: { per_page: 100, search: search.trim() || undefined } })
+        const response = await tenantApi.get(apiPath(endpoint.path), { params: { page, per_page: perPage, search: search.trim() || undefined } })
+        const envelope = response.data && typeof response.data === "object" ? response.data as Record<string, unknown> : {}
+        const nestedEnvelope = envelope.data && typeof envelope.data === "object" ? envelope.data as Record<string, unknown> : {}
+        const meta = (envelope.pagination ?? envelope.meta ?? nestedEnvelope.pagination ?? nestedEnvelope.meta) as Record<string, unknown> | undefined
+        const pagination = meta ? {
+          page: Number(meta.page ?? meta.current_page) || undefined,
+          per_page: Number(meta.per_page ?? meta.perPage) || undefined,
+          total: Number(meta.total) || undefined,
+          total_pages: Number(meta.total_pages ?? meta.last_page) || undefined,
+        } : undefined
         const data = unwrap(response.data)
         const isSummaryResource = /summary|subscription|configuration|preferences/.test(endpoint.path)
         const record = data && typeof data === "object" && !Array.isArray(data) ? data as Record<string, unknown> : null
         const nestedSummary = record?.summary && typeof record.summary === "object" ? record.summary as Record<string, unknown> : null
         const summary = record ? { ...record, ...(nestedSummary ?? {}) } : null
         const rows = isSummaryResource && record && !Array.isArray(record.items) && !Array.isArray(record.records) ? [] : toRows(data)
-        return { rows, summary }
+        return { rows, summary, pagination }
       },
       staleTime: 20_000,
     })),
   })
   const resources: Resource[] = getEndpoints.map((endpoint, index) => ({
-    endpoint, rows: resourcesQuery[index]?.data?.rows ?? [], summary: resourcesQuery[index]?.data?.summary ?? null,
+    endpoint, rows: resourcesQuery[index]?.data?.rows ?? [], summary: resourcesQuery[index]?.data?.summary ?? null, pagination: resourcesQuery[index]?.data?.pagination,
   }))
   const busy = resourcesQuery.some(query => query.isLoading)
   const hasError = resourcesQuery.find(query => query.isError)?.error
@@ -298,7 +309,25 @@ export function TenantDomainWorkspacePage({ feature, clinicId }: { feature: Tena
                 {isSummary && <Activity className="size-5 text-muted-foreground"/>}
               </div>
               {isSummary && summaryEntries.length > 0 && <div className="mb-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">{summaryEntries.map(([key, value]) => <div key={key} className="rounded-xl border bg-muted/20 p-3"><p className="text-xs text-muted-foreground">{humanize(key, ar)}</p><p className="mt-1 break-words text-lg font-semibold">{display(value, ar)}</p></div>)}</div>}
-              {rows.length > 0 ? <DataTable columns={columnsFor(rows)} data={rows} getRowId={row => rowId(row) || JSON.stringify(row)} isLoading={resourcesQuery[index]?.isLoading} loadingLabel={ar ? "جارٍ التحميل..." : "Loading..."} emptyState={<p className="py-8 text-center text-sm text-muted-foreground">{ar ? "لا توجد بيانات." : "No data available."}</p>}/> : !isSummary && !resourcesQuery[index]?.isLoading ? <p className="rounded-xl border border-dashed py-8 text-center text-sm text-muted-foreground">{ar ? "لا توجد سجلات حالياً." : "No records yet."}</p> : null}
+              {rows.length > 0 ? <DataTable
+                columns={columnsFor(rows)}
+                data={rows}
+                getRowId={row => rowId(row) || JSON.stringify(row)}
+                isLoading={resourcesQuery[index]?.isLoading}
+                loadingLabel={ar ? "جارٍ التحميل..." : "Loading..."}
+                emptyState={<p className="py-8 text-center text-sm text-muted-foreground">{ar ? "لا توجد بيانات." : "No data available."}</p>}
+                pagination={resource.pagination?.total !== undefined ? {
+                  page: resource.pagination.page ?? page,
+                  perPage: resource.pagination.per_page ?? perPage,
+                  total: resource.pagination.total,
+                  totalKnown: true,
+                  hasNext: resource.pagination.total_pages !== undefined
+                    ? (resource.pagination.page ?? page) < resource.pagination.total_pages
+                    : (resource.pagination.page ?? page) * (resource.pagination.per_page ?? perPage) < resource.pagination.total,
+                } : undefined}
+                onPageChange={setPage}
+                onPerPageChange={size => { setPerPage(size); setPage(1) }}
+              /> : !isSummary && !resourcesQuery[index]?.isLoading ? <p className="rounded-xl border border-dashed py-8 text-center text-sm text-muted-foreground">{ar ? "لا توجد سجلات حالياً." : "No records yet."}</p> : null}
               {matchingReadActions.length > 0 && rows.length > 0 && <div className="mt-3 flex flex-wrap gap-2">{rows.slice(0, 8).flatMap(row => matchingReadActions.map(endpoint => <Button key={endpoint.path + rowId(row)} size="sm" variant="outline" onClick={() => {
                 if (/download/i.test(endpoint.purpose)) {
                   void tenantApi.get(apiPath(resolvePath(endpoint.path, row))).then(response => {
