@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react"
 import { useOutletContext } from "react-router"
-import { Clock3, MapPin, MapPinned, Pencil, Plus } from "lucide-react"
+import { Clock3, MapPin, MapPinned, Pencil, Plus, Search } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
 import { TenantBranchForm } from "../components/tenant-branch-form"
 import { TenantEmptyState } from "../components/tenant-empty-state"
 import { TenantPageHeading } from "../components/tenant-page-heading"
@@ -21,6 +22,7 @@ export function TenantBranchesPage() {
   const [formOpen, setFormOpen] = useState(false)
   const [editingBranch, setEditingBranch] = useState<Branch | null>(null)
   const [error, setError] = useState("")
+  const [search, setSearch] = useState("")
   const clinicId = context?.access.clinicId || context?.clinic?._id || ""
   const clinicName = context?.clinic?.name || clinics.find((clinic) => clinic._id === clinicId)?.name
 
@@ -72,6 +74,8 @@ export function TenantBranchesPage() {
       active = false
     }
   }, [clinicId])
+
+  const filteredBranches = branches.filter(branch => [branch.name, branch.slug, branch.address, branch.status].some(value => String(value ?? "").toLowerCase().includes(search.trim().toLowerCase())))
 
   function openCreateForm() {
     setEditingBranch(null)
@@ -136,21 +140,19 @@ export function TenantBranchesPage() {
 
           <Card className="border-white bg-white">
             <CardContent className="p-6">
-              <div className="mb-5 flex items-center justify-between">
+              <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <h3 className="font-semibold">{ar ? "فروع العيادة" : "Clinic branches"}</h3>
                   <p className="mt-1 text-xs text-muted-foreground">{branches.length} {copy.count}</p>
                 </div>
-                <span className="grid size-10 place-items-center rounded-xl bg-slate-50 text-slate-600">
-                  <MapPinned className="size-5" />
-                </span>
+                <div className="relative w-full sm:max-w-xs"><Search className="absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"/><Input value={search} onChange={event => setSearch(event.target.value)} placeholder={copy.search} className="ps-9"/></div>
               </div>
 
               {loading ? (
                 <p className="py-12 text-center text-sm text-muted-foreground">{ar ? "جارٍ التحميل…" : "Loading branches…"}</p>
-              ) : branches.length ? (
+              ) : filteredBranches.length ? (
                 <div className="grid gap-3 md:grid-cols-2 2xl:grid-cols-3">
-                  {branches.map((branch) => (
+                  {filteredBranches.map((branch) => (
                     <article key={branch._id} className="rounded-2xl border p-4">
                       <div className="flex items-center gap-3">
                         <span className="grid size-10 place-items-center rounded-xl bg-violet-50 text-violet-700">
@@ -173,8 +175,8 @@ export function TenantBranchesPage() {
               ) : (
                 <TenantEmptyState
                   icon={MapPinned}
-                  title={copy.empty}
-                  description={copy.emptyDescription}
+                  title={search ? (ar ? "لا توجد نتائج مطابقة" : "No matching branches") : copy.empty}
+                  description={search ? (ar ? "جرّب البحث باسم أو معرّف مختلف." : "Try another branch name or slug.") : copy.emptyDescription}
                   action={<Button size="sm" onClick={openCreateForm}>{copy.add}</Button>}
                 />
               )}
