@@ -38,6 +38,10 @@ function statusText(value: unknown, ar: boolean) {
   }
   return labels[key]?.[ar ? 1 : 0] ?? formatValue(value)
 }
+function metricValue(summary: Record<string, unknown>, key: string, fallback?: number) {
+  const snake = key.replace(/[A-Z]/g, letter => "_" + letter.toLowerCase())
+  return summary[key] ?? summary[snake] ?? fallback
+}
 function businessTypeText(value: unknown, ar: boolean) {
   const key = String(value ?? "").toLowerCase()
   const labels: Record<string, [string, string]> = {
@@ -78,7 +82,7 @@ export function TenantOverviewPage() {
     { key: "pendingInvitations", label: ar ? "الدعوات المعلقة" : "Pending invitations", icon: Clock3 },
     { key: "expiringDocuments", label: ar ? "مستندات قاربت على الانتهاء" : "Expiring documents", icon: AlertTriangle },
   ]
-  const metrics = metricDefinitions.filter(metric => summary[metric.key] !== undefined || metric.fallback !== undefined)
+  const metrics = metricDefinitions.filter(metric => metricValue(summary, metric.key, metric.fallback) !== undefined)
   const activityColumns: DataTableColumn<DashboardRecord>[] = [
     { id: "action", header: ar ? "النشاط" : "Activity", cell: row => <span className="font-medium">{String(row.action ?? row.title ?? row.message ?? "—")}</span> },
     { id: "actor", header: ar ? "بواسطة" : "By", cell: row => formatValue(row.actor ?? row.userName) },
@@ -106,7 +110,7 @@ export function TenantOverviewPage() {
       </section>
 
       {summaryQuery.isError && <p role="alert" className="text-sm text-destructive">{summaryQuery.error instanceof Error ? summaryQuery.error.message : (ar ? "تعذر تحميل مؤشرات المؤسسة." : "Unable to load organization metrics.")}</p>}
-      {metrics.length > 0 && <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">{metrics.map(metric => { const Icon = metric.icon; return <Card key={metric.key}><CardContent className="flex items-center gap-4 p-5"><span className="grid size-11 place-items-center rounded-xl bg-violet-50 text-violet-700"><Icon className="size-5"/></span><div><p className="text-xs text-muted-foreground">{metric.label}</p><p className="mt-1 text-2xl font-semibold tabular-nums">{formatValue(summary[metric.key] ?? metric.fallback)}</p></div></CardContent></Card> })}</section>}
+      {metrics.length > 0 && <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">{metrics.map(metric => { const Icon = metric.icon; return <Card key={metric.key}><CardContent className="flex items-center gap-4 p-5"><span className="grid size-11 place-items-center rounded-xl bg-violet-50 text-violet-700"><Icon className="size-5"/></span><div><p className="text-xs text-muted-foreground">{metric.label}</p><p className="mt-1 text-2xl font-semibold tabular-nums">{formatValue(metricValue(summary, metric.key, metric.fallback))}</p></div></CardContent></Card> })}</section>}
 
       <section className="grid gap-4 md:grid-cols-3">
         {cards.map(item => { const Icon = item.icon; return <Link key={item.href} to={item.href} className="group"><Card className="h-full border-white bg-white transition-all hover:-translate-y-1 hover:border-violet-200 hover:shadow-lg"><CardContent className="p-5"><div className="flex items-start justify-between"><span className="grid size-11 place-items-center rounded-2xl bg-violet-50 text-violet-700"><Icon className="size-5"/></span><ArrowUpRight className="size-4 text-muted-foreground transition-transform group-hover:-translate-y-1 group-hover:translate-x-1"/></div><p className="mt-6 text-sm text-muted-foreground">{item.label}</p><p className="mt-1 text-2xl font-semibold capitalize tracking-tight">{item.value}</p><p className="mt-2 text-xs leading-5 text-muted-foreground">{item.hint}</p></CardContent></Card></Link> })}
