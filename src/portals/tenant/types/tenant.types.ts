@@ -9,6 +9,17 @@ export type TenantRole =
   | "provider"
   | "receptionist"
 
+export type TenantResourceReference =
+  | string
+  | {
+      _id?: string
+      id?: string
+      name?: string
+      displayName?: string
+      slug?: string
+    }
+  | null
+
 export type TenantMembership = {
   tenant: string
   tenantName?: string
@@ -16,6 +27,11 @@ export type TenantMembership = {
   branch_ids: string[]
   scope: "tenant" | "clinic" | "branch"
   role: TenantRole
+}
+
+export type TenantLoginMembership = Omit<TenantMembership, "tenant" | "clinic"> & {
+  tenant: TenantResourceReference
+  clinic: TenantResourceReference
 }
 
 export type TenantUser = {
@@ -30,7 +46,7 @@ export type TenantLoginResponse = {
     access_token: string
     token_type: "Bearer"
     user: TenantUser
-    memberships: TenantMembership[]
+    memberships: TenantLoginMembership[]
   }
 }
 
