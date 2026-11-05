@@ -45,7 +45,7 @@ function toRows(value: unknown): Row[] {
   return []
 }
 function rowId(row: Row) {
-  const value = row.id ?? row._id ?? row.uuid ?? row.membershipId ?? row.membership_id ?? row.userId ?? row.user_id ?? row.invitationId ?? row.invitation_id ?? row.roleId ?? row.role_id ?? row.integrationId ?? row.integration_id ?? row.webhookId ?? row.webhook_id ?? row.invoiceId ?? row.invoice_id ?? row.reportId ?? row.report_id ?? row.auditEventId ?? row.audit_event_id ?? row.sessionId ?? row.session_id
+  const value = row.id ?? row._id ?? row.uuid ?? row.key ?? row.reportKey ?? row.membershipId ?? row.membership_id ?? row.userId ?? row.user_id ?? row.invitationId ?? row.invitation_id ?? row.roleId ?? row.role_id ?? row.integrationId ?? row.integration_id ?? row.webhookId ?? row.webhook_id ?? row.invoiceId ?? row.invoice_id ?? row.reportId ?? row.report_id ?? row.auditEventId ?? row.audit_event_id ?? row.sessionId ?? row.session_id
   return value === undefined || value === null ? "" : String(value)
 }
 function label(value: string, ar: boolean) {
@@ -387,6 +387,10 @@ export function TenantDomainWorkspacePage({ feature, clinicId, clinics = [], bra
       if (downloadWindow.current) downloadWindow.current.opener = null
     }
     const activeFields = fieldsFor(endpoint)
+    if ((feature.key === "insights" || feature.key === "governance") && endpoint.path.endsWith("/exports") && values.from && values.to && values.from > values.to) {
+      setFormError(ar ? "يجب أن يكون تاريخ البداية قبل تاريخ النهاية." : "The start date must be on or before the end date.")
+      return
+    }
     if (feature.key === "roles" && /permissions/i.test(endpoint.path)) {
       const permissions = permissionText.split(/[\n,]/).map(value => value.trim()).filter(Boolean)
       if (!permissions.length) { setFormError(ar ? "اختر صلاحية واحدة على الأقل." : "Select at least one permission."); return }
