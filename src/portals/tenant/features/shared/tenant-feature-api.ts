@@ -61,7 +61,7 @@ export function getTenantFeatureListEndpoint(feature: TenantFeatureDefinition) {
   if (matchingResource) return matchingResource
 
   return collectionGets.find((endpoint) =>
-    !/permissions|access\/me|\/me$|catalogue|catalog\/categories/i.test(endpoint.path),
+    !/\{[^}]+\}/.test(endpoint.path),
   )
 }
 
@@ -84,7 +84,7 @@ export function getTenantFeatureWriteEndpoint(feature: TenantFeatureDefinition) 
   return feature.endpoints.find((endpoint) =>
     (endpoint.method === "POST" || endpoint.method === "PATCH" || endpoint.method === "PUT") &&
     endpoint.path.split("?")[0] === basePath &&
-    !/\\{[^}]+\\}/.test(endpoint.path),
+    !/\{[^}]+\}/.test(endpoint.path),
   )
 }
 
