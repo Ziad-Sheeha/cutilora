@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useI18n } from "@/i18n/i18n-provider"
+import { canManageOrganization } from "../../../auth/tenant-permissions"
 import { useOutletContext } from "react-router"
 import type { TenantOutletContext } from "../../../layout/tenant-layout"
 import { updateTenantContext } from "../../../auth/tenant-session"
@@ -185,6 +186,8 @@ export function BranchOperationsPage() {
     }
     createHoliday.mutate(payload)
   }
+
+  if (!canManageOrganization()) return <Card><CardContent className="p-8 text-center"><p className="font-semibold">{ar ? "صلاحية عرض فقط" : "Read-only access"}</p><p className="mt-2 text-sm text-muted-foreground">{ar ? "لا تملك صلاحية تعديل إعدادات الفروع." : "Your current organization role cannot change branch settings."}</p></CardContent></Card>
 
   return (
     <div className="space-y-7">
