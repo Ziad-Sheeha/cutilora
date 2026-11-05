@@ -19,7 +19,10 @@ export function TenantFeatureForm({ feature, onCreated }: Props) {
   const ar = locale === "ar"
   const [values, setValues] = useState<Record<string, string>>({})
   const [errors, setErrors] = useState<Record<string, string>>({})
-  const [validated, setValidated] = useState(false)\n  const [submitting, setSubmitting] = useState(false)\n  const [serverError, setServerError] = useState<string | null>(null)\n  const createEndpoint = getTenantFeatureCreateEndpoint(feature)
+  const [validated, setValidated] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const [serverError, setServerError] = useState<string | null>(null)
+  const createEndpoint = getTenantFeatureCreateEndpoint(feature)
 
   if (!feature.fields?.length || !feature.schemaKey) return null
 
@@ -99,7 +102,25 @@ export function TenantFeatureForm({ feature, onCreated }: Props) {
       return
     }
     setErrors({})
-    setValidated(true)
+    setServerError(null)
+    if (!createEndpoint) {
+      setValidated(true)
+      return
+    }
+    setSubmitting(true)
+    try {
+      const payload = Object.fromEntries(
+        Object.entries(result.data).filter(([, value]) => value !== ""),
+      ) as Record<string, unknown>
+      await createTenantFeatureRecord(createEndpoint, payload)
+      setValues({})
+      setValidated(true)
+      onCreated?.()
+    } catch (error) {
+      setServerError(error instanceof Error ? error.message : (ar ? "تعذر حفظ البيانات" : "Unable to save the record"))
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   return (
@@ -179,8 +200,9 @@ export function TenantFeatureForm({ feature, onCreated }: Props) {
               {errors[field.name] && <FieldError id={`tenant-feature-${field.name}-error`}>{errors[field.name]}</FieldError>}
             </Field>
           ))}
+          {serverError && <div role="alert" className="flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800 sm:col-span-2"><AlertCircle className="mt-0.5 size-4 shrink-0" />{serverError}</div>}
           <div className="flex flex-wrap items-center gap-3 sm:col-span-2">
-            <Button type="submit">{ar ? "التحقق من البيانات" : "Validate form"}</Button>
+            <Button type="submit" disabled={submitting}>{submitting && <LoaderCircle className="me-2 size-4 animate-spin" />}{createEndpoint ? (ar ? "حفظ" : "Save") : (ar ? "التحقق من البيانات" : "Validate form")}</Button>
             {validated && (
               <span role="status" className="inline-flex items-center gap-2 text-xs font-medium text-emerald-700">
                 <CheckCircle2 className="size-4" />
