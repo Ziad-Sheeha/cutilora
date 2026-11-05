@@ -268,7 +268,7 @@ export const tenantFeatureRegistry: TenantFeatureDefinition[] = [
       { name: "cityId", label: "City", required: true },
       { name: "addressLine1", label: "Registered address", type: "textarea", required: true },
     ],
-    note: { en: "The current backend context endpoint is read-only for organization profile. This form only validates a draft and does not submit it.", ar: "سياق المؤسسة المتاح حالياً للقراءة فقط. هذا النموذج يتحقق من المسودة محلياً ولا يرسلها للباك." },
+    note: { en: "Organization identity and registered address are editable by authorized organization administrators.", ar: "يمكن لمسؤولي المؤسسة المصرح لهم تحديث بيانات الهوية والعنوان المسجل." },
   },
   {
     key: "clinic-workspace", group: "Organization", icon: "building-2",
