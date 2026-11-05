@@ -264,7 +264,7 @@ export function TenantDomainWorkspacePage({ feature, clinicId, clinics = [], bra
     }
     const missing = activeFields.find(field => field.required && !String(values[field.name] ?? "").trim())
     if (missing) { setFormError(ar ? "أكمل كل الحقول المطلوبة." : "Complete all required fields."); return }
-    const payload = Object.fromEntries(activeFields.filter(field => values[field.name] !== undefined && values[field.name] !== "").map(field => [
+    const payload: Record<string, unknown> = Object.fromEntries(activeFields.filter(field => values[field.name] !== undefined && values[field.name] !== "").map(field => [
       field.name,
       field.type === "number" ? Number(values[field.name]) : ["true", "false"].includes(values[field.name]) ? values[field.name] === "true" : values[field.name],
     ]))
