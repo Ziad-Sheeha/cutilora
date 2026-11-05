@@ -9,6 +9,7 @@ import { TenantClinicForm } from "../components/tenant-clinic-form"
 import { TenantEmptyState } from "../components/tenant-empty-state"
 import { TenantPageHeading } from "../components/tenant-page-heading"
 import { activateClinic, createClinic, deactivateClinic, updateClinic } from "../api/tenant-api"
+import { canManageOrganization } from "../auth/tenant-permissions"
 import { ConfirmDialog } from "@/shared/components/dialogs/confirm-dialog"
 import type { Clinic } from "../types/tenant.types"
 import type { TenantOutletContext } from "../layout/tenant-layout"
@@ -18,6 +19,7 @@ export function TenantClinicsPage() {
   const { clinics, refresh } = useOutletContext<TenantOutletContext>()
   const { locale } = useI18n()
   const ar = locale === "ar"
+  const canWrite = canManageOrganization()
   const [search, setSearch] = useState("")
   const [formOpen, setFormOpen] = useState(false)
   const [editingClinic, setEditingClinic] = useState<Clinic | null>(null)
@@ -116,10 +118,10 @@ export function TenantClinicsPage() {
         title={copy.title}
         description={copy.description}
         action={
-          <Button onClick={openCreateForm}>
+          canWrite ? <Button onClick={openCreateForm}>
             <Plus className="size-4" />
             {copy.add}
-          </Button>
+          </Button> : undefined
         }
       />
 
@@ -134,7 +136,7 @@ export function TenantClinicsPage() {
         </p>
       )}
 
-      {formOpen && (
+      {canWrite && formOpen && (
         <TenantClinicForm
           clinic={editingClinic}
           onCancel={() => setFormOpen(false)}
@@ -172,6 +174,7 @@ export function TenantClinicsPage() {
                   onToggleStatus={setStatusTarget}
                   editLabel={copy.edit}
                   statusActionLabel={clinic.status?.toLowerCase() === "active" ? copy.deactivate : copy.activate}
+                  canManage={canWrite}
                 />
               ))}
             </div>
@@ -184,7 +187,7 @@ export function TenantClinicsPage() {
           )}
         </CardContent>
       </Card>
-      <ConfirmDialog
+      {canWrite && <ConfirmDialog
         open={Boolean(statusTarget)}
         title={copy.statusTitle}
         description={copy.statusDescription}
@@ -193,7 +196,7 @@ export function TenantClinicsPage() {
         isLoading={statusLoading}
         onOpenChange={open => { if (!open && !statusLoading) setStatusTarget(null) }}
         onConfirm={() => void toggleClinicStatus()}
-      />
+      />}
     </div>
   )
 }
