@@ -268,10 +268,6 @@ export function TenantDomainWorkspacePage({ feature, clinicId, clinics = [], bra
       field.name,
       field.type === "number" ? Number(values[field.name]) : ["true", "false"].includes(values[field.name]) ? values[field.name] === "true" : values[field.name],
     ]))
-    if (feature.key === "users" && /scopes/i.test(endpoint.path)) {
-      payload.clinicIds = String(values.clinicIds ?? "").split(/[\n,]/).map(value => value.trim()).filter(Boolean)
-      payload.branchIds = String(values.branchIds ?? "").split(/[\n,]/).map(value => value.trim()).filter(Boolean)
-    }
     const result = await operation.mutateAsync({ endpoint, row, payload })
     if (feature.key === "configuration" && endpoint.path.endsWith("/preview-apply")) {
       const preview = unwrap(result)
