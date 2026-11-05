@@ -15,6 +15,8 @@ const itemLabels: Record<string, { en: string; ar: string }> = {
   clinics: { en: "Clinics", ar: "العيادات" },
   branches: { en: "Branches", ar: "الفروع" },
   documents: { en: "Documents", ar: "المستندات" },
+  clinicWorkspace: { en: "Clinic Workspace", ar: "مساحة إدارة العيادة" },
+  branchOperations: { en: "Branch Hours & Holidays", ar: "مواعيد الفروع والعطلات" },
   users: { en: "Users & Memberships", ar: "المستخدمون والعضويات" },
   invitations: { en: "Invitations", ar: "الدعوات" },
   roles: { en: "Roles & Permissions", ar: "الأدوار والصلاحيات" },
