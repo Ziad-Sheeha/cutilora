@@ -26,8 +26,8 @@ const weekdayNames = {
   ar: ["الأحد", "الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"],
 }
 const initialDays: BusinessHoursDay[] = Array.from({ length: 7 }, (_, weekday) => ({ weekday, isClosed: true, shifts: [] }))
-function unwrapHolidayId(row: BranchHoliday, index: number) {
-  return String(row._id ?? row.id ?? row.date + "-" + index)
+function unwrapHolidayId(row: BranchHoliday) {
+  return String(row._id ?? row.id ?? row.date + "-" + row.name)
 }
 
 export function BranchOperationsPage() {
@@ -58,7 +58,7 @@ export function BranchOperationsPage() {
   })
   useEffect(() => {
     if (hoursQuery.data?.length) {
-      const mapped = [...initialDays.map((day) => ({ ...day, shifts: [] }))]
+      const mapped: BusinessHoursDay[] = initialDays.map((day) => ({ ...day, shifts: [] }))
       hoursQuery.data.forEach((day) => { if (day.weekday >= 0 && day.weekday <= 6) mapped[day.weekday] = { ...day, shifts: day.shifts ?? [] } })
       setDays(mapped)
     }
