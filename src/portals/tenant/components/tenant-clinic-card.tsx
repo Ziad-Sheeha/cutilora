@@ -1,11 +1,11 @@
-import { Building2, Mail, MapPin, Pencil, Phone } from "lucide-react"
+import { Building2, Mail, MapPin, Pencil, Phone, Power } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import type { Clinic } from "../types/tenant.types"
 import { TenantStatusPill } from "../components/tenant-status-pill"
 
-type Props = { clinic: Clinic; onEdit: (clinic: Clinic) => void; editLabel: string }
+type Props = { clinic: Clinic; onEdit: (clinic: Clinic) => void; onToggleStatus: (clinic: Clinic) => void; editLabel: string; statusActionLabel: string }
 
-export function TenantClinicCard({ clinic, onEdit, editLabel }: Props) {
+export function TenantClinicCard({ clinic, onEdit, onToggleStatus, editLabel, statusActionLabel }: Props) {
   return (
     <article className="rounded-2xl border border-border/70 bg-white p-4 transition-all hover:-translate-y-0.5 hover:border-violet-200 hover:shadow-md">
       <div className="flex items-start gap-3">
@@ -25,10 +25,16 @@ export function TenantClinicCard({ clinic, onEdit, editLabel }: Props) {
         <p className="flex items-center gap-2"><MapPin className="size-3.5" />{clinic.address?.addressLine1 || "—"}</p>
       </div>
 
-      <Button variant="outline" size="sm" className="mt-4 w-full" onClick={() => onEdit(clinic)}>
-        <Pencil className="size-3.5" />
-        {editLabel}
-      </Button>
+      <div className="mt-4 grid grid-cols-2 gap-2">
+        <Button variant="outline" size="sm" onClick={() => onEdit(clinic)}>
+          <Pencil className="size-3.5" />
+          {editLabel}
+        </Button>
+        <Button variant="outline" size="sm" onClick={() => onToggleStatus(clinic)}>
+          <Power className="size-3.5" />
+          {statusActionLabel}
+        </Button>
+      </div>
     </article>
   )
 }
