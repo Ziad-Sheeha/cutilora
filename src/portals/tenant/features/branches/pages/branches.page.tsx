@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { useI18n } from "@/i18n/i18n-provider"
 import { getMyTenantAccess, getBranches, createBranch, updateBranch, activateBranch, suspendBranch, temporarilyCloseBranch, permanentlyCloseBranch } from "@/portals/tenant/api/tenant-api"
 import { updateTenantContext } from "@/portals/tenant/auth/tenant-session"
-import { TenantBranchForm } from "@/portals/tenant/components/tenant-branch-form"
+import { TenantBranchForm } from "@/portals/tenant/features/branches/components/branch-form"
 import { TenantPageHeading } from "@/portals/tenant/components/tenant-page-heading"
 import type { TenantOutletContext } from "@/portals/tenant/layout/tenant-layout"
 import type { Branch } from "@/portals/tenant/types/tenant.types"
