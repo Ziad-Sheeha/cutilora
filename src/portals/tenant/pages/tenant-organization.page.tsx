@@ -307,7 +307,7 @@ export function TenantOrganizationPage() {
     <TenantPageHeading eyebrow={copy.eyebrow} title={copy.title} description={copy.description}/>
     <Card className="overflow-hidden border-border/70 bg-white shadow-sm">
       <div className="relative h-44 overflow-hidden bg-gradient-to-r from-[#171326] via-[#43316c] to-[#9274d5] sm:h-56">
-        {coverUrl ? <img src={coverUrl} alt={ar ? "غلاف المؤسسة" : "Organization cover"} className="absolute inset-0 size-full object-cover" onError={event => { event.currentTarget.style.display = "none" }}/> : null}
+        {coverUrl ? <img crossOrigin="anonymous" src={coverUrl} alt={ar ? "غلاف المؤسسة" : "Organization cover"} className="absolute inset-0 size-full object-cover" onError={event => { event.currentTarget.style.display = "none" }}/> : null}
         <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-black/10"/>
         <div className="absolute bottom-4 end-5 flex items-center gap-2 rounded-full border border-white/25 bg-black/20 px-3 py-1.5 text-xs font-medium text-white backdrop-blur"><span className="size-2 rounded-full bg-emerald-400"/>{localizedValue(profile.status ?? tenant?.status, ar)}</div>
       </div>
@@ -315,7 +315,7 @@ export function TenantOrganizationPage() {
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div className="flex min-w-0 items-end gap-4">
             <div className="-mt-12 grid size-24 shrink-0 place-items-center overflow-hidden rounded-2xl border-4 border-white bg-white shadow-lg ring-1 ring-black/5">
-              {logoUrl ? <img src={logoUrl} alt={ar ? "شعار المؤسسة" : "Organization logo"} className="size-full object-contain p-2" onError={event => { event.currentTarget.style.display = "none" }}/> : <Building2 className="size-9 text-violet-600"/>}
+              {logoUrl ? <img crossOrigin="anonymous" src={logoUrl} alt={ar ? "شعار المؤسسة" : "Organization logo"} className="size-full object-contain p-2" onError={event => { event.currentTarget.style.display = "none" }}/> : <Building2 className="size-9 text-violet-600"/>}
             </div>
             <div className="min-w-0 pb-1">
               <p className="text-[11px] font-semibold uppercase tracking-[.18em] text-violet-600">{ar ? "مساحة المؤسسة" : "ORGANIZATION WORKSPACE"}</p>
