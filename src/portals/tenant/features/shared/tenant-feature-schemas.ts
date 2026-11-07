@@ -52,10 +52,17 @@ export const clinicFormSchema = z.object({
 })
 
 export const branchFormSchema = z.object({
-  name: z.string().trim().min(2).max(120),
+  name: z.string().trim().min(2).max(160),
   slug: z.string().trim().min(2).max(80).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
-  address: z.string().max(240).optional(),
-  timezone: z.string().trim().min(3).max(80).regex(/^[A-Za-z_+-]+(?:\/[A-Za-z0-9_+.-]+)+$/),
+  code: z.string().max(30).optional(),
+  address: z.string().max(500).optional(),
+  postalCode: z.string().max(30).optional(),
+  timezone: validTimezone,
+  email: z.string().trim().email().optional().or(z.literal("")),
+  phone: z.string().trim().max(40).optional(),
+  contactName: z.string().max(160).optional(),
+  contactEmail: z.string().trim().email().optional().or(z.literal("")),
+  contactPhone: z.string().max(40).optional(),
 })
 
 export const branchHolidaySchema = z.object({
