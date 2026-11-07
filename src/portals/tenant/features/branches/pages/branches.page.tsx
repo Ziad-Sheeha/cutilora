@@ -1,7 +1,8 @@
 import { useMemo, useState } from "react"
+import { BranchMetric } from "@/portals/tenant/features/branches/components/branch-metric"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useOutletContext } from "react-router"
-import { Activity, Building2, MapPin, Plus, Search, SlidersHorizontal, Store } from "lucide-react"
+import { Activity, Building2, MapPin, Plus, Search, SlidersHorizontal } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -135,9 +136,9 @@ export function TenantBranchesPage() {
     {!access.isLoading && !access.isError && !canRead && <p role="alert" className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">{copy.permission}</p>}
 
     <div className="grid gap-3 sm:grid-cols-3">
-      <Metric icon={Store} label={copy.total} value={branches.length}/>
-      <Metric icon={MapPin} label={copy.activeLabel} value={activeCount}/>
-      <Metric icon={Activity} label={copy.attention} value={attentionCount}/>
+      <BranchMetric icon={Store} label={copy.total} value={branches.length}/>
+      <BranchMetric icon={MapPin} label={copy.activeLabel} value={activeCount}/>
+      <BranchMetric icon={Activity} label={copy.attention} value={attentionCount}/>
     </div>
 
     <Card className="overflow-hidden border-slate-200/80 shadow-sm"><CardContent className="space-y-5 p-5 sm:p-6">
@@ -159,6 +160,3 @@ export function TenantBranchesPage() {
   </div>
 }
 
-function Metric({ icon: Icon, label, value }: { icon: typeof Store; label: string; value: number }) {
-  return <Card className="border-slate-200/80 shadow-sm"><CardContent className="flex items-center gap-3 p-4"><span className="grid size-10 place-items-center rounded-xl bg-violet-50 text-violet-700 ring-1 ring-violet-100"><Icon className="size-5"/></span><div><p className="text-xs font-medium text-slate-500">{label}</p><p className="mt-0.5 text-2xl font-semibold tracking-tight text-slate-900">{value}</p></div></CardContent></Card>
-}
