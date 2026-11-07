@@ -1,5 +1,4 @@
 import { Building2, Clock3, Mail, MapPin, Pencil, Phone, Eye } from "lucide-react"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import type { Branch } from "../../../types/tenant.types"
 
@@ -11,7 +10,7 @@ type Props = {
   onView: (branch: Branch) => void
   onEdit: (branch: Branch) => void
   onLifecycle: (branch: Branch, action: "activate" | "temporary-close" | "suspend" | "close") => void
-  labels: { view: string; edit: string; activate: string; temporaryClose: string; suspend: string; close: string }
+  labels: { view: string; edit: string; activate: string; temporaryClose: string; suspend: string; close: string; statuses: Record<string, string> }
 }
 
 const statusStyles: Record<string, string> = {
@@ -33,7 +32,7 @@ export function BranchCard({ branch, clinicName, canEdit, canLifecycle, onView, 
       <div className="flex items-start gap-3">
         <div className="grid size-12 shrink-0 place-items-center rounded-2xl bg-violet-50 text-violet-700 ring-1 ring-violet-100"><MapPin className="size-5"/></div>
         <div className="min-w-0 flex-1"><h3 className="truncate text-base font-semibold text-slate-900">{branch.name}</h3><p className="mt-1 truncate text-xs text-slate-500">{branch.code || branch.slug}</p></div>
-        <Badge variant="outline" className={statusStyles[status] || statusStyles.active}>{statusLabel[status] || status}</Badge>
+        <span className={`inline-flex rounded-full border px-2.5 py-1 text-[11px] font-semibold ${statusStyles[status] || statusStyles.active}`}>{labels.statuses[status] || statusLabel[status] || status}</span>
       </div>
       <div className="mt-4 flex items-center gap-2 rounded-xl bg-slate-50 px-3 py-2 text-xs text-slate-600"><Building2 className="size-3.5 shrink-0 text-slate-400"/><span className="truncate">{clinicName || "Clinic"}</span></div>
       <div className="mt-4 space-y-3 text-xs text-slate-500">

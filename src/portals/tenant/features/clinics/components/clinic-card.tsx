@@ -1,6 +1,5 @@
 import { Building2, Mail, MapPin, MoreHorizontal, Phone, Pencil, Eye } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import type { Clinic } from "../../../types/tenant.types"
 
 type Props = {
@@ -10,9 +9,10 @@ type Props = {
   onEdit: (clinic: Clinic) => void
   onToggleStatus: (clinic: Clinic) => void
   statusActionLabel: string
+  labels: { active: string; suspended: string; view: string; edit: string }
 }
 
-export function ClinicCard({ clinic, canManage, onView, onEdit, onToggleStatus, statusActionLabel }: Props) {
+export function ClinicCard({ clinic, canManage, onView, onEdit, onToggleStatus, statusActionLabel, labels }: Props) {
   const active = clinic.status === "active"
   return (
     <article className="group overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-violet-200 hover:shadow-lg hover:shadow-violet-950/[0.05]">
@@ -26,10 +26,7 @@ export function ClinicCard({ clinic, canManage, onView, onEdit, onToggleStatus, 
             <h3 className="truncate text-base font-semibold tracking-tight text-slate-900">{clinic.name}</h3>
             <p className="mt-1 truncate text-xs text-slate-500">{clinic.code || clinic.slug || "—"}</p>
           </div>
-          <Badge variant={active ? "default" : "secondary"} className={active ? "border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-50" : "border-slate-200 bg-slate-100 text-slate-600"}>
-            <span className={`me-1.5 size-1.5 rounded-full ${active ? "bg-emerald-500" : "bg-slate-400"}`} />
-            {active ? "Active" : "Suspended"}
-          </Badge>
+          <span className={`inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-semibold ${active ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-slate-200 bg-slate-100 text-slate-600"}`}><span className={`me-1.5 size-1.5 rounded-full ${active ? "bg-emerald-500" : "bg-slate-400"}`} />{active ? labels.active : labels.suspended}</span>
         </div>
         {clinic.description && <p className="mt-4 line-clamp-2 min-h-10 text-sm leading-5 text-slate-600">{clinic.description}</p>}
         <div className="mt-5 space-y-3 border-t border-slate-100 pt-4 text-xs text-slate-500">

@@ -1,6 +1,5 @@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Badge } from "@/components/ui/badge"
-import { Building2, Globe2, Mail, MapPin, Phone, ShieldCheck } from "lucide-react"
+import { Building2, ShieldCheck } from "lucide-react"
 import type { Clinic } from "../../../types/tenant.types"
 
 type Props = { clinic: Clinic | null; open: boolean; onOpenChange: (open: boolean) => void; locale: "ar" | "en" }
@@ -19,7 +18,7 @@ export function ClinicDetailsDialog({ clinic, open, onOpenChange, locale }: Prop
         <div className="mb-2 flex items-center gap-3">
           <div className="grid size-11 place-items-center rounded-xl bg-violet-50 text-violet-700"><Building2 className="size-5"/></div>
           <div className="min-w-0"><DialogTitle className="truncate">{clinic.name}</DialogTitle><DialogDescription>{clinic.slug || clinic.code || "—"}</DialogDescription></div>
-          <Badge className="ms-auto" variant={clinic.status === "active" ? "default" : "secondary"}>{clinic.status === "active" ? (ar ? "نشطة" : "Active") : (ar ? "موقوفة" : "Suspended")}</Badge>
+          <span className="ms-auto rounded-full border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-semibold text-slate-600">{clinic.status === "active" ? (ar ? "نشطة" : "Active") : (ar ? "موقوفة" : "Suspended")}</span>
         </div>
       </DialogHeader>
       <section className="space-y-3"><h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">{ar ? "معلومات العيادة" : "Clinic information"}</h3>
