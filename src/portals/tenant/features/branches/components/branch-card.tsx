@@ -1,4 +1,4 @@
-import { Building2, Clock3, Mail, MapPin, Pencil, Phone, Eye } from "lucide-react"
+import { Building2, Clock3, MapPin, Pencil, Phone, Eye } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import type { Branch } from "../../../types/tenant.types"
 
@@ -45,7 +45,10 @@ export function BranchCard({ branch, clinicName, canEdit, canLifecycle, onView, 
         <div className="flex flex-wrap gap-1.5">
           {canEdit && status !== "closed" && <Button type="button" size="sm" variant="outline" onClick={() => onEdit(branch)}><Pencil className="me-1.5 size-3.5"/>{labels.edit}</Button>}
           {canLifecycle && status !== "closed" && (status === "active"
-            ? <Button type="button" size="sm" variant="outline" className="border-amber-200 text-amber-700 hover:bg-amber-50" onClick={() => onLifecycle(branch, "temporary-close")}>{labels.temporaryClose}</Button>
+            ? <>
+                <Button type="button" size="sm" variant="outline" className="border-amber-200 text-amber-700 hover:bg-amber-50" onClick={() => onLifecycle(branch, "temporary-close")}>{labels.temporaryClose}</Button>
+                <Button type="button" size="sm" variant="ghost" className="text-slate-500" onClick={() => onLifecycle(branch, "suspend")}>{labels.suspend}</Button>
+              </>
             : <Button type="button" size="sm" variant="outline" className="border-emerald-200 text-emerald-700 hover:bg-emerald-50" onClick={() => onLifecycle(branch, "activate")}>{labels.activate}</Button>)}
           {canLifecycle && status !== "closed" && <Button type="button" size="sm" variant="ghost" className="text-slate-500" onClick={() => onLifecycle(branch, "close")}>{labels.close}</Button>}
         </div>

@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useOutletContext } from "react-router"
-import { Activity, Building2, CheckCircle2, Plus, Search, ShieldCheck, SlidersHorizontal } from "lucide-react"
+import { Activity, Building2, CheckCircle2, Plus, Search, SlidersHorizontal } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"

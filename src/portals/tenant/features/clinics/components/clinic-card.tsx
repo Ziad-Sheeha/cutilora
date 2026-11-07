@@ -1,4 +1,4 @@
-import { Building2, Mail, MapPin, MoreHorizontal, Phone, Pencil, Eye } from "lucide-react"
+import { Building2, Mail, MapPin, Phone, Pencil, Eye } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import type { Clinic } from "../../../types/tenant.types"
 
@@ -36,10 +36,10 @@ export function ClinicCard({ clinic, canManage, onView, onEdit, onToggleStatus, 
         </div>
         <div className="mt-5 flex items-center justify-between border-t border-slate-100 pt-3">
           <Button type="button" variant="ghost" size="sm" className="px-2 text-slate-600 hover:text-violet-700" onClick={() => onView(clinic)}>
-            <Eye className="me-1.5 size-4" />View details
+            <Eye className="me-1.5 size-4" />{labels.view}
           </Button>
           {canManage && <Button type="button" variant="outline" size="sm" className="border-slate-200" onClick={() => onEdit(clinic)}>
-            <Pencil className="me-1.5 size-3.5" />Edit
+            <Pencil className="me-1.5 size-3.5" />{labels.edit}
           </Button>}
           {canManage && <Button type="button" variant="ghost" size="sm" className="px-2 text-slate-500" onClick={() => onToggleStatus(clinic)}>{statusActionLabel}</Button>}
         </div>
