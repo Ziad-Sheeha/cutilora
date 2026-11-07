@@ -268,7 +268,7 @@ export function TenantOrganizationPage() {
   const display = (value: unknown) => value === null || value === undefined || value === "" ? "—" : String(value)
   const weekDay = Number(preferences.weekStartsOn ?? 0)
   const weekDays = ar ? ["الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"] : ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
-  const detailGroups = [
+  const detailGroups: Array<{ title: string; description: string; items: Array<[string, unknown]> }> = [
     { title: ar ? "الهوية القانونية والتجارية" : "Business & legal identity", description: ar ? "بيانات التسجيل والتصنيف الخاصة بالمؤسسة" : "Registered identity and business classification", items: [
       [ar ? "الاسم التجاري" : "Display name", profile.displayName ?? profile.name],
       [ar ? "الاسم القانوني" : "Legal name", profile.legalName],
