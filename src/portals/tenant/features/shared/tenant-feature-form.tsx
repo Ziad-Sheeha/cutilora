@@ -155,7 +155,7 @@ export function TenantFeatureForm({ feature, onSave, initialValues }: Props) {
         <form onSubmit={submit} noValidate className="grid gap-4 sm:grid-cols-2">
           {feature.fields.map((field) => (
             <Field key={field.name} className={field.type === "textarea" ? "sm:col-span-2" : ""}>
-              <Label htmlFor={`tenant-feature-${field.name}`}>
+              {field.type !== "tel" && <Label htmlFor={`tenant-feature-${field.name}`}>
                 {fieldLabel(field.name, field.label)}
                 {field.required && <span className="ms-1 text-red-600">*</span>}
               </Label>
@@ -185,7 +185,9 @@ export function TenantFeatureForm({ feature, onSave, initialValues }: Props) {
                 </Select>
               ) : field.type === "date" ? (
                 <DatePicker value={values[field.name] || ""} onChange={(value) => { setValues((current) => ({ ...current, [field.name]: value })); setErrors((current) => ({ ...current, [field.name]: "" })); setValidated(false) }} placeholder={ar ? "اختر التاريخ" : "Select date"} locale={ar ? "ar" : "en"} dir={ar ? "rtl" : "ltr"}/>
-              ) : field.type === "tel" ? (\n                <PhoneNumberField id={`tenant-feature-${field.name}`} label={fieldLabel(field.name, field.label)} value={values[field.name] || ""} phoneCode={phoneCodes[field.name] ?? "+20"} onChange={(value) => { setValues(current => ({ ...current, [field.name]: value })); setErrors(current => ({ ...current, [field.name]: "" })); setValidated(false) }} onPhoneCodeChange={(value) => setPhoneCodes(current => ({ ...current, [field.name]: value }))} required={field.required} placeholder={field.placeholder}/>\n              ) : field.type === "textarea" ? (
+              ) : field.type === "tel" ? (
+                <PhoneNumberField id={`tenant-feature-${field.name}`} label={fieldLabel(field.name, field.label)} value={values[field.name] || ""} phoneCode={phoneCodes[field.name] ?? "+20"} onChange={(value) => { setValues(current => ({ ...current, [field.name]: value })); setErrors(current => ({ ...current, [field.name]: "" })); setValidated(false) }} onPhoneCodeChange={(value) => setPhoneCodes(current => ({ ...current, [field.name]: value }))} required={field.required} placeholder={field.placeholder}/>
+              ) : field.type === "textarea" ? (
                 <Textarea
                   id={`tenant-feature-${field.name}`}
                   value={values[field.name] || ""}
