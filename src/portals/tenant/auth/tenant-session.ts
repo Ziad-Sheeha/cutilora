@@ -1,4 +1,4 @@
-import { isAccessTokenExpired, getAccessTokenExpiryMs } from "@/shared/auth/session/session-expiry"
+import { getAccessTokenExpiryMs } from "@/shared/auth/session/session-expiry"
 import type { TenantMembership, TenantUser } from "../types/tenant.types"
 
 const SESSION_KEY = "cutilora-tenant-session"
