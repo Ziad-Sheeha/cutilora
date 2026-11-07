@@ -88,7 +88,17 @@ export type Clinic = {
   status?: string
   clinicType?: string
   description?: string
+  specialties?: string[]
   timezone?: string
+  openingDate?: string | null
+  preferences?: {
+    timezone?: string
+    locale?: string
+    currency?: string
+    dateFormat?: string
+    weekStartsOn?: number
+    supportedLanguages?: string[]
+  }
   contact?: {
     email?: string
     phone?: string
@@ -115,6 +125,7 @@ export type Clinic = {
   branding?: {
     logoUrl?: string
     coverImageUrl?: string
+    primaryColor?: string
   }
 }
 
