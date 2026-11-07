@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type FormEvent } from "react"
+import { useEffect, useState, type FormEvent } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Building2, Globe2, ImagePlus, Mail, MapPin, Pencil, Phone, ShieldCheck, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -90,9 +90,6 @@ function ProfileField({ label, value, error, onChange, type = "text", required =
 }) {
   return <div><Label>{label}{required ? " *" : ""}</Label><Input type={type} value={value} maxLength={maxLength} onChange={event => onChange(event.target.value)} className="mt-2" aria-invalid={Boolean(error)}/>{error && <p className="mt-1 text-xs text-destructive">{error}</p>}</div>
 }
-function ProfileValue({ label, value }: { label: string; value: string }) {
-  return <div><p className="text-xs text-muted-foreground">{label}</p><p className="mt-1 break-words text-sm font-semibold">{value}</p></div>
-}
 
 export function TenantOrganizationPage() {
   const { context, refreshContext } = useOutletContext<TenantOutletContext>()
@@ -142,11 +139,6 @@ export function TenantOrganizationPage() {
   const governorateOptions = governoratesQuery.data ?? []
   const cityOptions = citiesQuery.data ?? []
   const districtOptions = districtsQuery.data ?? []
-  const countryName = useMemo(() => {
-    const country = countryOptions.find(item => item.id === String((profile.address as Record<string, unknown> | undefined)?.countryId ?? ""))
-    return ar ? country?.name_ar || country?.name_en || "" : country?.name_en || ""
-  }, [countryOptions, profile, ar])
-
   const mutation = useMutation({
     mutationFn: async (payload: ProfileForm) => {
       const [logoBase64, coverImageBase64] = await Promise.all([
@@ -247,14 +239,7 @@ export function TenantOrganizationPage() {
         mutation.mutate(values)
   }
 
-  const summary = [
-    { label: ar ? "الاسم التجاري" : "Display name", value: values.displayName, icon: Building2 },
-    { label: ar ? "الاسم القانوني" : "Legal name", value: String(profile.legalName ?? ""), icon: ShieldCheck },
-    { label: ar ? "البريد الإلكتروني" : "Email", value: String((profile.contact as Record<string, unknown> | undefined)?.email ?? ""), icon: Mail },
-    { label: ar ? "رقم الهاتف" : "Phone", value: String((profile.contact as Record<string, unknown> | undefined)?.phone ?? ""), icon: Phone },
-    { label: ar ? "الموقع الإلكتروني" : "Website", value: String((profile.contact as Record<string, unknown> | undefined)?.website ?? ""), icon: Globe2 },
-    { label: ar ? "الدولة" : "Country", value: countryName, icon: MapPin },
-  ]
+
   const copy = {
     eyebrow: ar ? "إدارة المؤسسة" : "ORGANIZATION MANAGEMENT",
     title: ar ? "ملف المؤسسة" : "Organization profile",
@@ -375,7 +360,6 @@ export function TenantOrganizationPage() {
                   [ar ? "نطاق الصلاحية" : "Access scope", context?.access?.scope],
                   [ar ? "العيادة النشطة" : "Active clinic", context?.clinic?.name],
                   [ar ? "الفرع النشط" : "Active branch", context?.branch?.name],
-                  [ar ? "معرّف العضوية" : "Membership ID", context?.access?.membershipId],
                   [ar ? "معرّف المؤسسة" : "Tenant ID", context?.access?.tenantId],
                   [ar ? "معرّف العيادة" : "Clinic ID", context?.access?.clinicId],
                   [ar ? "معرّف الفرع" : "Branch ID", context?.access?.branchId],
