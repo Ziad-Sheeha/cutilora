@@ -13,6 +13,7 @@ export type TenantOutletContext = {
   clinics: Clinic[]
   branches: Branch[]
   refresh: () => Promise<void>
+  refreshContext: () => Promise<void>
 }
 
 const SIDEBAR_STORAGE_KEY = "cutilora:tenant-sidebar-collapsed"
@@ -30,6 +31,10 @@ export function TenantLayout() {
   const navigate = useNavigate()
   const { locale } = useI18n()
   const ar = locale === "ar"
+
+  const refreshContext = useCallback(async () => {
+    setContext(await getTenantContext())
+  }, [])
 
   const refresh = useCallback(async () => {
     const [nextContext, nextClinics] = await Promise.all([
@@ -146,7 +151,7 @@ export function TenantLayout() {
               {ar ? "جارٍ تحميل مساحة المؤسسة…" : "Loading organization workspace…"}
             </div>
           ) : (
-            <Outlet context={{ context, clinics, branches, refresh } satisfies TenantOutletContext} />
+            <Outlet context={{ context, clinics, branches, refresh, refreshContext } satisfies TenantOutletContext} />
           )}
         </main>
 
