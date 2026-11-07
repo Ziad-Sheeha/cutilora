@@ -22,9 +22,9 @@ const TenantsPage = lazy(() => import("@/portals/super-admin/features/tenants/pa
 const TenantDetailsPage = lazy(() => import("@/portals/super-admin/features/tenants/pages/tenant-details.page").then((module) => ({ default: module.TenantDetailsPage })))
 const TenantFormPage = lazy(() => import("@/portals/super-admin/features/tenants/pages/tenant-form.page").then((module) => ({ default: module.TenantFormPage })))
 const TenantOverviewPage = lazy(() => import("@/portals/tenant/pages/tenant-overview.page").then((module) => ({ default: module.TenantOverviewPage })))
-const TenantClinicsPage = lazy(() => import("@/portals/tenant/pages/tenant-clinics.page").then((module) => ({ default: module.TenantClinicsPage })))
-const TenantBranchesPage = lazy(() => import("@/portals/tenant/pages/tenant-branches.page").then((module) => ({ default: module.TenantBranchesPage })))
-const TenantOrganizationPage = lazy(() => import("@/portals/tenant/pages/tenant-organization.page").then((module) => ({ default: module.TenantOrganizationPage })))
+const TenantClinicsPage = lazy(() => import("@/portals/tenant/features/clinics/pages/clinics.page").then((module) => ({ default: module.TenantClinicsPage })))
+const TenantBranchesPage = lazy(() => import("@/portals/tenant/features/branches/pages/branches.page").then((module) => ({ default: module.TenantBranchesPage })))
+const TenantOrganizationPage = lazy(() => import("@/portals/tenant/features/organization/pages/organization.page").then((module) => ({ default: module.TenantOrganizationPage })))
 const TenantFeaturePage = lazy(() => import("@/portals/tenant/features/shared/tenant-feature-page").then((module) => ({ default: module.TenantFeaturePage })))
 const BranchOperationsPage = lazy(() => import("@/portals/tenant/features/branch-operations/pages/branch-operations.page").then((module) => ({ default: module.BranchOperationsPage })))
 
