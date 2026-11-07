@@ -61,6 +61,7 @@ export function TenantOrganizationPage() {
   const { locale } = useI18n()
   const ar = locale === "ar"
   const canWrite = canManageOrganization()
+  const isTenantOwner = context?.access.role === "tenant_owner"
   const client = useQueryClient()
   const tenant = context?.tenant
   const [values, setValues] = useState<ProfileForm>(() => toForm((tenant ?? {}) as unknown as Record<string, unknown>))
@@ -91,7 +92,7 @@ export function TenantOrganizationPage() {
   const mutation = useMutation({
     mutationFn: async (payload: ProfileForm) => updateTenantProfile({
       displayName: payload.displayName,
-      legalName: payload.legalName,
+      ...(isTenantOwner ? { legalName: payload.legalName } : {}),
       businessType: payload.businessType,
       contact: {
         ...(payload.contactEmail.trim() ? { email: payload.contactEmail.trim() } : {}),
@@ -176,7 +177,7 @@ export function TenantOrganizationPage() {
         <DialogHeader><DialogTitle>{ar ? "تعديل بيانات المؤسسة" : "Edit organization details"}</DialogTitle><DialogDescription>{ar ? "يتم حفظ التغييرات على ملف المؤسسة النشط." : "Changes are saved to the active organization's profile."}</DialogDescription></DialogHeader>
       <form onSubmit={submit} noValidate className="grid gap-4 sm:grid-cols-2">
         <ProfileField label={copy.displayName} value={values.displayName} error={errors.displayName} onChange={value => update("displayName", value)}/>
-        <ProfileField label={copy.legalName} value={values.legalName} error={errors.legalName} onChange={value => update("legalName", value)} required={false}/>
+        {isTenantOwner && <ProfileField label={copy.legalName} value={values.legalName} error={errors.legalName} onChange={value => update("legalName", value)} required={false}/>}
         <div><Label>{copy.businessType} *</Label><Select value={values.businessType} onValueChange={value => update("businessType", value)}><SelectTrigger className="mt-2" aria-invalid={Boolean(errors.businessType)}><SelectValue placeholder={copy.choose}/></SelectTrigger><SelectContent><SelectItem value="single_clinic">{copy.single}</SelectItem><SelectItem value="clinic_group">{copy.group}</SelectItem><SelectItem value="medical_center">{copy.medical}</SelectItem></SelectContent></Select>{errors.businessType && <p className="mt-1 text-xs text-destructive">{errors.businessType}</p>}</div>
         <ProfileField label={copy.email} type="email" value={values.contactEmail} error={errors.contactEmail} onChange={value => update("contactEmail", value)} required={false}/>
         <ProfileField label={copy.phone} type="tel" value={values.contactPhone} error={errors.contactPhone} onChange={value => update("contactPhone", value)} required={false}/>
