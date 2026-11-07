@@ -31,17 +31,63 @@ The Tenant frontend covers the organization-management workflows below:
 
 ## Frontend architecture
 
-- `api/`: tenant-scoped Axios client; attaches regular-user Bearer token and active tenant/clinic/branch headers.
+Tenant features are organized by domain ownership. Each feature owns its pages, components, forms, hooks, API adapters, schemas and types where applicable. Cross-feature primitives stay in the shared tenant layer; generic metadata-driven modules remain registry-driven only where their workflows are genuinely uniform.
+
+```text
+features/
+  clinics/
+    api/                 # clinic-specific API adapters
+    components/          # clinic cards, details, form, metrics
+    hooks/               # clinic queries and mutations
+    pages/               # clinics directory
+    schemas/
+    types/
+    utils/
+    index.ts
+  branches/
+    api/
+    components/          # branch cards, details, form, metrics
+    hooks/
+    pages/               # branches directory
+    schemas/
+    types/
+    utils/
+    index.ts
+  organization/
+    api/
+    components/
+    hooks/
+    pages/               # organization profile
+    schemas/
+    types/
+    utils/
+    index.ts
+  branch-operations/
+  documents/
+  users/
+  invitations/
+  roles/
+  configuration/
+  catalog/
+  finance/
+  subscription/
+  integrations/
+  insights/
+  governance/
+  settings/
+  shared/                # feature registry, generic contracts and reusable domain primitives
+```
+
+- `api/`: tenant-scoped Axios client and cross-feature tenant context endpoints.
 - `auth/`: tenant login, membership selection, session lifecycle and route guard.
 - `layout/`: Tenant shell, header, context selectors and responsive navigation.
-- `pages/`: organization overview, profile, clinics and branches.
-- `features/documents/`: document lifecycle UI and signed-access handling.
-- `features/branch-operations/`: schedule, holiday, branch settings, manager and activity workflows.
-- `features/shared/tenant-domain-workspace.page.tsx`: shared data-resource presentation and endpoint-driven module operations.
-- `features/shared/tenant-feature-registry.ts`: bilingual feature metadata, fields and API operation catalogue.
-- `features/shared/tenant-feature-schemas.ts`: Zod validation schemas and localized field errors.
-- `features/contracts/tenant-endpoints.ts`: centralized tenant API route catalogue.
-- `types/`: typed Tenant, Clinic, Branch, Membership and API envelope contracts.
+- `components/`: only components shared by multiple Tenant features; feature-only UI belongs inside its feature.
+- `features/*/components`: reusable UI scoped to that feature (cards, detail dialogs, forms, metrics and section components).
+- `features/*/pages`: route-level screens; pages orchestrate feature hooks and components rather than owning every UI detail.
+- `features/shared/`: shared feature metadata, generic schemas and generic API operations. Feature-specific business rules should not be added here.
+- `types/`: tenant-wide Tenant, Clinic, Branch, Membership and API envelope contracts.
+
+Phone inputs must use the shared `PhoneNumberField` component. It owns country-code selection and local-number formatting; form adapters normalize submitted values to E.164 (`+<calling-code><national-number>`) and preserve existing international values when editing.
 
 ## API and security boundaries
 
