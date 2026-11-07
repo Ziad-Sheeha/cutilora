@@ -44,8 +44,8 @@ function fromClinic(clinic?: Clinic | null): Values {
   return {
     ...empty, name: clinic.name || "", code: clinic.code || "", clinicType: clinic.clinicType || "aesthetic",
     description: clinic.description || "", specialties: clinic.specialties?.join(", ") || "",
-    email: clinic.contact?.email || "", phone: clinic.contact?.phone || "",
-    alternatePhone: clinic.contact?.alternatePhone || "", whatsapp: clinic.contact?.whatsapp || "", website: clinic.contact?.website || "",
+    email: clinic.contact?.email || "", phone: phoneParts(clinic.contact?.phone).local,
+    alternatePhone: phoneParts(clinic.contact?.alternatePhone).local, whatsapp: phoneParts(clinic.contact?.whatsapp).local, website: clinic.contact?.website || "",
     countryId: clinic.address?.countryId || "", governorateId: clinic.address?.governorateId || "",
     cityId: clinic.address?.cityId || "", districtId: clinic.address?.districtId || "",
     addressLine1: clinic.address?.addressLine1 || "", addressLine2: clinic.address?.addressLine2 || "",
