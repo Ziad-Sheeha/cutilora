@@ -274,19 +274,116 @@ export function TenantOrganizationPage() {
     address: ar ? "العنوان المسجل" : "Registered address",
     choose: ar ? "اختر..." : "Select...",
   }
+  const contact = (profile.contact && typeof profile.contact === "object" ? profile.contact : {}) as Record<string, unknown>
+  const address = (profile.address && typeof profile.address === "object" ? profile.address : {}) as Record<string, unknown>
+  const legal = (profile.legal && typeof profile.legal === "object" ? profile.legal : {}) as Record<string, unknown>
+  const preferences = (profile.preferences && typeof profile.preferences === "object" ? profile.preferences : {}) as Record<string, unknown>
+  const logoUrl = assetUrl(branding?.logoUrl)
+  const coverUrl = assetUrl(branding?.coverImageUrl)
+  const display = (value: unknown) => value === null || value === undefined || value === "" ? "—" : String(value)
+  const weekDay = Number(preferences.weekStartsOn ?? 0)
+  const weekDays = ar ? ["الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"] : ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+  const detailGroups = [
+    { title: ar ? "الهوية القانونية والتجارية" : "Business & legal identity", description: ar ? "بيانات التسجيل والتصنيف الخاصة بالمؤسسة" : "Registered identity and business classification", items: [
+      [ar ? "الاسم التجاري" : "Display name", profile.displayName ?? profile.name],
+      [ar ? "الاسم القانوني" : "Legal name", profile.legalName],
+      [ar ? "الاسم المسجل" : "Registered name", profile.name],
+      [ar ? "المعرّف المختصر" : "Workspace slug", profile.slug],
+      [ar ? "نوع المؤسسة" : "Business type", localizedValue(profile.businessType, ar)],
+      [ar ? "النشاط" : "Industry", localizedValue(profile.industry, ar)],
+      [ar ? "الحالة" : "Account status", localizedValue(profile.status, ar)],
+      [ar ? "الوصف" : "Description", profile.description],
+      [ar ? "رقم السجل التجاري" : "Commercial registration", legal.commercialRegistrationNumber],
+      [ar ? "الرقم الضريبي" : "Tax number", legal.taxNumber],
+      [ar ? "رقم ضريبة القيمة المضافة" : "VAT number", legal.vatNumber],
+    ] },
+    { title: ar ? "بيانات التواصل" : "Contact information", description: ar ? "قنوات التواصل الرسمية للمؤسسة" : "Official organization contact channels", items: [
+      ["Email", contact.email], [ar ? "الهاتف الأساسي" : "Primary phone", contact.phone],
+      [ar ? "الهاتف البديل" : "Alternate phone", contact.alternatePhone], ["WhatsApp", contact.whatsapp],
+      [ar ? "الموقع الإلكتروني" : "Website", contact.website],
+    ] },
+    { title: ar ? "العنوان المسجل" : "Registered address", description: ar ? "تفاصيل الموقع والعنوان البريدي" : "Geographic and postal address details", items: [
+      [ar ? "الدولة (المعرّف)" : "Country ID", address.countryId], [ar ? "المحافظة (المعرّف)" : "Governorate ID", address.governorateId],
+      [ar ? "المدينة (المعرّف)" : "City ID", address.cityId], [ar ? "الحي (المعرّف)" : "District ID", address.districtId],
+      [ar ? "العنوان" : "Address line 1", address.addressLine1], [ar ? "العنوان الإضافي" : "Address line 2", address.addressLine2],
+      [ar ? "المبنى" : "Building", address.building], [ar ? "الدور" : "Floor", address.floor],
+      [ar ? "الوحدة" : "Unit", address.unit], [ar ? "علامة مميزة" : "Landmark", address.landmark],
+      [ar ? "الرمز البريدي" : "Postal code", address.postalCode],
+      [ar ? "خط العرض" : "Latitude", address.latitude], [ar ? "خط الطول" : "Longitude", address.longitude],
+    ] },
+    { title: ar ? "تفضيلات المؤسسة" : "Organization preferences", description: ar ? "الإعدادات الافتراضية للغة والتوقيت والتنسيق" : "Default language, currency and regional settings", items: [
+      [ar ? "اللغة" : "Locale", preferences.locale], [ar ? "العملات" : "Currency", preferences.currency],
+      [ar ? "المنطقة الزمنية" : "Timezone", preferences.timezone], [ar ? "تنسيق التاريخ" : "Date format", preferences.dateFormat],
+      [ar ? "بداية الأسبوع" : "Week starts on", weekDays[weekDay] ?? display(preferences.weekStartsOn)],
+      [ar ? "اللغات المدعومة" : "Supported languages", Array.isArray(preferences.supportedLanguages) ? preferences.supportedLanguages.join(" · ") : "—"],
+    ] },
+  ]
   return <div className="space-y-7">
     <TenantPageHeading eyebrow={copy.eyebrow} title={copy.title} description={copy.description}/>
-    <Card className="overflow-hidden border-white bg-white">
-      <div className="relative flex h-32 items-center justify-center overflow-hidden bg-gradient-to-r from-[#211936] via-[#46316e] to-[#9274d5]">{branding?.coverImageUrl && <img src={branding.coverImageUrl} alt="" className="h-full w-full object-cover"/>}</div>
-      <CardContent className="-mt-9 p-6">
-        <div className="mb-6 flex items-end gap-4"><span className="grid size-[76px] shrink-0 place-items-center overflow-hidden rounded-2xl border-4 border-white bg-white text-violet-700 shadow-sm">{branding?.logoUrl ? <img src={branding.logoUrl} alt="" className="size-full object-contain"/> : <Building2 className="size-8"/>}</span><div className="min-w-0 pb-1"><h2 className="truncate text-xl font-semibold">{String(profile.displayName ?? tenant?.name ?? "—")}</h2><p className="mt-1 text-xs text-muted-foreground">{tenant?.slug || "—"}</p></div></div>
-        {profileQuery.isLoading ? <p className="py-6 text-center text-sm text-muted-foreground">{copy.loading}</p> : profileQuery.isError ? <p role="alert" className="text-sm text-destructive">{profileQuery.error instanceof Error ? profileQuery.error.message : (ar ? "تعذر تحميل الملف." : "Unable to load profile.")}</p> : <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">{summary.map(item => { const Icon = item.icon; return <div key={item.label} className="rounded-xl border bg-slate-50/70 p-4"><div className="flex items-center gap-2 text-xs font-medium text-muted-foreground"><Icon className="size-4"/>{item.label}</div><p className="mt-3 break-words text-sm font-semibold">{item.value || "—"}</p></div> })}</div>}
-        <div className="mt-5 grid gap-4 border-t pt-5 sm:grid-cols-3">
-          <ProfileValue label={ar ? "نوع المؤسسة" : "Business type"} value={localizedValue(profile.businessType ?? tenant?.businessType, ar)}/>
-          <ProfileValue label={ar ? "الصناعة" : "Industry"} value={localizedValue(profile.industry ?? tenant?.industry, ar)}/>
-          <ProfileValue label={ar ? "حالة الحساب" : "Account status"} value={localizedValue(profile.status ?? tenant?.status, ar)}/>
+    <Card className="overflow-hidden border-border/70 bg-white shadow-sm">
+      <div className="relative h-44 overflow-hidden bg-gradient-to-r from-[#171326] via-[#43316c] to-[#9274d5] sm:h-56">
+        {coverUrl ? <img src={coverUrl} alt={ar ? "غلاف المؤسسة" : "Organization cover"} className="absolute inset-0 size-full object-cover" onError={event => { event.currentTarget.style.display = "none" }}/> : null}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-black/10"/>
+        <div className="absolute bottom-4 end-5 flex items-center gap-2 rounded-full border border-white/25 bg-black/20 px-3 py-1.5 text-xs font-medium text-white backdrop-blur"><span className="size-2 rounded-full bg-emerald-400"/>{localizedValue(profile.status ?? tenant?.status, ar)}</div>
+      </div>
+      <CardContent className="relative px-5 pb-6 sm:px-7">
+        <div className="flex flex-wrap items-end justify-between gap-4">
+          <div className="flex min-w-0 items-end gap-4">
+            <div className="-mt-12 grid size-24 shrink-0 place-items-center overflow-hidden rounded-2xl border-4 border-white bg-white shadow-lg ring-1 ring-black/5">
+              {logoUrl ? <img src={logoUrl} alt={ar ? "شعار المؤسسة" : "Organization logo"} className="size-full object-contain p-2" onError={event => { event.currentTarget.style.display = "none" }}/> : <Building2 className="size-9 text-violet-600"/>}
+            </div>
+            <div className="min-w-0 pb-1">
+              <p className="text-[11px] font-semibold uppercase tracking-[.18em] text-violet-600">{ar ? "مساحة المؤسسة" : "ORGANIZATION WORKSPACE"}</p>
+              <h2 className="mt-1 truncate text-2xl font-bold tracking-tight text-slate-950">{display(profile.displayName ?? tenant?.displayName ?? profile.name)}</h2>
+              <p className="mt-1 text-sm text-muted-foreground">@{display(profile.slug ?? tenant?.slug)} <span className="mx-1">·</span> {display(profile._id ?? tenant?._id)}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 rounded-xl border px-3 py-2 text-xs font-medium text-muted-foreground">
+            <span className="size-3 rounded-sm border" style={{ backgroundColor: String(branding?.primaryColor ?? "#6d4aff") }}/>
+            {ar ? "لون العلامة" : "Brand color"} <span className="font-mono text-foreground">{display(branding?.primaryColor)}</span>
+          </div>
         </div>
-        {Boolean(profile.description) && <p className="mt-4 max-w-4xl whitespace-pre-wrap text-sm leading-6 text-muted-foreground">{String(profile.description)}</p>}
+        {profileQuery.isLoading ? <p className="py-8 text-center text-sm text-muted-foreground">{copy.loading}</p> : profileQuery.isError ? <p role="alert" className="mt-6 text-sm text-destructive">{profileQuery.error instanceof Error ? profileQuery.error.message : (ar ? "تعذر تحميل الملف." : "Unable to load profile.")}</p> : (
+          <div className="mt-7 space-y-5">
+            <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+              {[
+                { label: ar ? "نوع المؤسسة" : "Business type", value: localizedValue(profile.businessType, ar), icon: Building2 },
+                { label: ar ? "النشاط" : "Industry", value: localizedValue(profile.industry, ar), icon: ShieldCheck },
+                { label: ar ? "البريد الرسمي" : "Business email", value: display(contact.email), icon: Mail },
+                { label: ar ? "الهاتف الأساسي" : "Primary phone", value: display(contact.phone), icon: Phone },
+              ].map(item => { const Icon = item.icon; return <div key={item.label} className="rounded-xl border border-slate-200 bg-slate-50/70 p-4"><div className="flex items-center gap-2 text-xs text-muted-foreground"><Icon className="size-4"/>{item.label}</div><p className="mt-2 break-words text-sm font-semibold text-slate-900">{item.value}</p></div> })}
+            </div>
+            {detailGroups.map(group => (
+              <section key={group.title} className="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+                <div className="border-b border-slate-100 bg-slate-50/80 px-5 py-4">
+                  <h3 className="text-sm font-bold text-slate-900">{group.title}</h3>
+                  <p className="mt-1 text-xs text-muted-foreground">{group.description}</p>
+                </div>
+                <div className="grid gap-px bg-slate-100 sm:grid-cols-2 xl:grid-cols-3">
+                  {group.items.map(([label, value]) => <div key={label} className="min-w-0 bg-white px-5 py-3.5">
+                    <p className="text-[11px] font-medium text-muted-foreground">{label}</p>
+                    <p className="mt-1.5 break-words text-sm font-semibold leading-6 text-slate-800">{display(value)}</p>
+                  </div>)}
+                </div>
+              </section>
+            ))}
+            <section className="rounded-2xl border border-slate-200 bg-slate-50/70 p-5">
+              <h3 className="text-sm font-bold text-slate-900">{ar ? "سياق مساحة العمل" : "Workspace context"}</h3>
+              <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                {[
+                  [ar ? "الدور الحالي" : "Current role", context?.access?.role],
+                  [ar ? "نطاق الصلاحية" : "Access scope", context?.access?.scope],
+                  [ar ? "العيادة النشطة" : "Active clinic", context?.clinic?.name],
+                  [ar ? "الفرع النشط" : "Active branch", context?.branch?.name],
+                  [ar ? "معرّف العضوية" : "Membership ID", context?.access?.membershipId],
+                  [ar ? "معرّف المؤسسة" : "Tenant ID", context?.access?.tenantId],
+                  [ar ? "معرّف العيادة" : "Clinic ID", context?.access?.clinicId],
+                  [ar ? "معرّف الفرع" : "Branch ID", context?.access?.branchId],
+                ].map(([label, value]) => <div key={String(label)}><p className="text-[11px] text-muted-foreground">{label}</p><p className="mt-1 break-all text-xs font-semibold text-slate-800">{display(value)}</p></div>)}
+              </div>
+            </section>
+          </div>
+        )}
       </CardContent>
     </Card>
     {accessQuery.isError && <p role="alert" className="text-sm text-destructive">{accessQuery.error instanceof Error ? accessQuery.error.message : (ar ? "تعذر التحقق من صلاحيات المؤسسة." : "Unable to verify organization permissions.")}</p>}
