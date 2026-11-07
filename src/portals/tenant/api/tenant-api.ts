@@ -1,5 +1,6 @@
 import axios from "axios"
 import { appEnv } from "@/config/env"
+import { isAccessTokenExpired } from "@/shared/auth/session/session-expiry"
 import { clearTenantSession, expireTenantSession, getTenantSession } from "../auth/tenant-session"
 import type {
   ApiEnvelope,
@@ -19,6 +20,11 @@ export const tenantApi = axios.create({
 
 tenantApi.interceptors.request.use((config) => {
   const session = getTenantSession()
+
+  if (session?.token && isAccessTokenExpired(session.token)) {
+    expireTenantSession()
+    return config
+  }
 
   if (session?.token) {
     config.headers.Authorization = `Bearer ${session.token}`
