@@ -65,7 +65,7 @@ export type TenantAccess = {
 }
 
 export async function getMyTenantAccess(): Promise<TenantAccess> {
-  const { data } = await tenantApi.get<ApiEnvelope<TenantAccess>>("/access/me")
+  const { data } = await tenantApi.get<ApiEnvelope<TenantAccess>>("/tenant/access/me")
   return data.data
 }
 
