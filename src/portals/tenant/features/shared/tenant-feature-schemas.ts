@@ -73,7 +73,7 @@ export const clinicFormSchema = z.object({
 
 export const branchFormSchema = z.object({
   name: z.string().trim().min(2).max(160),
-  slug: z.string().trim().min(2).max(80).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/),
+  slug: z.string().trim().max(80).regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/).optional().or(z.literal("")),
   code: z.string().max(30).optional(),
   address: z.string().max(500).optional(),
   postalCode: z.string().max(30).optional(),

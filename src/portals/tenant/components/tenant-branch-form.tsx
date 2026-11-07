@@ -69,7 +69,7 @@ export function TenantBranchForm({ branch, onCancel, onSave }: Props) {
       await onSave({
         name: values.name.trim(),
         ...(values.code.trim() ? { code: values.code.trim().toUpperCase() } : {}),
-        slug: values.slug.trim(),
+        ...(values.slug.trim() ? { slug: values.slug.trim() } : {}),
         address: values.address.trim(),
         postalCode: values.postalCode.trim(),
         timezone: values.timezone.trim(),
@@ -96,7 +96,7 @@ export function TenantBranchForm({ branch, onCancel, onSave }: Props) {
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label={copy.name} required error={errors.name}><Input value={values.name} maxLength={160} onChange={event => { update("name", event.target.value); if (!branch || !values.slug) update("slug", slugify(event.target.value)) }}/></Field>
         <Field label={copy.code} error={errors.code}><Input value={values.code} maxLength={30} onChange={event => update("code", event.target.value.toUpperCase())} placeholder="e.g. CAI-01"/></Field>
-        <Field label={copy.slug} required error={errors.slug}><Input value={values.slug} maxLength={80} onChange={event => update("slug", event.target.value.toLowerCase())}/><p className="text-[11px] text-slate-500">{copy.slugHint}</p></Field>
+        <Field label={copy.slug} error={errors.slug}><Input value={values.slug} maxLength={80} onChange={event => update("slug", event.target.value.toLowerCase())}/><p className="text-[11px] text-slate-500">{copy.slugHint}</p></Field>
       </div>
     </CardContent></Card>
     <Card className="rounded-2xl border-slate-200/80 shadow-sm"><CardContent className="space-y-4 p-5">
