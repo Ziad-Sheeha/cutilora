@@ -1,323 +1,201 @@
 import { useEffect, useState, type FormEvent } from "react"
-import { X } from "lucide-react"
+import { Building2, Contact, MapPin, Settings2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { FieldError } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { DatePicker } from "@/components/ui/date-picker"
 import { useI18n } from "@/i18n/i18n-provider"
 import { clinicFormSchema, getTenantFieldErrors } from "../features/shared/tenant-feature-schemas"
 import { getTenantGeo } from "../api/tenant-api"
 import type { Clinic } from "../types/tenant.types"
 
 type GeoOption = { id: string; name_en: string; name_ar?: string | null }
-type ClinicFormValues = {
-  name: string
-  clinicType: string
-  description: string
-  email: string
-  phone: string
-  countryId: string
-  governorateId: string
-  cityId: string
-  districtId: string
-  addressLine1: string
-  timezone: string
+type Values = {
+  name: string; code: string; clinicType: string; description: string; specialties: string
+  email: string; phone: string; alternatePhone: string; whatsapp: string; website: string
+  countryId: string; governorateId: string; cityId: string; districtId: string
+  addressLine1: string; addressLine2: string; building: string; floor: string; unit: string; landmark: string; postalCode: string
+  timezone: string; locale: string; currency: string; primaryColor: string; openingDate: string
 }
-type Props = {
-  clinic?: Clinic | null
-  onCancel: () => void
-  onSave: (payload: Record<string, unknown>) => Promise<void>
+type Props = { clinic?: Clinic | null; onCancel: () => void; onSave: (payload: Record<string, unknown>) => Promise<void> }
+const empty: Values = {
+  name: "", code: "", clinicType: "aesthetic", description: "", specialties: "",
+  email: "", phone: "", alternatePhone: "", whatsapp: "", website: "",
+  countryId: "", governorateId: "", cityId: "", districtId: "",
+  addressLine1: "", addressLine2: "", building: "", floor: "", unit: "", landmark: "", postalCode: "",
+  timezone: "Africa/Cairo", locale: "en", currency: "EGP", primaryColor: "#0f766e", openingDate: "",
 }
-
-const initialValues: ClinicFormValues = {
-  name: "",
-  clinicType: "aesthetic",
-  description: "",
-  email: "",
-  phone: "",
-  countryId: "",
-  governorateId: "",
-  cityId: "",
-  districtId: "",
-  addressLine1: "",
-  timezone: "Africa/Cairo",
-}
-
-function getValues(clinic?: Clinic | null): ClinicFormValues {
-  if (!clinic) return initialValues
+function fromClinic(clinic?: Clinic | null): Values {
+  if (!clinic) return empty
   return {
-    ...initialValues,
-    name: clinic.name,
-    clinicType: clinic.clinicType || "aesthetic",
-    description: clinic.description || "",
-    email: clinic.contact?.email || "",
-    phone: clinic.contact?.phone || "",
-    countryId: clinic.address?.countryId || "",
-    governorateId: clinic.address?.governorateId || "",
-    cityId: clinic.address?.cityId || "",
-    districtId: clinic.address?.districtId || "",
-    addressLine1: clinic.address?.addressLine1 || "",
-    timezone: clinic.timezone || "Africa/Cairo",
+    ...empty, name: clinic.name || "", code: clinic.code || "", clinicType: clinic.clinicType || "aesthetic",
+    description: clinic.description || "", specialties: clinic.specialties?.join(", ") || "",
+    email: clinic.contact?.email || "", phone: clinic.contact?.phone || "",
+    alternatePhone: clinic.contact?.alternatePhone || "", whatsapp: clinic.contact?.whatsapp || "", website: clinic.contact?.website || "",
+    countryId: clinic.address?.countryId || "", governorateId: clinic.address?.governorateId || "",
+    cityId: clinic.address?.cityId || "", districtId: clinic.address?.districtId || "",
+    addressLine1: clinic.address?.addressLine1 || "", addressLine2: clinic.address?.addressLine2 || "",
+    building: clinic.address?.building || "", floor: clinic.address?.floor || "", unit: clinic.address?.unit || "",
+    landmark: clinic.address?.landmark || "", postalCode: clinic.address?.postalCode || "",
+    timezone: clinic.timezone || "Africa/Cairo", locale: clinic.preferences?.locale || "en",
+    currency: clinic.preferences?.currency || "EGP", primaryColor: clinic.branding?.primaryColor || "#0f766e",
+    openingDate: clinic.openingDate ? clinic.openingDate.slice(0, 10) : "",
   }
 }
 
 export function TenantClinicForm({ clinic, onCancel, onSave }: Props) {
   const { locale } = useI18n()
   const ar = locale === "ar"
-  const [values, setValues] = useState<ClinicFormValues>(() => getValues(clinic))
-
-  useEffect(() => {
-    setValues(getValues(clinic))
-  }, [clinic])
+  const [values, setValues] = useState<Values>(() => fromClinic(clinic))
   const [countries, setCountries] = useState<GeoOption[]>([])
   const [governorates, setGovernorates] = useState<GeoOption[]>([])
   const [cities, setCities] = useState<GeoOption[]>([])
   const [districts, setDistricts] = useState<GeoOption[]>([])
   const [saving, setSaving] = useState(false)
-  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
+  const [errors, setErrors] = useState<Record<string, string>>({})
   const [serverError, setServerError] = useState("")
 
-  const copy = ar
-    ? {
-        title: clinic ? "تعديل بيانات العيادة" : "إضافة عيادة",
-        note: "اختر الموقع بالتسلسل الجغرافي الصحيح.",
-        name: "اسم العيادة",
-        type: "نوع العيادة",
-        description: "نبذة",
-        contact: "بيانات التواصل",
-        email: "البريد الإلكتروني",
-        phone: "الهاتف",
-        location: "الموقع",
-        country: "الدولة",
-        governorate: "المحافظة",
-        city: "المدينة",
-        district: "الحي",
-        address: "العنوان بالتفصيل",
-        timezone: "المنطقة الزمنية",
-        choose: "اختر",
-        save: "حفظ العيادة",
-        cancel: "إلغاء",
-        types: ["جلدية", "تجميل", "جمال", "مركز طبي", "أخرى"],
-      }
-    : {
-        title: clinic ? "Edit clinic" : "Add clinic",
-        note: "Choose the location using the correct geographic hierarchy.",
-        name: "Clinic name",
-        type: "Clinic type",
-        description: "Description",
-        contact: "Contact details",
-        email: "Email",
-        phone: "Phone",
-        location: "Location",
-        country: "Country",
-        governorate: "Governorate",
-        city: "City",
-        district: "District",
-        address: "Address line",
-        timezone: "Timezone",
-        choose: "Select",
-        save: "Save clinic",
-        cancel: "Cancel",
-        types: ["Dermatology", "Aesthetic", "Beauty", "Medical center", "Other"],
-      }
-
+  useEffect(() => { setValues(fromClinic(clinic)); setErrors({}); setServerError("") }, [clinic])
+  useEffect(() => { getTenantGeo("countries").then(setCountries).catch(cause => setServerError(cause.message)) }, [])
   useEffect(() => {
-    getTenantGeo("countries").then(setCountries).catch((e) => setServerError(e.message))
-  }, [])
-
-  useEffect(() => {
-    if (!values.countryId) {
-      setGovernorates([])
-      return
-    }
-    getTenantGeo("governorates", { country_id: values.countryId })
-      .then(setGovernorates)
-      .catch((e) => setServerError(e.message))
+    if (!values.countryId) { setGovernorates([]); return }
+    getTenantGeo("governorates", { country_id: values.countryId }).then(setGovernorates).catch(cause => setServerError(cause.message))
   }, [values.countryId])
-
   useEffect(() => {
-    if (!values.governorateId) {
-      setCities([])
-      return
-    }
-    getTenantGeo("cities", { governorate_id: values.governorateId })
-      .then(setCities)
-      .catch((e: Error) => setServerError(e.message))
+    if (!values.governorateId) { setCities([]); return }
+    getTenantGeo("cities", { governorate_id: values.governorateId }).then(setCities).catch(cause => setServerError(cause.message))
   }, [values.governorateId])
-
   useEffect(() => {
-    if (!values.cityId) {
-      setDistricts([])
-      return
-    }
-    getTenantGeo("districts", { city_id: values.cityId })
-      .then(setDistricts)
-      .catch((e: Error) => setServerError(e.message))
+    if (!values.cityId) { setDistricts([]); return }
+    getTenantGeo("districts", { city_id: values.cityId }).then(setDistricts).catch(cause => setServerError(cause.message))
   }, [values.cityId])
 
-  function update<K extends keyof ClinicFormValues>(key: K, value: string) {
-    setValues((current) => ({
-      ...current,
-      [key]: value,
+  const copy = ar ? {
+    identity: "هوية العيادة", identityHint: "الاسم والتصنيف والتخصصات التي تميز الكيان الطبي.",
+    name: "اسم العيادة", code: "كود العيادة", type: "نوع العيادة", description: "نبذة تعريفية", specialties: "التخصصات (افصل بينها بفاصلة)",
+    contact: "بيانات التواصل", email: "البريد الإلكتروني", phone: "الهاتف الرئيسي", alternate: "هاتف بديل", whatsapp: "واتساب", website: "الموقع الإلكتروني",
+    location: "العنوان والموقع", country: "الدولة", governorate: "المحافظة", city: "المدينة", district: "الحي",
+    line1: "العنوان", line2: "تفاصيل إضافية", building: "المبنى", floor: "الدور", unit: "الوحدة", landmark: "علامة مميزة", postal: "الرمز البريدي",
+    defaults: "إعدادات العيادة", timezone: "المنطقة الزمنية", locale: "لغة العيادة", currency: "العملة", color: "اللون الأساسي", opening: "تاريخ الافتتاح",
+    choose: "اختر", save: clinic ? "حفظ التعديلات" : "إنشاء العيادة", cancel: "إلغاء"
+  } : {
+    identity: "Clinic identity", identityHint: "The name, classification and specialties that define this medical entity.",
+    name: "Clinic name", code: "Clinic code", type: "Clinic type", description: "Description", specialties: "Specialties (comma separated)",
+    contact: "Contact information", email: "Business email", phone: "Primary phone", alternate: "Alternate phone", whatsapp: "WhatsApp", website: "Website",
+    location: "Address & location", country: "Country", governorate: "Governorate", city: "City", district: "District",
+    line1: "Address line 1", line2: "Address line 2", building: "Building", floor: "Floor", unit: "Unit", landmark: "Landmark", postal: "Postal code",
+    defaults: "Clinic defaults", timezone: "Timezone", locale: "Clinic language", currency: "Currency", color: "Brand color", opening: "Opening date",
+    choose: "Select", save: clinic ? "Save changes" : "Create clinic", cancel: "Cancel"
+  }
+
+  function update<K extends keyof Values>(key: K, value: Values[K]) {
+    setValues(current => ({
+      ...current, [key]: value,
       ...(key === "countryId" ? { governorateId: "", cityId: "", districtId: "" } : {}),
       ...(key === "governorateId" ? { cityId: "", districtId: "" } : {}),
       ...(key === "cityId" ? { districtId: "" } : {}),
     }))
-    setFieldErrors((current) => ({ ...current, [key]: "" }))
+    setErrors(current => ({ ...current, [key]: "" }))
   }
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    const validation = clinicFormSchema.safeParse({
-      name: values.name,
-      clinicType: values.clinicType,
-      description: values.description,
-      email: values.email,
-      phone: values.phone,
-      timezone: values.timezone,
-    })
-    if (!validation.success) {
-      setFieldErrors(getTenantFieldErrors(validation.error, ar ? "ar" : "en"))
-      return
-    }
-    setSaving(true)
-    setFieldErrors({})
-    setServerError("")
-    const payload = {
-      name: values.name.trim(),
-      clinicType: values.clinicType,
-      description: values.description.trim(),
-      timezone: values.timezone,
-      contact: {
-        ...(values.email.trim() ? { email: values.email.trim() } : {}),
-        ...(values.phone.trim() ? { phone: values.phone.trim() } : {}),
-      },
-      address: {
-        ...(values.countryId ? { countryId: values.countryId } : {}),
-        ...(values.governorateId ? { governorateId: values.governorateId } : {}),
-        ...(values.cityId ? { cityId: values.cityId } : {}),
-        ...(values.districtId ? { districtId: values.districtId } : {}),
-        ...(values.addressLine1.trim() ? { addressLine1: values.addressLine1.trim() } : {}),
-      },
-    }
+    const validation = clinicFormSchema.safeParse(values)
+    if (!validation.success) { setErrors(getTenantFieldErrors(validation.error, ar ? "ar" : "en")); return }
+    setSaving(true); setErrors({}); setServerError("")
+    const contact = Object.fromEntries([
+      ["email", values.email], ["phone", values.phone], ["alternatePhone", values.alternatePhone],
+      ["whatsapp", values.whatsapp], ["website", values.website],
+    ].filter(([, value]) => String(value).trim()).map(([key, value]) => [key, String(value).trim()]))
+    const address = Object.fromEntries([
+      ["countryId", values.countryId], ["governorateId", values.governorateId], ["cityId", values.cityId],
+      ["districtId", values.districtId], ["addressLine1", values.addressLine1], ["addressLine2", values.addressLine2],
+      ["building", values.building], ["floor", values.floor], ["unit", values.unit], ["landmark", values.landmark], ["postalCode", values.postalCode],
+    ].filter(([, value]) => String(value).trim()).map(([key, value]) => [key, String(value).trim()]))
     try {
-      await onSave(payload)
-    } catch (e) {
-      setServerError(e instanceof Error ? e.message : "Unable to save clinic")
-    } finally {
-      setSaving(false)
-    }
+      await onSave({
+        name: values.name.trim(), ...(values.code.trim() ? { code: values.code.trim().toUpperCase() } : {}),
+        clinicType: values.clinicType, description: values.description.trim(),
+        specialties: values.specialties.split(",").map(item => item.trim()).filter(Boolean),
+        contact, address, timezone: values.timezone.trim(),
+        preferences: { timezone: values.timezone.trim(), locale: values.locale, currency: values.currency, supportedLanguages: ["en", "ar"] },
+        branding: { primaryColor: values.primaryColor },
+        ...(values.openingDate ? { openingDate: new Date(`${values.openingDate}T00:00:00.000Z`).toISOString() } : { openingDate: null }),
+      })
+    } catch (cause) {
+      setServerError(cause instanceof Error ? cause.message : (ar ? "تعذر حفظ العيادة." : "Unable to save clinic."))
+    } finally { setSaving(false) }
   }
 
-  const nameOf = (item: GeoOption) => (ar ? item.name_ar || item.name_en : item.name_en)
+  const nameOf = (item: GeoOption) => ar ? item.name_ar || item.name_en : item.name_en
+  return <form noValidate onSubmit={submit} className="space-y-5">
+    <Card className="rounded-2xl border-slate-200/80 shadow-sm"><CardContent className="space-y-4 p-5">
+      <Section icon={Building2} title={copy.identity} hint={copy.identityHint}/>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Field label={copy.name} required error={errors.name}><Input value={values.name} maxLength={160} onChange={event => update("name", event.target.value)}/></Field>
+        <Field label={copy.code} error={errors.code}><Input value={values.code} maxLength={30} onChange={event => update("code", event.target.value.toUpperCase())} placeholder="e.g. CLN-01"/></Field>
+        <Field label={copy.type} required error={errors.clinicType}><Select value={values.clinicType} onValueChange={value => update("clinicType", value)}><SelectTrigger><SelectValue/></SelectTrigger><SelectContent>
+          {["dermatology", "aesthetic", "beauty", "medical_center", "other"].map((value, index) => <SelectItem key={value} value={value}>{(ar ? ["جلدية", "تجميل", "جمال", "مركز طبي", "أخرى"] : ["Dermatology", "Aesthetic", "Beauty", "Medical center", "Other"])[index]}</SelectItem>)}
+        </SelectContent></Select></Field>
+        <Field label={copy.description} error={errors.description}><Input value={values.description} maxLength={2000} onChange={event => update("description", event.target.value)}/></Field>
+        <div className="sm:col-span-2"><Field label={copy.specialties}><Input value={values.specialties} onChange={event => update("specialties", event.target.value)} placeholder={ar ? "ليزر، جلدية، عناية بالبشرة" : "Laser, dermatology, skin care"}/></Field></div>
+      </div>
+    </CardContent></Card>
 
-  return (
-    <Card className="border-violet-200 bg-white shadow-lg shadow-violet-950/5">
-      <CardContent className="p-5 sm:p-6">
-        <div className="mb-5 flex items-center justify-between">
-          <div>
-            <h3 className="font-semibold">{copy.title}</h3>
-            <p className="mt-1 text-xs text-muted-foreground">{copy.note}</p>
-          </div>
-          <Button size="icon" variant="ghost" onClick={onCancel} aria-label={copy.cancel}>
-            <X className="size-4" />
-          </Button>
-        </div>
+    <Card className="rounded-2xl border-slate-200/80 shadow-sm"><CardContent className="space-y-4 p-5">
+      <Section icon={Contact} title={copy.contact}/>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Field label={copy.email} error={errors.email}><Input type="email" value={values.email} onChange={event => update("email", event.target.value)}/></Field>
+        <Field label={copy.phone} error={errors.phone}><Input value={values.phone} onChange={event => update("phone", event.target.value)}/></Field>
+        <Field label={copy.alternate} error={errors.alternatePhone}><Input value={values.alternatePhone} onChange={event => update("alternatePhone", event.target.value)}/></Field>
+        <Field label={copy.whatsapp} error={errors.whatsapp}><Input value={values.whatsapp} onChange={event => update("whatsapp", event.target.value)}/></Field>
+        <div className="sm:col-span-2"><Field label={copy.website} error={errors.website}><Input type="url" value={values.website} onChange={event => update("website", event.target.value)} placeholder="https://"/></Field></div>
+      </div>
+    </CardContent></Card>
 
-        <form noValidate onSubmit={submit} className="space-y-6">
-          <section className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="clinic-name">{copy.name} <span className="text-destructive">*</span></Label>
-              <Input id="clinic-name" required minLength={2} maxLength={160} value={values.name} aria-invalid={Boolean(fieldErrors.name)} aria-describedby={fieldErrors.name ? "clinic-name-error" : undefined} onChange={(e) => update("name", e.target.value)} />
-              {fieldErrors.name && <FieldError id="clinic-name-error">{fieldErrors.name}</FieldError>}
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="clinic-type">{copy.type} <span className="text-destructive">*</span></Label>
-              <Select value={values.clinicType} onValueChange={(value) => update("clinicType", value)}>
-                <SelectTrigger id="clinic-type" aria-invalid={Boolean(fieldErrors.clinicType)} aria-describedby={fieldErrors.clinicType ? "clinic-type-error" : undefined}><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {["dermatology", "aesthetic", "beauty", "medical_center", "other"].map((value, index) => (
-                    <SelectItem key={value} value={value}>{copy.types[index]}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {fieldErrors.clinicType && <FieldError id="clinic-type-error">{fieldErrors.clinicType}</FieldError>}
-            </div>
-            <div className="space-y-2 md:col-span-2">
-              <Label htmlFor="clinic-description">{copy.description}</Label>
-              <Input id="clinic-description" maxLength={2000} value={values.description} onChange={(e) => update("description", e.target.value)} />
-            </div>
-          </section>
+    <Card className="rounded-2xl border-slate-200/80 shadow-sm"><CardContent className="space-y-4 p-5">
+      <Section icon={MapPin} title={copy.location}/>
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <GeoSelect label={copy.country} value={values.countryId} options={countries} disabled={false} onChange={value => update("countryId", value)} choose={copy.choose} nameOf={nameOf}/>
+        <GeoSelect label={copy.governorate} value={values.governorateId} options={governorates} disabled={!values.countryId} onChange={value => update("governorateId", value)} choose={copy.choose} nameOf={nameOf}/>
+        <GeoSelect label={copy.city} value={values.cityId} options={cities} disabled={!values.governorateId} onChange={value => update("cityId", value)} choose={copy.choose} nameOf={nameOf}/>
+        <GeoSelect label={copy.district} value={values.districtId} options={districts} disabled={!values.cityId} onChange={value => update("districtId", value)} choose={copy.choose} nameOf={nameOf}/>
+        <Field label={copy.line1}><Input value={values.addressLine1} onChange={event => update("addressLine1", event.target.value)}/></Field>
+        <Field label={copy.line2}><Input value={values.addressLine2} onChange={event => update("addressLine2", event.target.value)}/></Field>
+        <Field label={copy.building}><Input value={values.building} onChange={event => update("building", event.target.value)}/></Field>
+        <Field label={copy.floor}><Input value={values.floor} onChange={event => update("floor", event.target.value)}/></Field>
+        <Field label={copy.unit}><Input value={values.unit} onChange={event => update("unit", event.target.value)}/></Field>
+        <Field label={copy.landmark}><Input value={values.landmark} onChange={event => update("landmark", event.target.value)}/></Field>
+        <Field label={copy.postal}><Input value={values.postalCode} onChange={event => update("postalCode", event.target.value)}/></Field>
+      </div>
+    </CardContent></Card>
 
-          <section className="space-y-3">
-            <h4 className="text-sm font-semibold">{copy.contact}</h4>
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="clinic-email">{copy.email}</Label>
-                <Input id="clinic-email" type="email" value={values.email} aria-invalid={Boolean(fieldErrors.email)} aria-describedby={fieldErrors.email ? "clinic-email-error" : undefined} onChange={(e) => update("email", e.target.value)} />
-                {fieldErrors.email && <FieldError id="clinic-email-error">{fieldErrors.email}</FieldError>}
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="clinic-phone">{copy.phone}</Label>
-                <Input id="clinic-phone" value={values.phone} aria-invalid={Boolean(fieldErrors.phone)} aria-describedby={fieldErrors.phone ? "clinic-phone-error" : undefined} onChange={(e) => update("phone", e.target.value)} />
-                {fieldErrors.phone && <FieldError id="clinic-phone-error">{fieldErrors.phone}</FieldError>}
-              </div>
-            </div>
-          </section>
+    <Card className="rounded-2xl border-slate-200/80 shadow-sm"><CardContent className="space-y-4 p-5">
+      <Section icon={Settings2} title={copy.defaults}/>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Field label={copy.timezone} required error={errors.timezone}><Input value={values.timezone} onChange={event => update("timezone", event.target.value)} placeholder="Africa/Cairo"/></Field>
+        <Field label={copy.opening}><DatePicker value={values.openingDate} onChange={value => update("openingDate", value)} locale={ar ? "ar" : "en"} dir={ar ? "rtl" : "ltr"} placeholder={copy.choose}/></Field>
+        <Field label={copy.locale}><Select value={values.locale} onValueChange={value => update("locale", value)}><SelectTrigger><SelectValue/></SelectTrigger><SelectContent><SelectItem value="en">English</SelectItem><SelectItem value="ar">العربية</SelectItem></SelectContent></Select></Field>
+        <Field label={copy.currency}><Select value={values.currency} onValueChange={value => update("currency", value)}><SelectTrigger><SelectValue/></SelectTrigger><SelectContent>{["EGP", "SAR", "AED", "USD"].map(value => <SelectItem key={value} value={value}>{value}</SelectItem>)}</SelectContent></Select></Field>
+        <Field label={copy.color}><div className="flex h-10 items-center gap-3 rounded-xl border border-input px-3"><Input type="color" value={values.primaryColor} onChange={event => update("primaryColor", event.target.value)} className="h-7 w-10 cursor-pointer border-0 p-0"/><span className="text-sm font-medium text-slate-600">{values.primaryColor.toUpperCase()}</span></div></Field>
+      </div>
+    </CardContent></Card>
 
-          <section className="space-y-3">
-            <h4 className="text-sm font-semibold">{copy.location}</h4>
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-              <GeoSelect label={copy.country} value={values.countryId} options={countries} disabled={false} onChange={(v) => update("countryId", v)} choose={copy.choose} nameOf={nameOf} />
-              <GeoSelect label={copy.governorate} value={values.governorateId} options={governorates} disabled={!values.countryId} onChange={(v) => update("governorateId", v)} choose={copy.choose} nameOf={nameOf} />
-              <GeoSelect label={copy.city} value={values.cityId} options={cities} disabled={!values.governorateId} onChange={(v) => update("cityId", v)} choose={copy.choose} nameOf={nameOf} />
-              <GeoSelect label={copy.district} value={values.districtId} options={districts} disabled={!values.cityId} onChange={(v) => update("districtId", v)} choose={copy.choose} nameOf={nameOf} />
-              <div className="space-y-2 sm:col-span-2 xl:col-span-4">
-                <Label htmlFor="clinic-address">{copy.address}</Label>
-                <Input id="clinic-address" value={values.addressLine1} onChange={(e) => update("addressLine1", e.target.value)} />
-              </div>
-              <div className="space-y-2 sm:col-span-2 xl:col-span-4">
-                <Label htmlFor="clinic-timezone">{copy.timezone} <span className="text-destructive">*</span></Label>
-                <Input id="clinic-timezone" value={values.timezone} aria-invalid={Boolean(fieldErrors.timezone)} aria-describedby={fieldErrors.timezone ? "clinic-timezone-error" : undefined} onChange={(e) => update("timezone", e.target.value)} />
-                {fieldErrors.timezone && <FieldError id="clinic-timezone-error">{fieldErrors.timezone}</FieldError>}
-              </div>
-            </div>
-          </section>
-
-          {serverError && <FieldError className="rounded-xl bg-red-50 px-3 py-2">{serverError}</FieldError>}
-          <div className="flex flex-wrap gap-2 border-t pt-4">
-            <Button type="submit" loading={saving}>{copy.save}</Button>
-            <Button type="button" variant="outline" onClick={onCancel}>{copy.cancel}</Button>
-          </div>
-        </form>
-      </CardContent>
-    </Card>
-  )
+    {serverError && <FieldError className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm">{serverError}</FieldError>}
+    <div className="flex justify-end gap-2 border-t border-slate-200 pt-4"><Button type="button" variant="outline" onClick={onCancel} disabled={saving}>{copy.cancel}</Button><Button type="submit" loading={saving} className="min-w-36">{copy.save}</Button></div>
+  </form>
 }
 
-type GeoSelectProps = {
-  label: string
-  value: string
-  options: GeoOption[]
-  disabled: boolean
-  onChange: (value: string) => void
-  choose: string
-  nameOf: (item: GeoOption) => string
+function Section({ icon: Icon, title, hint }: { icon: typeof Building2; title: string; hint?: string }) {
+  return <div className="flex items-start gap-3"><span className="grid size-9 shrink-0 place-items-center rounded-xl bg-violet-50 text-violet-700"><Icon className="size-4"/></span><div><h3 className="text-sm font-semibold text-slate-900">{title}</h3>{hint && <p className="mt-1 text-xs text-slate-500">{hint}</p>}</div></div>
 }
-
+function Field({ label, required, error, children }: { label: string; required?: boolean; error?: string; children: React.ReactNode }) {
+  return <div className="space-y-2"><Label>{label}{required && <span className="ms-1 text-rose-500">*</span>}</Label>{children}{error && <FieldError>{error}</FieldError>}</div>
+}
+type GeoSelectProps = { label: string; value: string; options: GeoOption[]; disabled: boolean; onChange: (value: string) => void; choose: string; nameOf: (item: GeoOption) => string }
 function GeoSelect({ label, value, options, disabled, onChange, choose, nameOf }: GeoSelectProps) {
-  return (
-    <div className="space-y-2">
-      <Label>{label}</Label>
-      <Select value={value || "__none__"} disabled={disabled} onValueChange={(selected) => onChange(selected === "__none__" ? "" : selected)}>
-        <SelectTrigger aria-label={label}><SelectValue placeholder={choose} /></SelectTrigger>
-        <SelectContent>
-          <SelectItem value="__none__">{choose}</SelectItem>
-          {options.map((option) => <SelectItem key={option.id} value={option.id}>{nameOf(option)}</SelectItem>)}
-        </SelectContent>
-      </Select>
-    </div>
-  )
+  return <Field label={label}><Select value={value || "__none__"} disabled={disabled} onValueChange={selected => onChange(selected === "__none__" ? "" : selected)}><SelectTrigger><SelectValue placeholder={choose}/></SelectTrigger><SelectContent><SelectItem value="__none__">{choose}</SelectItem>{options.map(option => <SelectItem key={option.id} value={option.id}>{nameOf(option)}</SelectItem>)}</SelectContent></Select></Field>
 }

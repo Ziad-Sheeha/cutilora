@@ -44,11 +44,31 @@ export const tenantProfileSchema = z.object({
 
 export const clinicFormSchema = z.object({
   name: z.string().trim().min(2).max(160),
+  code: z.string().max(30).optional(),
   clinicType: requiredText("Clinic type"),
   description: z.string().max(2000).optional(),
+  specialties: z.string().optional(),
   email: z.string().trim().email().optional().or(z.literal("")),
-  phone: z.string().trim().min(7).max(24).optional().or(z.literal("")),
-  timezone: z.string().trim().min(3).max(80).regex(/^[A-Za-z_+-]+(?:\/[A-Za-z0-9_+.-]+)+$/),
+  phone: z.string().trim().max(40).optional(),
+  alternatePhone: z.string().max(40).optional(),
+  whatsapp: z.string().max(40).optional(),
+  website: z.string().trim().url().optional().or(z.literal("")),
+  countryId: z.string().optional(),
+  governorateId: z.string().optional(),
+  cityId: z.string().optional(),
+  districtId: z.string().optional(),
+  addressLine1: z.string().max(255).optional(),
+  addressLine2: z.string().max(255).optional(),
+  building: z.string().max(100).optional(),
+  floor: z.string().max(50).optional(),
+  unit: z.string().max(50).optional(),
+  landmark: z.string().max(255).optional(),
+  postalCode: z.string().max(30).optional(),
+  timezone: validTimezone,
+  locale: z.string().min(2).max(10),
+  currency: z.string().length(3),
+  primaryColor: z.string().regex(/^#[0-9a-fA-F]{6}$/),
+  openingDate: z.string().optional(),
 })
 
 export const branchFormSchema = z.object({
