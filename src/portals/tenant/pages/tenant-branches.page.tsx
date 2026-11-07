@@ -1,181 +1,164 @@
-import { useState } from "react"
-import { useQuery, useQueryClient } from "@tanstack/react-query"
+import { useMemo, useState } from "react"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useOutletContext } from "react-router"
-import { Clock3, MapPin, MapPinned, Pencil, Plus, Search } from "lucide-react"
+import { Activity, Building2, MapPin, Plus, Search, SlidersHorizontal, Store } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { TenantBranchForm } from "../components/tenant-branch-form"
-import { TenantEmptyState } from "../components/tenant-empty-state"
-import { TenantPageHeading } from "../components/tenant-page-heading"
-import { TenantStatusPill } from "../components/tenant-status-pill"
-import { createBranch, getBranches, updateBranch } from "../api/tenant-api"
-import { canManageOrganization } from "../auth/tenant-permissions"
-import type { Branch } from "../types/tenant.types"
-import type { TenantOutletContext } from "../layout/tenant-layout"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Textarea } from "@/components/ui/textarea"
+import { Label } from "@/components/ui/label"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { useI18n } from "@/i18n/i18n-provider"
+import { getMyTenantAccess, getBranches, createBranch, updateBranch, activateBranch, suspendBranch, temporarilyCloseBranch, permanentlyCloseBranch } from "../api/tenant-api"
+import { updateTenantContext } from "../auth/tenant-session"
+import { TenantBranchForm } from "../components/tenant-branch-form"
+import { TenantPageHeading } from "../components/tenant-page-heading"
+import type { TenantOutletContext } from "../layout/tenant-layout"
+import type { Branch } from "../types/tenant.types"
+import { BranchCard } from "../features/branches/components/branch-card"
+import { BranchDetailsDialog } from "../features/branches/components/branch-details-dialog"
+
+type LifecycleAction = "activate" | "temporary-close" | "suspend" | "close"
+const accessKey = ["tenant-access-me"] as const
 
 export function TenantBranchesPage() {
   const { context, clinics } = useOutletContext<TenantOutletContext>()
   const { locale } = useI18n()
   const ar = locale === "ar"
-  const canWrite = canManageOrganization()
-  const queryClient = useQueryClient()
-  const [formOpen, setFormOpen] = useState(false)
-  const [editingBranch, setEditingBranch] = useState<Branch | null>(null)
-  const [error, setError] = useState("")
+  const qc = useQueryClient()
+  const tenantScoped = context?.access.scope === "tenant"
+  const fixedClinicId = context?.access.clinicId || context?.clinic?._id || ""
+  const [clinicFilter, setClinicFilter] = useState(fixedClinicId)
   const [search, setSearch] = useState("")
-  const clinicId = context?.access.clinicId || context?.clinic?._id || ""
-  const clinicName = context?.clinic?.name || clinics.find((clinic) => clinic._id === clinicId)?.name
+  const [status, setStatus] = useState("all")
+  const [formOpen, setFormOpen] = useState(false)
+  const [editing, setEditing] = useState<Branch | null>(null)
+  const [viewing, setViewing] = useState<Branch | null>(null)
+  const [lifecycleTarget, setLifecycleTarget] = useState<{ branch: Branch; action: LifecycleAction } | null>(null)
+  const [reason, setReason] = useState("")
+  const [error, setError] = useState("")
 
-  const copy = ar
-    ? {
-        eyebrow: "إدارة المواقع",
-        title: "الفروع",
-        description: "نظّم مواقع كل عيادة وتابع الفروع التابعة لها.",
-        add: "إضافة فرع",
-        clinic: "العيادة الحالية",
-        choose: "اختر عيادة أولاً",
-        chooseDescription: "اختر عيادة من القائمة بالأعلى لعرض فروعها.",
-        empty: "لا توجد فروع لهذه العيادة بعد",
-        emptyDescription: "يمكنك إضافة أول فرع لهذه العيادة.",
-        count: "فرع",
-        search: "ابحث باسم الفرع أو المعرّف...",
-      }
-    : {
-        eyebrow: "LOCATION MANAGEMENT",
-        title: "Branches",
-        description: "Organize each clinic location and manage its branches.",
-        add: "Add branch",
-        clinic: "Active clinic",
-        choose: "Choose a clinic first",
-        chooseDescription: "Select a clinic from the header to view its branches.",
-        empty: "No branches for this clinic yet",
-        emptyDescription: "Create the first branch for this clinic.",
-        count: "branches",
-        search: "Search branches by name or slug...",
-      }
+  const access = useQuery({ queryKey: accessKey, queryFn: getMyTenantAccess, staleTime: 60_000 })
+  const permissions = access.data?.permissions ?? []
+  const grants = access.data?.grants ?? []
+  const has = (permission: string) => permissions.includes(permission) || grants.some(grant => (grant.permission === permission || grant.permission === "*") && (grant.scope === "tenant" || grant.scope === "clinic" || grant.scope === "branch"))
+  const canRead = has("branch.read")
+  const canCreate = has("branch.manage")
+  const canEdit = has("branch.update")
+  const canLifecycle = has("branch.lifecycle.manage")
 
   const branchesQuery = useQuery({
-    queryKey: ["tenant-branches", clinicId],
-    queryFn: () => getBranches(clinicId),
-    enabled: Boolean(clinicId),
-    staleTime: 30_000,
+    queryKey: ["tenant-branches", clinicFilter || "all"],
+    queryFn: () => getBranches(clinicFilter || undefined),
+    enabled: canRead,
+    staleTime: 20_000,
   })
   const branches = branchesQuery.data ?? []
-  const loading = branchesQuery.isLoading
-  const errorMessage = branchesQuery.error instanceof Error ? branchesQuery.error.message : ""
 
-
-  const filteredBranches = branches.filter(branch => [branch.name, branch.slug, branch.address, branch.status].some(value => String(value ?? "").toLowerCase().includes(search.trim().toLowerCase())))
-
-  function openCreateForm() {
-    setEditingBranch(null)
-    setError("")
-    setFormOpen(true)
-  }
-
-  function openEditForm(branch: Branch) {
-    setEditingBranch(branch)
-    setError("")
-    setFormOpen(true)
-  }
-
-  async function saveBranch(payload: Record<string, unknown>) {
-    setError("")
-    try {
-      if (editingBranch) await updateBranch(editingBranch._id, { ...payload, clinicId })
-      else await createBranch({ ...payload, clinicId })
-      await queryClient.invalidateQueries({ queryKey: ["tenant-branches", clinicId] })
+  const saveMutation = useMutation({
+    mutationFn: async (payload: Record<string, unknown>) => {
+      const targetClinicId = clinicFilter || editing?.clinicId || fixedClinicId
+      if (!targetClinicId) throw new Error(ar ? "اختر العيادة أولاً." : "Choose a clinic first.")
+      updateTenantContext({ clinicId: targetClinicId, branchId: null })
+      return editing ? updateBranch(editing._id, payload) : createBranch(payload)
+    },
+    onSuccess: async () => {
       setFormOpen(false)
-      setEditingBranch(null)
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : (ar ? "تعذر حفظ الفرع" : "Unable to save branch"))
-      throw cause
-    }
+      setEditing(null)
+      setError("")
+      await qc.invalidateQueries({ queryKey: ["tenant-branches"] })
+    },
+    onError: cause => setError(cause instanceof Error ? cause.message : (ar ? "تعذر حفظ الفرع." : "Unable to save branch.")),
+  })
+
+  const lifecycleMutation = useMutation({
+    mutationFn: async () => {
+      if (!lifecycleTarget) return
+      const { branch, action } = lifecycleTarget
+      const targetClinicId = clinicFilter || branch.clinicId || fixedClinicId
+      if (targetClinicId) updateTenantContext({ clinicId: targetClinicId, branchId: null })
+      if (action === "activate") return activateBranch(branch._id)
+      if (action === "suspend") return suspendBranch(branch._id)
+      if (action === "temporary-close") return temporarilyCloseBranch(branch._id, reason.trim())
+      return permanentlyCloseBranch(branch._id, reason.trim())
+    },
+    onSuccess: async () => {
+      setLifecycleTarget(null)
+      setReason("")
+      setError("")
+      await qc.invalidateQueries({ queryKey: ["tenant-branches"] })
+    },
+    onError: cause => setError(cause instanceof Error ? cause.message : (ar ? "تعذر تحديث حالة الفرع." : "Unable to update branch lifecycle.")),
+  })
+
+  const rows = useMemo(() => branches.filter(branch => {
+    const query = search.trim().toLocaleLowerCase(ar ? "ar" : "en")
+    const matchesSearch = !query || [branch.name, branch.slug, branch.code, branch.address, branch.contact?.phone].some(value => String(value ?? "").toLocaleLowerCase(ar ? "ar" : "en").includes(query))
+    return matchesSearch && (status === "all" || branch.status === status)
+  }), [branches, search, status, ar])
+  const activeCount = branches.filter(branch => branch.status === "active").length
+  const attentionCount = branches.filter(branch => ["draft", "temporarily_closed", "suspended"].includes(branch.status || "")).length
+  const clinicName = (clinicId?: string) => clinics.find(clinic => clinic._id === clinicId)?.name || (clinicId === fixedClinicId ? context?.clinic?.name : undefined)
+
+  const copy = ar ? {
+    eyebrow: "إدارة المواقع", title: "الفروع", description: "إدارة مواقع التشغيل وحالاتها وربط كل فرع بالعيادة التابعة له.",
+    add: "إضافة فرع", allClinics: "كل العيادات", chooseClinic: "اختر العيادة", search: "ابحث باسم الفرع أو الكود أو العنوان",
+    allStatuses: "كل الحالات", draft: "مسودة", active: "نشط", temporary: "مغلق مؤقتًا", suspended: "موقوف", closed: "مغلق نهائيًا",
+    total: "إجمالي الفروع", activeLabel: "فروع نشطة", attention: "تحتاج متابعة", directory: "دليل الفروع", results: "نتيجة",
+    noResults: "لا توجد فروع مطابقة", noResultsDesc: "جرّب تغيير البحث أو فلاتر العرض.", noBranches: "لا توجد فروع بعد", noBranchesDesc: "أضف أول موقع تشغيل للعيادة لبدء تنظيم عملياتك.",
+    view: "التفاصيل", edit: "تعديل", activate: "إعادة تفعيل", temporaryClose: "إغلاق مؤقت", suspend: "إيقاف", close: "إغلاق نهائي",
+    permission: "ليس لديك صلاحية عرض الفروع.", lifecycleTitle: "تأكيد الإجراء", reason: "سبب الإغلاق", reasonHint: "اكتب سببًا واضحًا (3 إلى 500 حرف).",
+    confirm: "تأكيد الإجراء", cancel: "إلغاء", loading: "جارٍ تحميل الفروع...", retry: "إعادة المحاولة"
+  } : {
+    eyebrow: "LOCATION MANAGEMENT", title: "Branches", description: "Manage operating locations, lifecycle status and each branch's parent clinic.",
+    add: "Add branch", allClinics: "All clinics", chooseClinic: "Choose clinic", search: "Search by branch name, code or address",
+    allStatuses: "All statuses", draft: "Draft", active: "Active", temporary: "Temporarily closed", suspended: "Suspended", closed: "Permanently closed",
+    total: "Total branches", activeLabel: "Active branches", attention: "Needs attention", directory: "Branch directory", results: "results",
+    noResults: "No branches match your filters", noResultsDesc: "Try changing your search or filters.", noBranches: "No branches yet", noBranchesDesc: "Add the first operating location to start organizing your clinic operations.",
+    view: "Details", edit: "Edit", activate: "Reactivate", temporaryClose: "Temporary close", suspend: "Suspend", close: "Close permanently",
+    permission: "You don't have permission to view branches.", lifecycleTitle: "Confirm lifecycle action", reason: "Closure reason", reasonHint: "Provide a clear reason (3–500 characters).",
+    confirm: "Confirm action", cancel: "Cancel", loading: "Loading branches...", retry: "Retry"
   }
 
-  return (
-    <div className="space-y-7">
-      <TenantPageHeading
-        eyebrow={copy.eyebrow}
-        title={copy.title}
-        description={copy.description}
-        action={
-          canWrite ? <Button disabled={!clinicId} onClick={openCreateForm}>
-            <Plus className="size-4" />
-            {copy.add}
-          </Button> : undefined
-        }
-      />
+  const statusOptions = [
+    ["all", copy.allStatuses], ["draft", copy.draft], ["active", copy.active],
+    ["temporarily_closed", copy.temporary], ["suspended", copy.suspended], ["closed", copy.closed],
+  ]
 
-      {!clinicId ? (
-        <Card className="border-dashed bg-white">
-          <CardContent className="flex min-h-64 items-center justify-center p-8">
-            <TenantEmptyState icon={MapPinned} title={copy.choose} description={copy.chooseDescription} />
-          </CardContent>
-        </Card>
-      ) : (
-        <>
-          <div className="flex items-center gap-3 rounded-2xl border bg-white p-4">
-            <span className="grid size-10 place-items-center rounded-xl bg-violet-50 text-violet-700">
-              <MapPinned className="size-5" />
-            </span>
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{copy.clinic}</p>
-              <p className="mt-1 text-sm font-semibold">{clinicName || "—"}</p>
-            </div>
-          </div>
+  return <div className="space-y-7">
+    <TenantPageHeading eyebrow={copy.eyebrow} title={copy.title} description={copy.description}
+      action={canCreate ? <Button onClick={() => { setEditing(null); setError(""); setFormOpen(true) }} disabled={!clinicFilter && tenantScoped} className="h-11 rounded-xl px-5 shadow-md shadow-primary/15"><Plus className="me-2 size-4"/>{copy.add}</Button> : undefined}/>
+    {tenantScoped && <div className="flex flex-col gap-2 rounded-2xl border border-slate-200/80 bg-white p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between"><div className="flex items-center gap-3"><span className="grid size-10 place-items-center rounded-xl bg-violet-50 text-violet-700"><Building2 className="size-5"/></span><div><p className="text-sm font-semibold text-slate-800">{ar ? "نطاق عرض الفروع" : "Branch directory scope"}</p><p className="text-xs text-slate-500">{ar ? "اعرض كل الفروع أو اختر عيادة محددة." : "View all branches or narrow the directory to one clinic."}</p></div></div><Select value={clinicFilter || "all"} onValueChange={value => setClinicFilter(value === "all" ? "" : value)}><SelectTrigger className="h-10 w-full rounded-xl sm:w-64"><SelectValue placeholder={copy.chooseClinic}/></SelectTrigger><SelectContent><SelectItem value="all">{copy.allClinics}</SelectItem>{clinics.map(clinic => <SelectItem key={clinic._id} value={clinic._id}>{clinic.name}</SelectItem>)}</SelectContent></Select></div>}
+    {error && <p role="alert" className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}
+    {access.isError && <p role="alert" className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{access.error instanceof Error ? access.error.message : "Unable to verify permissions."}</p>}
+    {!access.isLoading && !access.isError && !canRead && <p role="alert" className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">{copy.permission}</p>}
 
-          {canWrite && formOpen && <TenantBranchForm branch={editingBranch} onCancel={() => { setFormOpen(false); setEditingBranch(null) }} onSave={saveBranch} />}
-          {(error || errorMessage) && <p role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{error || errorMessage}</p>}
-
-          <Card className="border-white bg-white">
-            <CardContent className="p-6">
-              <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <h3 className="font-semibold">{ar ? "فروع العيادة" : "Clinic branches"}</h3>
-                  <p className="mt-1 text-xs text-muted-foreground">{branches.length} {copy.count}</p>
-                </div>
-                <div className="relative w-full sm:max-w-xs"><Search className="absolute start-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"/><Input value={search} onChange={event => setSearch(event.target.value)} placeholder={copy.search} className="ps-9"/></div>
-              </div>
-
-              {loading ? (
-                <p className="py-12 text-center text-sm text-muted-foreground">{ar ? "جارٍ التحميل…" : "Loading branches…"}</p>
-              ) : filteredBranches.length ? (
-                <div className="grid gap-3 md:grid-cols-2 2xl:grid-cols-3">
-                  {filteredBranches.map((branch) => (
-                    <article key={branch._id} className="rounded-2xl border p-4">
-                      <div className="flex items-center gap-3">
-                        <span className="grid size-10 place-items-center rounded-xl bg-violet-50 text-violet-700">
-                          <MapPin className="size-5" />
-                        </span>
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm font-semibold">{branch.name}</p>
-                          <p className="mt-1 truncate text-xs text-muted-foreground">{branch.slug}</p>
-                        </div>
-                        <TenantStatusPill status={branch.status || "active"} />
-                        {canWrite && <Button type="button" size="icon" variant="ghost" onClick={() => openEditForm(branch)} aria-label={ar ? "تعديل الفرع" : "Edit branch"}><Pencil className="size-4"/></Button>}
-                      </div>
-                      <p className="mt-4 flex items-center gap-2 border-t pt-3 text-xs text-muted-foreground">
-                        <Clock3 className="size-3.5" />
-                        {branch.timezone || "Africa/Cairo"}
-                      </p>
-                    </article>
-                  ))}
-                </div>
-              ) : (
-                <TenantEmptyState
-                  icon={MapPinned}
-                  title={search ? (ar ? "لا توجد نتائج مطابقة" : "No matching branches") : copy.empty}
-                  description={search ? (ar ? "جرّب البحث باسم أو معرّف مختلف." : "Try another branch name or slug.") : copy.emptyDescription}
-                  action={canWrite ? <Button size="sm" onClick={openCreateForm}>{copy.add}</Button> : undefined}
-                />
-              )}
-            </CardContent>
-          </Card>
-        </>
-      )}
+    <div className="grid gap-3 sm:grid-cols-3">
+      <Metric icon={Store} label={copy.total} value={branches.length}/>
+      <Metric icon={MapPin} label={copy.activeLabel} value={activeCount}/>
+      <Metric icon={Activity} label={copy.attention} value={attentionCount}/>
     </div>
-  )
+
+    <Card className="overflow-hidden border-slate-200/80 shadow-sm"><CardContent className="space-y-5 p-5 sm:p-6">
+      <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-end"><div><div className="flex items-center gap-2"><span className="grid size-9 place-items-center rounded-xl bg-violet-50 text-violet-700"><MapPin className="size-4"/></span><h3 className="text-lg font-semibold tracking-tight">{copy.directory}</h3></div><p className="mt-1 text-sm text-slate-500">{rows.length} {copy.results}</p></div>
+        <div className="grid gap-2 sm:grid-cols-[minmax(220px,1fr)_190px]"><div className="relative"><Search className="absolute start-3 top-1/2 size-4 -translate-y-1/2 text-slate-400"/><Input value={search} onChange={event => setSearch(event.target.value)} placeholder={copy.search} className="h-10 rounded-xl border-slate-200 ps-9"/></div><Select value={status} onValueChange={setStatus}><SelectTrigger className="h-10 rounded-xl border-slate-200"><SlidersHorizontal className="me-2 size-4 text-slate-400"/><SelectValue/></SelectTrigger><SelectContent>{statusOptions.map(([value,label]) => <SelectItem key={value} value={value}>{label}</SelectItem>)}</SelectContent></Select></div>
+      </div>
+      {branchesQuery.isLoading && <p className="py-12 text-center text-sm text-slate-500">{copy.loading}</p>}
+      {branchesQuery.isError && <div className="rounded-xl border border-red-100 bg-red-50 p-4 text-sm text-red-700">{branchesQuery.error instanceof Error ? branchesQuery.error.message : "Unable to load branches."}<Button variant="outline" size="sm" className="ms-3" onClick={() => void branchesQuery.refetch()}>{copy.retry}</Button></div>}
+      {!branchesQuery.isLoading && rows.length > 0 && <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-3">{rows.map(branch => <BranchCard key={branch._id} branch={branch} clinicName={clinicName(branch.clinicId)} canEdit={canEdit} canLifecycle={canLifecycle} onView={setViewing} onEdit={branch => { setEditing(branch); setError(""); setFormOpen(true) }} onLifecycle={(branch, action) => { setLifecycleTarget({ branch, action }); setReason("") }} labels={{ view: copy.view, edit: copy.edit, activate: copy.activate, temporaryClose: copy.temporaryClose, suspend: copy.suspend, close: copy.close }}/>)}</div>}
+      {!branchesQuery.isLoading && rows.length === 0 && <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50/60 px-5 py-14 text-center"><div className="mx-auto grid size-12 place-items-center rounded-2xl bg-white text-violet-700 shadow-sm ring-1 ring-slate-200"><MapPin className="size-5"/></div><h3 className="mt-4 font-semibold text-slate-900">{branches.length ? copy.noResults : copy.noBranches}</h3><p className="mx-auto mt-1 max-w-md text-sm text-slate-500">{branches.length ? copy.noResultsDesc : copy.noBranchesDesc}</p>{canCreate && clinicFilter && branches.length === 0 && <Button className="mt-5" onClick={() => { setEditing(null); setFormOpen(true) }}><Plus className="me-2 size-4"/>{copy.add}</Button>}</div>}
+    </CardContent></Card>
+
+    <Dialog open={formOpen} onOpenChange={open => { if (!saveMutation.isPending) setFormOpen(open) }}><DialogContent className="max-h-[92vh] max-w-3xl overflow-y-auto"><DialogHeader><DialogTitle>{editing ? (ar ? "تعديل بيانات الفرع" : "Edit branch") : copy.add}</DialogTitle><DialogDescription>{ar ? "أدخل بيانات الموقع التشغيلي." : "Enter the operating location details."}</DialogDescription></DialogHeader><TenantBranchForm branch={editing} onCancel={() => setFormOpen(false)} onSave={payload => saveMutation.mutateAsync(payload)}/></DialogContent></Dialog>
+    <BranchDetailsDialog branch={viewing} clinicName={clinicName(viewing?.clinicId)} open={Boolean(viewing)} onOpenChange={open => { if (!open) setViewing(null) }} locale={ar ? "ar" : "en"}/>
+    <Dialog open={Boolean(lifecycleTarget)} onOpenChange={open => { if (!open && !lifecycleMutation.isPending) setLifecycleTarget(null) }}><DialogContent className="max-w-lg"><DialogHeader><DialogTitle>{copy.lifecycleTitle}</DialogTitle><DialogDescription>{lifecycleTarget?.action === "close" ? (ar ? "الإغلاق النهائي إجراء لا يمكن التراجع عنه." : "Permanent closure is irreversible.") : lifecycleTarget?.action === "temporary-close" ? (ar ? "سيتم إغلاق الفرع مؤقتًا ويمكن إعادة تفعيله لاحقًا." : "The branch will be temporarily closed and can be reactivated later.") : lifecycleTarget?.action === "suspend" ? (ar ? "سيتم إيقاف الفرع مع الاحتفاظ بسجلاته." : "The branch will be suspended while retaining its records.") : (ar ? "سيتم إعادة تفعيل الفرع." : "The branch will be reactivated.")}</DialogDescription></DialogHeader>
+      {lifecycleTarget && lifecycleTarget.action !== "activate" && <div className="space-y-2"><Label>{copy.reason} *</Label><Textarea value={reason} onChange={event => setReason(event.target.value)} minLength={3} maxLength={500} placeholder={copy.reasonHint}/></div>}
+      <div className="flex justify-end gap-2"><Button type="button" variant="outline" onClick={() => setLifecycleTarget(null)} disabled={lifecycleMutation.isPending}>{copy.cancel}</Button><Button type="button" variant={lifecycleTarget?.action === "close" ? "destructive" : "default"} loading={lifecycleMutation.isPending} disabled={Boolean(lifecycleTarget && lifecycleTarget.action !== "activate" && reason.trim().length < 3)} onClick={() => lifecycleMutation.mutate()}>{copy.confirm}</Button></div>
+    </DialogContent></Dialog>
+  </div>
+}
+
+function Metric({ icon: Icon, label, value }: { icon: typeof Store; label: string; value: number }) {
+  return <Card className="border-slate-200/80 shadow-sm"><CardContent className="flex items-center gap-3 p-4"><span className="grid size-10 place-items-center rounded-xl bg-violet-50 text-violet-700 ring-1 ring-violet-100"><Icon className="size-5"/></span><div><p className="text-xs font-medium text-slate-500">{label}</p><p className="mt-0.5 text-2xl font-semibold tracking-tight text-slate-900">{value}</p></div></CardContent></Card>
 }
