@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react"
+import { ClinicMetric } from "@/portals/tenant/features/clinics/components/clinic-metric"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useOutletContext } from "react-router"
 import { Activity, Building2, CheckCircle2, Plus, Search, SlidersHorizontal } from "lucide-react"
@@ -98,9 +99,9 @@ export function TenantClinicsPage() {
     {!access.isLoading && !access.isError && !canManage && <p role="alert" className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">{copy.permission}</p>}
 
     <div className="grid gap-3 sm:grid-cols-3">
-      <Metric icon={Building2} label={copy.total} value={clinics.length} tone="violet"/>
-      <Metric icon={CheckCircle2} label={copy.activeLabel} value={activeCount} tone="emerald"/>
-      <Metric icon={Activity} label={copy.suspendedLabel} value={suspendedCount} tone="slate"/>
+      <ClinicMetric icon={Building2} label={copy.total} value={clinics.length} tone="violet"/>
+      <ClinicMetric icon={CheckCircle2} label={copy.activeLabel} value={activeCount} tone="emerald"/>
+      <ClinicMetric icon={Activity} label={copy.suspendedLabel} value={suspendedCount} tone="slate"/>
     </div>
 
     <Card className="overflow-hidden border-slate-200/80 shadow-sm">
@@ -129,7 +130,3 @@ export function TenantClinicsPage() {
   </div>
 }
 
-function Metric({ icon: Icon, label, value, tone }: { icon: typeof Building2; label: string; value: number; tone: "violet" | "emerald" | "slate" }) {
-  const styles = { violet: "bg-violet-50 text-violet-700 ring-violet-100", emerald: "bg-emerald-50 text-emerald-700 ring-emerald-100", slate: "bg-slate-100 text-slate-600 ring-slate-200" }
-  return <Card className="border-slate-200/80 shadow-sm"><CardContent className="flex items-center gap-3 p-4"><span className={`grid size-10 place-items-center rounded-xl ring-1 ${styles[tone]}`}><Icon className="size-5"/></span><div><p className="text-xs font-medium text-slate-500">{label}</p><p className="mt-0.5 text-2xl font-semibold tracking-tight text-slate-900">{value}</p></div></CardContent></Card>
-}
