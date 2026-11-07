@@ -158,7 +158,7 @@ export function TenantFeatureForm({ feature, onSave, initialValues }: Props) {
               {field.type !== "tel" && <Label htmlFor={`tenant-feature-${field.name}`}>
                 {fieldLabel(field.name, field.label)}
                 {field.required && <span className="ms-1 text-red-600">*</span>}
-              </Label>
+              </Label>}
               {field.type === "select" ? (
                 <Select
                   value={values[field.name] || undefined}
