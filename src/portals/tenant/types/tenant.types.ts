@@ -116,6 +116,7 @@ export type Clinic = {
     building?: string
     floor?: string
     unit?: string
+    landmark?: string
     postalCode?: string
     latitude?: number | null
     longitude?: number | null
