@@ -131,15 +131,21 @@ function TenantSidebarView({ collapsed = false, onToggleCollapse, onNavigate }: 
             onClick={onNavigate}
             aria-label={label}
             className={({ isActive }) =>
-              `group relative flex min-h-11 items-center gap-3 rounded-lg px-3 py-2.5 text-[13px] font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-300 ${
+              `group relative flex min-h-11 items-center gap-3 rounded-lg border px-3 py-2.5 text-[13px] font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-300 ${
                 isActive
-                  ? "bg-gradient-to-r from-violet-500/25 to-violet-400/10 text-white shadow-[inset_0_0_0_1px_rgba(167,139,250,.38),0_5px_16px_rgba(109,74,255,.12)] before:absolute before:inset-y-2 before:-start-[17px] before:w-[3px] before:rounded-full before:bg-violet-300"
-                  : "text-white/65 hover:bg-white/[.055] hover:text-white"
+                  ? "border-violet-400/45 bg-gradient-to-r from-violet-500/25 to-violet-400/10 text-white shadow-[0_5px_16px_rgba(109,74,255,.16)] before:absolute before:inset-y-2 before:-start-[17px] before:w-[3px] before:rounded-full before:bg-violet-300"
+                  : "border-transparent bg-transparent text-white/65 shadow-none hover:border-transparent hover:bg-white/[.055] hover:text-white"
               } ${collapsed ? "justify-center px-0 before:hidden" : ""}`
             }
           >
-            <span className={`grid size-7 shrink-0 place-items-center rounded-md transition-colors ${/* active state is reflected by the link surface */ "bg-white/[.055] group-hover:bg-white/10"}`}><Icon className="size-[17px] shrink-0" /></span>
-            {!collapsed && <span className="min-w-0 truncate">{label}</span>}
+            {({ isActive }) => (
+              <>
+                <span className={`grid size-7 shrink-0 place-items-center rounded-md transition-colors ${isActive ? "bg-violet-400/20 text-violet-100" : "bg-transparent text-white/70"}`}>
+                  <Icon className="size-[17px] shrink-0" />
+                </span>
+                {!collapsed && <span className="min-w-0 truncate">{label}</span>}
+              </>
+            )}
           </NavLink>
         </TooltipTrigger>
         <TooltipContent side={ar ? "left" : "right"}>{label}</TooltipContent>
