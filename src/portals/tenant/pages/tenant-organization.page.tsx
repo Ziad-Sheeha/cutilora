@@ -268,7 +268,9 @@ export function TenantOrganizationPage() {
     phone: ar ? "رقم الهاتف الأساسي" : "Primary phone",
     website: ar ? "الموقع الإلكتروني" : "Website",
     country: ar ? "الدولة" : "Country",
+    governorate: ar ? "المحافظة" : "Governorate",
     city: ar ? "المدينة" : "City",
+    district: ar ? "الحي" : "District",
     address: ar ? "العنوان المسجل" : "Registered address",
     choose: ar ? "اختر..." : "Select...",
   }
