@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from "react"
-import { Building2, Clock3, Contact, MapPin } from "lucide-react"
+import { Building2, Contact, MapPin } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { FieldError } from "@/components/ui/field"
