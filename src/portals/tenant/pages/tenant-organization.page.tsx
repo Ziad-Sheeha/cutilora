@@ -7,6 +7,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
+import { PhoneNumberField } from "@/components/ui/phone-number-field"
+import { phoneCountries } from "@/components/ui/phone-country-data"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { useI18n } from "@/i18n/i18n-provider"
 import { TenantPageHeading } from "../components/tenant-page-heading"
@@ -48,6 +50,15 @@ function localizedValue(value: unknown, ar: boolean) {
   }
   return values[key]?.[ar ? 1 : 0] ?? String(value ?? "—").replaceAll("_", " ")
 }
+function phoneParts(raw?: unknown) {
+  const value = String(raw ?? "").trim()
+  const country = phoneCountries.filter(item => value.startsWith(item.dial)).sort((a, b) => b.dial.length - a.dial.length)[0]
+  return { code: country?.dial ?? "+20", local: country ? value.slice(country.dial.length) : value }
+}
+function toInternationalPhone(local: string, code: string) {
+  const digits = local.replace(/\D/g, "").replace(/^0+/, "")
+  return digits ? `${code}${digits}` : ""
+}
 function toForm(profile: Record<string, unknown>): ProfileForm {
   const contact = profile.contact && typeof profile.contact === "object" ? profile.contact as Record<string, unknown> : {}
   const address = profile.address && typeof profile.address === "object" ? profile.address as Record<string, unknown> : {}
@@ -61,7 +72,7 @@ function toForm(profile: Record<string, unknown>): ProfileForm {
     businessType: String(profile.businessType ?? "single_clinic"),
     description: String(profile.description ?? ""),
     industry: String(profile.industry ?? ""),
-    contactEmail: String(contact.email ?? ""), contactPhone: String(contact.phone ?? ""), alternatePhone: String(contact.alternatePhone ?? ""), whatsapp: String(contact.whatsapp ?? ""), website: String(contact.website ?? ""),
+    contactEmail: String(contact.email ?? ""), contactPhone: phoneParts(contact.phone).local, alternatePhone: phoneParts(contact.alternatePhone).local, whatsapp: phoneParts(contact.whatsapp).local, website: String(contact.website ?? ""),
     countryId: String(address.countryId ?? ""), governorateId: String(address.governorateId ?? ""), cityId: String(address.cityId ?? ""), districtId: String(address.districtId ?? ""),
     addressLine1: String(address.addressLine1 ?? ""), addressLine2: String(address.addressLine2 ?? ""), building: String(address.building ?? ""), floor: String(address.floor ?? ""), unit: String(address.unit ?? ""), landmark: String(address.landmark ?? ""), postalCode: String(address.postalCode ?? ""),
     taxNumber: String(legal.taxNumber ?? ""), vatNumber: String(legal.vatNumber ?? ""),
@@ -101,6 +112,7 @@ export function TenantOrganizationPage() {
   const client = useQueryClient()
   const tenant = context?.tenant
   const [values, setValues] = useState<ProfileForm>(emptyForm)
+  const [phoneCodes, setPhoneCodes] = useState({ phone: "+20", alternatePhone: "+20", whatsapp: "+20" })
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [formError, setFormError] = useState("")
   const [editOpen, setEditOpen] = useState(false)
@@ -117,7 +129,7 @@ export function TenantOrganizationPage() {
   })
   const profile = profileQuery.data ?? (tenant as unknown as Record<string, unknown> | undefined) ?? {}
   const branding = (profile.branding && typeof profile.branding === "object" ? profile.branding : tenant?.branding) as { logoUrl?: string; coverImageUrl?: string; primaryColor?: string } | undefined
-  useEffect(() => { setValues(toForm(profile)); setLogoPreview(assetUrl(branding?.logoUrl)); setCoverPreview(assetUrl(branding?.coverImageUrl)) }, [profile, branding?.logoUrl, branding?.coverImageUrl])
+  useEffect(() => { setValues(toForm(profile)); const contact = profile.contact && typeof profile.contact === "object" ? profile.contact as Record<string, unknown> : {}; setPhoneCodes({ phone: phoneParts(contact.phone).code, alternatePhone: phoneParts(contact.alternatePhone).code, whatsapp: phoneParts(contact.whatsapp).code }); setLogoPreview(assetUrl(branding?.logoUrl)); setCoverPreview(assetUrl(branding?.coverImageUrl)) }, [profile, branding?.logoUrl, branding?.coverImageUrl])
 
   const countriesQuery = useQuery({ queryKey: ["tenant-geo", "countries"], queryFn: () => getTenantGeo("countries"), enabled: canWrite, staleTime: 300_000 })
   const governoratesQuery = useQuery({
@@ -147,9 +159,9 @@ export function TenantOrganizationPage() {
       ])
       const contact = {
         ...(payload.contactEmail.trim() ? { email: payload.contactEmail.trim() } : {}),
-        phone: payload.contactPhone.trim(),
-        alternatePhone: payload.alternatePhone.trim(),
-        whatsapp: payload.whatsapp.trim(),
+        phone: toInternationalPhone(payload.contactPhone, phoneCodes.phone),
+        alternatePhone: toInternationalPhone(payload.alternatePhone, phoneCodes.alternatePhone),
+        whatsapp: toInternationalPhone(payload.whatsapp, phoneCodes.whatsapp),
         ...(payload.website.trim() ? { website: payload.website.trim() } : {}),
       }
       const address = {
@@ -388,9 +400,9 @@ export function TenantOrganizationPage() {
           <section className="space-y-4 border-t pt-5"><div><h3 className="font-semibold">{ar ? "بيانات التواصل والعنوان" : "Contact & registered address"}</h3></div>
             <div className="grid gap-4 sm:grid-cols-2">
               <ProfileField label={copy.email} type="email" value={values.contactEmail} error={errors.contactEmail} onChange={value => update("contactEmail", value)}/>
-              <ProfileField label={copy.phone} type="tel" value={values.contactPhone} error={errors.contactPhone} onChange={value => update("contactPhone", value)}/>
-              <ProfileField label={ar ? "رقم الهاتف البديل" : "Alternate phone"} type="tel" value={values.alternatePhone} error={errors.alternatePhone} onChange={value => update("alternatePhone", value)}/>
-              <ProfileField label="WhatsApp" type="tel" value={values.whatsapp} error={errors.whatsapp} onChange={value => update("whatsapp", value)}/>
+              <div><PhoneNumberField id="tenant-primary-phone" label={copy.phone} value={values.contactPhone} phoneCode={phoneCodes.phone} onChange={value => update("contactPhone", value)} onPhoneCodeChange={value => setPhoneCodes(current => ({ ...current, phone: value }))}/>{errors.contactPhone && <p className="mt-1 text-xs text-destructive">{errors.contactPhone}</p>}</div>
+              <div><PhoneNumberField id="tenant-alternate-phone" label={ar ? "رقم الهاتف البديل" : "Alternate phone"} value={values.alternatePhone} phoneCode={phoneCodes.alternatePhone} onChange={value => update("alternatePhone", value)} onPhoneCodeChange={value => setPhoneCodes(current => ({ ...current, alternatePhone: value }))}/>{errors.alternatePhone && <p className="mt-1 text-xs text-destructive">{errors.alternatePhone}</p>}</div>
+              <div><PhoneNumberField id="tenant-whatsapp" label="WhatsApp" value={values.whatsapp} phoneCode={phoneCodes.whatsapp} onChange={value => update("whatsapp", value)} onPhoneCodeChange={value => setPhoneCodes(current => ({ ...current, whatsapp: value }))}/>{errors.whatsapp && <p className="mt-1 text-xs text-destructive">{errors.whatsapp}</p>}</div>
               <ProfileField label={copy.website} type="url" value={values.website} error={errors.website} onChange={value => update("website", value)}/>
               <p className="text-xs text-muted-foreground sm:col-span-2">{ar ? "ملاحظة: واجهة API الحالية لا تدعم مسح البريد الإلكتروني أو الموقع؛ ترك أي منهما فارغاً يحافظ على القيمة المحفوظة." : "Note: the current API does not support clearing email or website; leaving either blank preserves its saved value."}</p>
               <div><Label>{copy.country}</Label><Select value={values.countryId} onValueChange={value => { setValues(current => ({ ...current, countryId: value, governorateId: "", cityId: "", districtId: "" })); setErrors(current => ({ ...current, countryId: "", governorateId: "", cityId: "", districtId: "" })) }}><SelectTrigger className="mt-2"><SelectValue placeholder={countriesQuery.isLoading ? (ar ? "جارٍ التحميل..." : "Loading...") : copy.choose}/></SelectTrigger><SelectContent>{countryOptions.map(item => <SelectItem key={item.id} value={item.id}>{ar ? item.name_ar || item.name_en : item.name_en}</SelectItem>)}</SelectContent></Select></div>
