@@ -131,14 +131,14 @@ function TenantSidebarView({ collapsed = false, onToggleCollapse, onNavigate }: 
             onClick={onNavigate}
             aria-label={label}
             className={({ isActive }) =>
-              `group relative flex min-h-11 items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--tenant-primary,var(--primary))] ${
+              `group relative flex min-h-11 items-center gap-3 rounded-lg px-3 py-2.5 text-[13px] font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-300 ${
                 isActive
-                  ? "bg-violet-500/20 text-white shadow-[inset_0_0_0_1px_rgba(167,139,250,.22)] before:absolute before:inset-y-2 before:start-0 before:w-[3px] before:rounded-full before:bg-violet-300"
-                  : "text-white/65 hover:bg-white/[.06] hover:text-white"
+                  ? "bg-gradient-to-r from-violet-500/25 to-violet-400/10 text-white shadow-[inset_0_0_0_1px_rgba(167,139,250,.38),0_5px_16px_rgba(109,74,255,.12)] before:absolute before:inset-y-2 before:-start-[17px] before:w-[3px] before:rounded-full before:bg-violet-300"
+                  : "text-white/65 hover:bg-white/[.055] hover:text-white"
               } ${collapsed ? "justify-center px-0 before:hidden" : ""}`
             }
           >
-            <Icon className="size-[18px] shrink-0" />
+            <span className={`grid size-7 shrink-0 place-items-center rounded-md transition-colors ${/* active state is reflected by the link surface */ "bg-white/[.055] group-hover:bg-white/10"}`}><Icon className="size-[17px] shrink-0" /></span>
             {!collapsed && <span className="min-w-0 truncate">{label}</span>}
           </NavLink>
         </TooltipTrigger>
@@ -276,17 +276,26 @@ function TenantSidebarView({ collapsed = false, onToggleCollapse, onNavigate }: 
             }
 
             return (
-              <section key={group.key}>
+              <section key={group.key} className="relative">
                 <Button
                   variant="ghost"
                   onClick={() => setExpandedGroups((current) => ({ ...current, [group.key]: !isOpen }))}
                   aria-expanded={isOpen}
-                  className="mb-1 h-9 w-full justify-between rounded-lg px-3 text-[10px] font-bold uppercase tracking-[.16em] text-white/40 transition-colors hover:bg-white/[.04] hover:text-white/65"
+                  className={`group mb-2 flex h-10 w-full items-center justify-between rounded-lg px-2.5 text-[10px] font-bold uppercase tracking-[.16em] transition-colors hover:bg-white/[.045] ${isOpen ? "text-violet-200" : "text-white/45 hover:text-white/75"}`}
                 >
-                  <span className="flex min-w-0 items-center gap-2.5"><GroupIcon className="size-4 shrink-0 text-white/40" /><span className="truncate">{groupLabel}</span></span>
-                  <ChevronDown className={`size-3.5 transition-transform ${isOpen ? "rotate-180" : ""}`} />
+                  <span className="flex min-w-0 items-center gap-3">
+                    <span className={`grid size-7 shrink-0 place-items-center rounded-lg transition-colors ${isOpen ? "bg-violet-500/15 text-violet-300" : "bg-white/[.045] text-white/40 group-hover:text-white/70"}`}>
+                      <GroupIcon className="size-4" />
+                    </span>
+                    <span className="truncate">{groupLabel}</span>
+                  </span>
+                  <ChevronDown className={`size-3.5 shrink-0 transition-transform duration-200 ${isOpen ? "rotate-180 text-violet-300" : "text-white/35"}`} />
                 </Button>
-                {isOpen && <div className="space-y-1">{group.items.map(renderLink)}</div>}
+                {isOpen && (
+                  <div className="ms-[22px] space-y-1 border-s border-white/[.13] pb-2 ps-3">
+                    {group.items.map(renderLink)}
+                  </div>
+                )}
               </section>
             )
           })}
