@@ -92,6 +92,9 @@ export type Clinic = {
   contact?: {
     email?: string
     phone?: string
+    alternatePhone?: string
+    whatsapp?: string
+    website?: string
   }
   address?: {
     countryId?: string
@@ -99,7 +102,16 @@ export type Clinic = {
     cityId?: string
     districtId?: string
     addressLine1?: string
+    addressLine2?: string
+    building?: string
+    floor?: string
+    unit?: string
+    postalCode?: string
+    latitude?: number | null
+    longitude?: number | null
   }
+  createdAt?: string
+  updatedAt?: string
   branding?: {
     logoUrl?: string
     coverImageUrl?: string
@@ -108,12 +120,39 @@ export type Clinic = {
 
 export type Branch = {
   _id: string
+  tenantId?: string
+  clinicId?: string
   name: string
   slug: string
-  status?: string
+  code?: string
+  status?: "draft" | "active" | "temporarily_closed" | "suspended" | "closed" | string
+  closureReason?: string
+  temporarilyClosedAt?: string | null
+  closedAt?: string | null
   address?: string
+  addressDetails?: {
+    countryId?: string
+    governorateId?: string
+    cityId?: string
+    districtId?: string
+    addressLine1?: string
+    addressLine2?: string
+    building?: string
+    floor?: string
+    unit?: string
+    postalCode?: string
+  }
+  contact?: { email?: string; phone?: string; alternatePhone?: string; whatsapp?: string; website?: string }
+  contactPerson?: { name?: string; email?: string; phone?: string }
   timezone?: string
   cityId?: string
+  postalCode?: string
+  latitude?: number | null
+  longitude?: number | null
+  openingDate?: string | null
+  operatingHours?: Array<{ dayOfWeek: number; isClosed: boolean; openTime?: string; closeTime?: string }>
+  createdAt?: string
+  updatedAt?: string
 }
 
 export type TenantContext = {

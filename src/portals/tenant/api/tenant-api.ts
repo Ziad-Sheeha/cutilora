@@ -115,6 +115,31 @@ export async function getBranches(clinicId?: string) {
   return data.data
 }
 
+export async function getBranch(id: string) {
+  const { data } = await tenantApi.get<ApiEnvelope<Branch>>(`/tenant/branches/${encodeURIComponent(id)}`)
+  return data.data
+}
+
+export async function activateBranch(id: string) {
+  const { data } = await tenantApi.post<ApiEnvelope<Branch>>(`/tenant/branches/${encodeURIComponent(id)}/activate`)
+  return data.data
+}
+
+export async function suspendBranch(id: string) {
+  const { data } = await tenantApi.post<ApiEnvelope<Branch>>(`/tenant/branches/${encodeURIComponent(id)}/deactivate`)
+  return data.data
+}
+
+export async function temporarilyCloseBranch(id: string, reason: string) {
+  const { data } = await tenantApi.post<ApiEnvelope<Branch>>(`/tenant/branches/${encodeURIComponent(id)}/temporary-close`, { reason })
+  return data.data
+}
+
+export async function permanentlyCloseBranch(id: string, reason: string) {
+  const { data } = await tenantApi.post<ApiEnvelope<Branch>>(`/tenant/branches/${encodeURIComponent(id)}/close`, { reason })
+  return data.data
+}
+
 export async function updateBranch(id: string, payload: Record<string, unknown>) {
   const { data } = await tenantApi.patch<ApiEnvelope<Branch>>(
     `/tenant/branches/${encodeURIComponent(id)}`,
