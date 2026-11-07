@@ -35,7 +35,7 @@ export function ClinicDetailsDialog({ clinic, open, onOpenChange, locale }: Prop
           <Detail label={ar ? "البريد الإلكتروني" : "Email"} value={clinic.contact?.email}/>
           <Detail label={ar ? "الهاتف" : "Phone"} value={clinic.contact?.phone}/>
           <Detail label={ar ? "العنوان" : "Address"} value={address}/>
-          <Detail label={ar ? "المدينة" : "City"} value={clinic.address?.cityId}/>
+          <Detail label={ar ? "تفاصيل الموقع" : "Location details"} value={[clinic.address?.building, clinic.address?.floor, clinic.address?.unit].filter(Boolean).join(" · ")}/>
         </div>
       </section>
       <div className="flex items-center gap-2 rounded-xl bg-violet-50/70 p-3 text-xs text-violet-800"><ShieldCheck className="size-4 shrink-0"/>{ar ? "بيانات العيادة معزولة ضمن مساحة مؤسستك." : "Clinic data is isolated within your organization workspace."}</div>

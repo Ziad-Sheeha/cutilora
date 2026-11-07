@@ -9,7 +9,7 @@ type Props = {
   onEdit: (clinic: Clinic) => void
   onToggleStatus: (clinic: Clinic) => void
   statusActionLabel: string
-  labels: { active: string; suspended: string; view: string; edit: string }
+  labels: { active: string; suspended: string; view: string; edit: string; addressFallback: string }
 }
 
 export function ClinicCard({ clinic, canManage, onView, onEdit, onToggleStatus, statusActionLabel, labels }: Props) {
@@ -32,7 +32,7 @@ export function ClinicCard({ clinic, canManage, onView, onEdit, onToggleStatus, 
         <div className="mt-5 space-y-3 border-t border-slate-100 pt-4 text-xs text-slate-500">
           <p className="flex min-w-0 items-center gap-2"><Mail className="size-3.5 shrink-0 text-slate-400" /><span className="truncate">{clinic.contact?.email || "—"}</span></p>
           <p className="flex min-w-0 items-center gap-2"><Phone className="size-3.5 shrink-0 text-slate-400" /><span className="truncate">{clinic.contact?.phone || "—"}</span></p>
-          <p className="flex min-w-0 items-center gap-2"><MapPin className="size-3.5 shrink-0 text-slate-400" /><span className="truncate">{clinic.address?.addressLine1 || "Address not provided"}</span></p>
+          <p className="flex min-w-0 items-center gap-2"><MapPin className="size-3.5 shrink-0 text-slate-400" /><span className="truncate">{clinic.address?.addressLine1 || labels.addressFallback}</span></p>
         </div>
         <div className="mt-5 flex items-center justify-between border-t border-slate-100 pt-3">
           <Button type="button" variant="ghost" size="sm" className="px-2 text-slate-600 hover:text-violet-700" onClick={() => onView(clinic)}>
