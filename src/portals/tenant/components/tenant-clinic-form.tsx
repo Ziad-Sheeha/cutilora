@@ -7,6 +7,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { DatePicker } from "@/components/ui/date-picker"
+import { PhoneNumberField } from "@/components/ui/phone-number-field"
+import { phoneCountries } from "@/components/ui/phone-country-data"
 import { useI18n } from "@/i18n/i18n-provider"
 import { clinicFormSchema, getTenantFieldErrors } from "../features/shared/tenant-feature-schemas"
 import { getTenantGeo } from "../api/tenant-api"
@@ -21,6 +23,15 @@ type Values = {
   timezone: string; locale: string; currency: string; primaryColor: string; openingDate: string
 }
 type Props = { clinic?: Clinic | null; onCancel: () => void; onSave: (payload: Record<string, unknown>) => Promise<void> }
+function phoneParts(raw?: string) {
+  const value = String(raw ?? "").trim()
+  const country = phoneCountries.filter(item => value.startsWith(item.dial)).sort((a, b) => b.dial.length - a.dial.length)[0]
+  return { code: country?.dial ?? "+20", local: country ? value.slice(country.dial.length) : value }
+}
+function toInternationalPhone(local: string, code: string) {
+  const digits = local.replace(/\\D/g, "").replace(/^0+/, "")
+  return digits ? `${code}${digits}` : ""
+}
 const empty: Values = {
   name: "", code: "", clinicType: "aesthetic", description: "", specialties: "",
   email: "", phone: "", alternatePhone: "", whatsapp: "", website: "",
@@ -50,6 +61,7 @@ export function TenantClinicForm({ clinic, onCancel, onSave }: Props) {
   const { locale } = useI18n()
   const ar = locale === "ar"
   const [values, setValues] = useState<Values>(() => fromClinic(clinic))
+  const [phoneCodes, setPhoneCodes] = useState(() => ({ phone: phoneParts(clinic?.contact?.phone).code, alternatePhone: phoneParts(clinic?.contact?.alternatePhone).code, whatsapp: phoneParts(clinic?.contact?.whatsapp).code }))
   const [countries, setCountries] = useState<GeoOption[]>([])
   const [governorates, setGovernorates] = useState<GeoOption[]>([])
   const [cities, setCities] = useState<GeoOption[]>([])
@@ -58,7 +70,7 @@ export function TenantClinicForm({ clinic, onCancel, onSave }: Props) {
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [serverError, setServerError] = useState("")
 
-  useEffect(() => { setValues(fromClinic(clinic)); setErrors({}); setServerError("") }, [clinic])
+  useEffect(() => { setValues(fromClinic(clinic)); setPhoneCodes({ phone: phoneParts(clinic?.contact?.phone).code, alternatePhone: phoneParts(clinic?.contact?.alternatePhone).code, whatsapp: phoneParts(clinic?.contact?.whatsapp).code }); setErrors({}); setServerError("") }, [clinic])
   useEffect(() => { getTenantGeo("countries").then(setCountries).catch(cause => setServerError(cause.message)) }, [])
   useEffect(() => {
     if (!values.countryId) { setGovernorates([]); return }
@@ -149,9 +161,9 @@ export function TenantClinicForm({ clinic, onCancel, onSave }: Props) {
       <Section icon={Contact} title={copy.contact}/>
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label={copy.email} error={errors.email}><Input type="email" value={values.email} onChange={event => update("email", event.target.value)}/></Field>
-        <Field label={copy.phone} error={errors.phone}><Input value={values.phone} onChange={event => update("phone", event.target.value)}/></Field>
-        <Field label={copy.alternate} error={errors.alternatePhone}><Input value={values.alternatePhone} onChange={event => update("alternatePhone", event.target.value)}/></Field>
-        <Field label={copy.whatsapp} error={errors.whatsapp}><Input value={values.whatsapp} onChange={event => update("whatsapp", event.target.value)}/></Field>
+        <div><PhoneNumberField id="clinic-phone" label={copy.phone} value={values.phone} phoneCode={phoneCodes.phone} onChange={value => update("phone", value)} onPhoneCodeChange={value => setPhoneCodes(current => ({ ...current, phone: value }))} required={false}/>{errors.phone && <FieldError>{errors.phone}</FieldError>}</div>
+        <div><PhoneNumberField id="clinic-alternate-phone" label={copy.alternate} value={values.alternatePhone} phoneCode={phoneCodes.alternatePhone} onChange={value => update("alternatePhone", value)} onPhoneCodeChange={value => setPhoneCodes(current => ({ ...current, alternatePhone: value }))}/>{errors.alternatePhone && <FieldError>{errors.alternatePhone}</FieldError>}</div>
+        <div><PhoneNumberField id="clinic-whatsapp" label={copy.whatsapp} value={values.whatsapp} phoneCode={phoneCodes.whatsapp} onChange={value => update("whatsapp", value)} onPhoneCodeChange={value => setPhoneCodes(current => ({ ...current, whatsapp: value }))}/>{errors.whatsapp && <FieldError>{errors.whatsapp}</FieldError>}</div>
         <div className="sm:col-span-2"><Field label={copy.website} error={errors.website}><Input type="url" value={values.website} onChange={event => update("website", event.target.value)} placeholder="https://"/></Field></div>
       </div>
     </CardContent></Card>
