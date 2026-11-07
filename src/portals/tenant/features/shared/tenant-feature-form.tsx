@@ -123,6 +123,7 @@ export function TenantFeatureForm({ feature, onSave, initialValues }: Props) {
         .filter(([, value]) => value !== "")
         .map(([key, value]) => {
           const field = feature.fields?.find((item) => item.name === key)
+          if (field?.type === "tel") return [key, toInternationalPhone(value, phoneCodes[key] ?? "+20")]
           return [key, field?.type === "number" ? Number(value) : value]
         }),
     )
