@@ -3,16 +3,43 @@ import { z } from "zod"
 const requiredText = (label: string) =>
   z.string().trim().min(1, `${label} is required`)
 
+const optionalProfileText = (max: number) => z.string().trim().max(max).optional().or(z.literal(""))
+const validTimezone = z.string().trim().min(3).max(100).refine(value => {
+  try { new Intl.DateTimeFormat("en-US", { timeZone: value }); return true }
+  catch { return false }
+}, "Use a valid IANA timezone.")
+
 export const tenantProfileSchema = z.object({
   displayName: z.string().trim().min(2).max(160),
-  legalName: z.string().trim().max(200).optional().or(z.literal("")),
+  legalName: optionalProfileText(200),
   businessType: z.enum(["single_clinic", "clinic_group", "medical_center"]),
+  description: optionalProfileText(2000),
+  industry: optionalProfileText(100),
   contactEmail: z.string().trim().email().optional().or(z.literal("")),
   contactPhone: z.string().trim().min(7).max(40).optional().or(z.literal("")),
+  alternatePhone: optionalProfileText(40),
+  whatsapp: optionalProfileText(40),
   website: z.string().trim().url().optional().or(z.literal("")),
   countryId: z.string().optional(),
+  governorateId: z.string().optional(),
   cityId: z.string().optional(),
-  addressLine1: z.string().trim().max(255).optional().or(z.literal("")),
+  districtId: z.string().optional(),
+  addressLine1: optionalProfileText(255),
+  addressLine2: optionalProfileText(255),
+  building: optionalProfileText(100),
+  floor: optionalProfileText(50),
+  unit: optionalProfileText(50),
+  landmark: optionalProfileText(255),
+  postalCode: optionalProfileText(30),
+  taxNumber: optionalProfileText(100),
+  vatNumber: optionalProfileText(100),
+  commercialRegistrationNumber: optionalProfileText(100),
+  primaryColor: z.string().regex(/^#[0-9a-fA-F]{6}$/),
+  locale: z.string().trim().min(2).max(10),
+  currency: z.string().trim().length(3),
+  timezone: validTimezone,
+  dateFormat: z.string().trim().min(1).max(30),
+  weekStartsOn: z.coerce.number().int().min(0).max(6),
 })
 
 export const clinicFormSchema = z.object({
