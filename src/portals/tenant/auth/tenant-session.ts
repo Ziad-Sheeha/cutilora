@@ -24,10 +24,6 @@ function readStoredTenantSession(): TenantSession | null {
 
 export function getTenantSession(): TenantSession | null {
   const session = readStoredTenantSession()
-  if (session?.token && isAccessTokenExpired(session.token)) {
-    expireTenantSession()
-    return null
-  }
   return session
 }
 
