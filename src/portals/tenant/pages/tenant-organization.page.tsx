@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react"
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { Building2, Globe2, Mail, MapPin, Phone, ShieldCheck } from "lucide-react"
+import { Building2, Globe2, Mail, MapPin, Pencil, Phone, ShieldCheck } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { useI18n } from "@/i18n/i18n-provider"
 import { TenantPageHeading } from "../components/tenant-page-heading"
 import type { TenantOutletContext } from "../layout/tenant-layout"
@@ -33,7 +34,7 @@ function readEnvelope(value: unknown): Record<string, unknown> {
 function localizedValue(value: unknown, ar: boolean) {
   const key = String(value ?? "").toLowerCase()
   const values: Record<string, [string, string]> = {
-    single_clinic: ["Single clinic", "عيادة واحدة"], clinic_group: ["Clinic group", "مجموعة عيادات"], beauty_center: ["Beauty center", "مركز تجميل"],
+    single_clinic: ["Single clinic", "عيادة واحدة"], clinic_group: ["Clinic group", "مجموعة عيادات"], medical_center: ["Medical center", "مركز طبي"],
     aesthetic_medicine: ["Aesthetic medicine", "الطب التجميلي"], active: ["Active", "نشط"], inactive: ["Inactive", "غير نشط"],
     suspended: ["Suspended", "موقوف"], pending: ["Pending", "قيد الانتظار"], trial: ["Trial", "تجريبي"],
   }
@@ -65,6 +66,7 @@ export function TenantOrganizationPage() {
   const [values, setValues] = useState<ProfileForm>(() => toForm((tenant ?? {}) as unknown as Record<string, unknown>))
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [formError, setFormError] = useState("")
+  const [editOpen, setEditOpen] = useState(false)
   const profileQuery = useQuery({
     queryKey: ["tenant-organization-profile"],
     queryFn: async () => {
@@ -91,13 +93,22 @@ export function TenantOrganizationPage() {
       displayName: payload.displayName,
       legalName: payload.legalName,
       businessType: payload.businessType,
-      contact: { email: payload.contactEmail, phone: payload.contactPhone, website: payload.website },
-      address: { countryId: payload.countryId, cityId: payload.cityId, addressLine1: payload.addressLine1 },
+      contact: {
+        ...(payload.contactEmail.trim() ? { email: payload.contactEmail.trim() } : {}),
+        ...(payload.contactPhone.trim() ? { phone: payload.contactPhone.trim() } : {}),
+        ...(payload.website.trim() ? { website: payload.website.trim() } : {}),
+      },
+      address: {
+        ...(payload.countryId ? { countryId: payload.countryId } : {}),
+        ...(payload.cityId ? { cityId: payload.cityId } : {}),
+        ...(payload.addressLine1.trim() ? { addressLine1: payload.addressLine1.trim() } : {}),
+      },
     }),
     onSuccess: async () => {
       setFormError("")
       setErrors({})
       await Promise.all([client.invalidateQueries({ queryKey: ["tenant-organization-profile"] }), refresh()])
+      setEditOpen(false)
     },
     onError: error => setFormError(error instanceof Error ? error.message : (ar ? "تعذر حفظ بيانات المؤسسة." : "Unable to save organization profile.")),
   })
@@ -141,7 +152,7 @@ export function TenantOrganizationPage() {
     choose: ar ? "اختر..." : "Select...",
     single: ar ? "عيادة واحدة" : "Single clinic",
     group: ar ? "مجموعة عيادات" : "Clinic group",
-    beauty: ar ? "مركز تجميل" : "Beauty center",
+    medical: ar ? "مركز طبي" : "Medical center",
   }
   return <div className="space-y-7">
     <TenantPageHeading eyebrow={copy.eyebrow} title={copy.title} description={copy.description}/>
@@ -157,12 +168,16 @@ export function TenantOrganizationPage() {
         </div>
       </CardContent>
     </Card>
-    {canWrite && <Card><CardContent className="p-5 sm:p-6">
-      <div className="mb-5"><h2 className="font-semibold">{ar ? "تعديل بيانات المؤسسة" : "Edit organization details"}</h2><p className="mt-1 text-sm text-muted-foreground">{ar ? "يتم حفظ التغييرات على ملف المؤسسة النشط." : "Changes are saved to the active organization's profile."}</p></div>
+    {canWrite && <div className="flex justify-end">
+      <Button type="button" onClick={() => { setValues(toForm(profile)); setErrors({}); setFormError(""); setEditOpen(true) }}><Pencil className="me-2 size-4"/>{ar ? "تعديل بيانات المؤسسة" : "Edit organization"}</Button>
+    </div>}
+    <Dialog open={editOpen} onOpenChange={(open) => { if (!mutation.isPending) { setEditOpen(open); if (!open) { setValues(toForm(profile)); setErrors({}); setFormError("") } } }}>
+      <DialogContent className="max-h-[90vh] max-w-3xl overflow-y-auto">
+        <DialogHeader><DialogTitle>{ar ? "تعديل بيانات المؤسسة" : "Edit organization details"}</DialogTitle><DialogDescription>{ar ? "يتم حفظ التغييرات على ملف المؤسسة النشط." : "Changes are saved to the active organization's profile."}</DialogDescription></DialogHeader>
       <form onSubmit={submit} noValidate className="grid gap-4 sm:grid-cols-2">
         <ProfileField label={copy.displayName} value={values.displayName} error={errors.displayName} onChange={value => update("displayName", value)}/>
         <ProfileField label={copy.legalName} value={values.legalName} error={errors.legalName} onChange={value => update("legalName", value)}/>
-        <div><Label>{copy.businessType} *</Label><Select value={values.businessType} onValueChange={value => update("businessType", value)}><SelectTrigger className="mt-2" aria-invalid={Boolean(errors.businessType)}><SelectValue placeholder={copy.choose}/></SelectTrigger><SelectContent><SelectItem value="single_clinic">{copy.single}</SelectItem><SelectItem value="clinic_group">{copy.group}</SelectItem><SelectItem value="beauty_center">{copy.beauty}</SelectItem></SelectContent></Select>{errors.businessType && <p className="mt-1 text-xs text-destructive">{errors.businessType}</p>}</div>
+        <div><Label>{copy.businessType} *</Label><Select value={values.businessType} onValueChange={value => update("businessType", value)}><SelectTrigger className="mt-2" aria-invalid={Boolean(errors.businessType)}><SelectValue placeholder={copy.choose}/></SelectTrigger><SelectContent><SelectItem value="single_clinic">{copy.single}</SelectItem><SelectItem value="clinic_group">{copy.group}</SelectItem><SelectItem value="medical_center">{copy.medical}</SelectItem></SelectContent></Select>{errors.businessType && <p className="mt-1 text-xs text-destructive">{errors.businessType}</p>}</div>
         <ProfileField label={copy.email} type="email" value={values.contactEmail} error={errors.contactEmail} onChange={value => update("contactEmail", value)}/>
         <ProfileField label={copy.phone} type="tel" value={values.contactPhone} error={errors.contactPhone} onChange={value => update("contactPhone", value)}/>
         <ProfileField label={copy.website} value={values.website} error={errors.website} onChange={value => update("website", value)} required={false}/>
@@ -172,9 +187,13 @@ export function TenantOrganizationPage() {
         {(countriesQuery.isError || citiesQuery.isError) && <p role="alert" className="text-sm text-destructive sm:col-span-2">{ar ? "تعذر تحميل خيارات الموقع الجغرافي. حدّث الصفحة وحاول مرة أخرى." : "Unable to load location options. Refresh the page and try again."}</p>}
         {formError && <p role="alert" className="text-sm text-destructive sm:col-span-2">{formError}</p>}
         {mutation.isSuccess && !formError && <p role="status" className="text-sm text-emerald-700 sm:col-span-2">{ar ? "تم حفظ بيانات المؤسسة بنجاح." : "Organization profile saved successfully."}</p>}
-        <div className="flex justify-end sm:col-span-2"><Button type="submit" disabled={mutation.isPending || profileQuery.isLoading}>{mutation.isPending ? (ar ? "جارٍ الحفظ..." : "Saving...") : copy.save}</Button></div>
+        <DialogFooter className="sm:col-span-2">
+          <Button type="button" variant="outline" disabled={mutation.isPending} onClick={() => { setValues(toForm(profile)); setErrors({}); setFormError(""); setEditOpen(false) }}>{ar ? "إلغاء" : "Cancel"}</Button>
+          <Button type="submit" disabled={mutation.isPending || profileQuery.isLoading}>{mutation.isPending ? (ar ? "جارٍ الحفظ..." : "Saving...") : copy.save}</Button>
+        </DialogFooter>
       </form>
-    </CardContent></Card>}
+      </DialogContent>
+    </Dialog>
   </div>
 }
 function ProfileField({ label, value, error, onChange, type = "text", required = true }: { label: string; value: string; error?: string; onChange: (value: string) => void; type?: "text" | "email" | "tel"; required?: boolean }) {
