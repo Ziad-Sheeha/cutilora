@@ -6,6 +6,8 @@ import { FieldError } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { DatePicker } from "@/components/ui/date-picker"
+import { PhoneNumberField } from "@/components/ui/phone-number-field"
+import { phoneCountries } from "@/components/ui/phone-country-data"
 import { useI18n } from "@/i18n/i18n-provider"
 import { branchFormSchema, getTenantFieldErrors } from "../features/shared/tenant-feature-schemas"
 import type { Branch } from "../types/tenant.types"
@@ -21,10 +23,19 @@ function valuesFrom(branch?: Branch | null): Values {
     address: branch.address || branch.addressDetails?.addressLine1 || "",
     postalCode: branch.postalCode || branch.addressDetails?.postalCode || "",
     timezone: branch.timezone || "Africa/Cairo", email: branch.contact?.email || "",
-    phone: branch.contact?.phone || "", contactName: branch.contactPerson?.name || "",
-    contactEmail: branch.contactPerson?.email || "", contactPhone: branch.contactPerson?.phone || "",
+    phone: phoneParts(branch.contact?.phone).local, contactName: branch.contactPerson?.name || "",
+    contactEmail: branch.contactPerson?.email || "", contactPhone: phoneParts(branch.contactPerson?.phone).local,
     openingDate: branch.openingDate ? branch.openingDate.slice(0, 10) : "",
   }
+}
+function phoneParts(raw?: string) {
+  const value = String(raw ?? "").trim()
+  const country = phoneCountries.filter(item => value.startsWith(item.dial)).sort((a, b) => b.dial.length - a.dial.length)[0]
+  return { code: country?.dial ?? "+20", local: country ? value.slice(country.dial.length) : value }
+}
+function toInternationalPhone(local: string, code: string) {
+  const digits = local.replace(/\D/g, "").replace(/^0+/, "")
+  return digits ? `${code}${digits}` : ""
 }
 function slugify(value: string) {
   return value.normalize("NFKD").toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")
@@ -34,11 +45,12 @@ export function TenantBranchForm({ branch, onCancel, onSave }: Props) {
   const { locale } = useI18n()
   const ar = locale === "ar"
   const [values, setValues] = useState<Values>(() => valuesFrom(branch))
+  const [phoneCodes, setPhoneCodes] = useState(() => ({ phone: phoneParts(branch?.contact?.phone).code, contactPhone: phoneParts(branch?.contactPerson?.phone).code }))
   const [saving, setSaving] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [serverError, setServerError] = useState("")
 
-  useEffect(() => { setValues(valuesFrom(branch)); setErrors({}); setServerError("") }, [branch])
+  useEffect(() => { setValues(valuesFrom(branch)); setPhoneCodes({ phone: phoneParts(branch?.contact?.phone).code, contactPhone: phoneParts(branch?.contactPerson?.phone).code }); setErrors({}); setServerError("") }, [branch])
   const copy = ar ? {
     identity: "بيانات الفرع", identityHint: "اسم واضح وكود داخلي للتمييز بين المواقع.",
     name: "اسم الفرع", code: "كود الفرع", slug: "المعرّف المختصر", location: "الموقع والتشغيل",
@@ -75,12 +87,12 @@ export function TenantBranchForm({ branch, onCancel, onSave }: Props) {
         timezone: values.timezone.trim(),
         contact: {
           ...(values.email.trim() ? { email: values.email.trim() } : {}),
-          ...(values.phone.trim() ? { phone: values.phone.trim() } : {}),
+          ...(toInternationalPhone(values.phone, phoneCodes.phone) ? { phone: toInternationalPhone(values.phone, phoneCodes.phone) } : {}),
         },
         contactPerson: {
           name: values.contactName.trim(),
           email: values.contactEmail.trim(),
-          phone: values.contactPhone.trim(),
+          phone: toInternationalPhone(values.contactPhone, phoneCodes.contactPhone),
         },
         ...(values.openingDate ? { openingDate: new Date(`${values.openingDate}T00:00:00.000Z`).toISOString() } : { openingDate: null }),
         addressDetails: { addressLine1: values.address.trim(), postalCode: values.postalCode.trim() },
@@ -112,12 +124,12 @@ export function TenantBranchForm({ branch, onCancel, onSave }: Props) {
       <Section icon={Contact} title={copy.contact}/>
       <div className="grid gap-4 sm:grid-cols-2">
         <Field label={copy.email} error={errors.email}><Input type="email" value={values.email} onChange={event => update("email", event.target.value)}/></Field>
-        <Field label={copy.phone} error={errors.phone}><Input value={values.phone} onChange={event => update("phone", event.target.value)}/></Field>
+        <div><PhoneNumberField id="branch-phone" label={copy.phone} value={values.phone} phoneCode={phoneCodes.phone} onChange={value => update("phone", value)} onPhoneCodeChange={value => setPhoneCodes(current => ({ ...current, phone: value }))}/>{errors.phone && <FieldError>{errors.phone}</FieldError>}</div>
       </div>
       <div className="border-t border-slate-100 pt-4"><p className="mb-3 text-xs font-semibold text-slate-600">{copy.person}</p><div className="grid gap-4 sm:grid-cols-3">
         <Field label={copy.personName} error={errors.contactName}><Input value={values.contactName} onChange={event => update("contactName", event.target.value)}/></Field>
         <Field label={copy.personEmail} error={errors.contactEmail}><Input type="email" value={values.contactEmail} onChange={event => update("contactEmail", event.target.value)}/></Field>
-        <Field label={copy.personPhone} error={errors.contactPhone}><Input value={values.contactPhone} onChange={event => update("contactPhone", event.target.value)}/></Field>
+        <div><PhoneNumberField id="branch-contact-phone" label={copy.personPhone} value={values.contactPhone} phoneCode={phoneCodes.contactPhone} onChange={value => update("contactPhone", value)} onPhoneCodeChange={value => setPhoneCodes(current => ({ ...current, contactPhone: value }))}/>{errors.contactPhone && <FieldError>{errors.contactPhone}</FieldError>}</div>
       </div></div>
     </CardContent></Card>
     {serverError && <FieldError className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm">{serverError}</FieldError>}
