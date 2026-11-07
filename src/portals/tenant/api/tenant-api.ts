@@ -1,6 +1,6 @@
 import axios from "axios"
 import { appEnv } from "@/config/env"
-import { clearTenantSession, getTenantSession } from "../auth/tenant-session"
+import { clearTenantSession, expireTenantSession, getTenantSession } from "../auth/tenant-session"
 import type {
   ApiEnvelope,
   Branch,
@@ -39,8 +39,13 @@ tenantApi.interceptors.request.use((config) => {
 tenantApi.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      clearTenantSession()
+    const status = error.response?.status
+    const requestUrl = String(error.config?.url ?? "")
+    const isLoginRequest = /\/auth\/login(?:\?|$)/.test(requestUrl)
+    const session = getTenantSession()
+
+    if (status === 401 && session && !isLoginRequest) {
+      expireTenantSession()
     }
 
     const data = error.response?.data
@@ -188,5 +193,9 @@ export async function getTenantGeo(
 }
 
 export async function tenantLogout() {
-  await tenantApi.post("/auth/logout")
+  try {
+    await tenantApi.post("/auth/logout")
+  } finally {
+    clearTenantSession()
+  }
 }
