@@ -8,9 +8,11 @@ type Props = {
   canManage: boolean
   onView: (clinic: Clinic) => void
   onEdit: (clinic: Clinic) => void
+  onToggleStatus: (clinic: Clinic) => void
+  statusActionLabel: string
 }
 
-export function ClinicCard({ clinic, canManage, onView, onEdit }: Props) {
+export function ClinicCard({ clinic, canManage, onView, onEdit, onToggleStatus, statusActionLabel }: Props) {
   const active = clinic.status === "active"
   return (
     <article className="group overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:border-violet-200 hover:shadow-lg hover:shadow-violet-950/[0.05]">
@@ -42,6 +44,7 @@ export function ClinicCard({ clinic, canManage, onView, onEdit }: Props) {
           {canManage && <Button type="button" variant="outline" size="sm" className="border-slate-200" onClick={() => onEdit(clinic)}>
             <Pencil className="me-1.5 size-3.5" />Edit
           </Button>}
+          {canManage && <Button type="button" variant="ghost" size="sm" className="px-2 text-slate-500" onClick={() => onToggleStatus(clinic)}>{statusActionLabel}</Button>}
         </div>
       </div>
     </article>
