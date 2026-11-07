@@ -238,7 +238,7 @@ function TenantSidebarView({ collapsed = false, onToggleCollapse, onNavigate }: 
           {filteredNavigation.map((group) => {
             const GroupIcon = groupIcon(group.key)
             const groupLabel = group.label[ar ? "ar" : "en"]
-            const isOpen = expandedGroups[group.key] ?? isGroupActive(group)
+            const isOpen = expandedGroups[group.key] ?? false
             if (collapsed) {
               return (
                 <DropdownMenu key={group.key}>
