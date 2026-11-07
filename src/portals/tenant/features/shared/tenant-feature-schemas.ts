@@ -5,14 +5,14 @@ const requiredText = (label: string) =>
 
 export const tenantProfileSchema = z.object({
   displayName: z.string().trim().min(2).max(160),
-  legalName: z.string().trim().min(2).max(200),
-  businessType: requiredText("Business type"),
-  contactEmail: z.string().trim().email(),
-  contactPhone: z.string().trim().min(7).max(24),
+  legalName: z.string().trim().max(200).optional().or(z.literal("")),
+  businessType: z.enum(["single_clinic", "clinic_group", "medical_center"]),
+  contactEmail: z.string().trim().email().optional().or(z.literal("")),
+  contactPhone: z.string().trim().min(7).max(40).optional().or(z.literal("")),
   website: z.string().trim().url().optional().or(z.literal("")),
-  countryId: requiredText("Country"),
-  cityId: requiredText("City"),
-  addressLine1: z.string().trim().min(5).max(240),
+  countryId: z.string().optional(),
+  cityId: z.string().optional(),
+  addressLine1: z.string().trim().max(255).optional().or(z.literal("")),
 })
 
 export const clinicFormSchema = z.object({
