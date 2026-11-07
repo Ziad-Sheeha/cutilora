@@ -3,8 +3,6 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Building2, Globe2, ImagePlus, Mail, MapPin, Pencil, Phone, ShieldCheck, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { PhoneNumberField } from "@/components/ui/phone-number-field"
@@ -16,13 +14,7 @@ import { useOutletContext } from "react-router"
 import { getMyTenantAccess, getTenantGeo, tenantApi, updateTenantProfile } from "@/portals/tenant/api/tenant-api"
 import { tenantProfileSchema, getTenantFieldErrors } from "@/portals/tenant/features/shared/tenant-feature-schemas"
 import { assetUrl, emptyForm, fileAsDataUrl, localizedValue, phoneParts, readEnvelope, toForm, toInternationalPhone, type ProfileForm } from "@/portals/tenant/features/organization/utils/profile-form.utils"
-
-function ProfileField({ label, value, error, onChange, type = "text", required = false, maxLength }: {
-  label: string; value: string; error?: string; onChange: (value: string) => void
-  type?: "text" | "email" | "tel" | "url"; required?: boolean; maxLength?: number
-}) {
-  return <div><Label>{label}{required ? " *" : ""}</Label><Input type={type} value={value} maxLength={maxLength} onChange={event => onChange(event.target.value)} className="mt-2" aria-invalid={Boolean(error)}/>{error && <p className="mt-1 text-xs text-destructive">{error}</p>}</div>
-}
+import { ProfileField } from "@/portals/tenant/features/organization/components/profile-field"
 
 export function TenantOrganizationPage() {
   const { context, refreshContext } = useOutletContext<TenantOutletContext>()
