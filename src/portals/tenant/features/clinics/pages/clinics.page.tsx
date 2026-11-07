@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { ConfirmDialog } from "@/shared/components/dialogs/confirm-dialog"
 import { useI18n } from "@/i18n/i18n-provider"
 import { getMyTenantAccess, getClinics, createClinic, updateClinic, activateClinic, deactivateClinic } from "@/portals/tenant/api/tenant-api"
-import { TenantClinicForm } from "@/portals/tenant/components/tenant-clinic-form"
+import { TenantClinicForm } from "@/portals/tenant/features/clinics/components/clinic-form"
 import { TenantPageHeading } from "@/portals/tenant/components/tenant-page-heading"
 import type { TenantOutletContext } from "@/portals/tenant/layout/tenant-layout"
 import type { Clinic } from "@/portals/tenant/types/tenant.types"
