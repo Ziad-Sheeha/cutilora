@@ -57,7 +57,7 @@ function toForm(profile: Record<string, unknown>): ProfileForm {
 }
 
 export function TenantOrganizationPage() {
-  const { context, refresh } = useOutletContext<TenantOutletContext>()
+  const { context, refreshContext } = useOutletContext<TenantOutletContext>()
   const { locale } = useI18n()
   const ar = locale === "ar"
   const canWrite = canManageOrganization()
@@ -105,10 +105,11 @@ export function TenantOrganizationPage() {
         ...(payload.addressLine1.trim() ? { addressLine1: payload.addressLine1.trim() } : {}),
       },
     }),
-    onSuccess: async () => {
+    onSuccess: async (updatedProfile) => {
       setFormError("")
       setErrors({})
-      await Promise.all([client.invalidateQueries({ queryKey: ["tenant-organization-profile"] }), refresh()])
+      client.setQueryData(["tenant-organization-profile"], readEnvelope(updatedProfile))
+      await refreshContext()
       setEditOpen(false)
     },
     onError: error => setFormError(error instanceof Error ? error.message : (ar ? "تعذر حفظ بيانات المؤسسة." : "Unable to save organization profile.")),
