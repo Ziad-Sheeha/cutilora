@@ -83,7 +83,7 @@ export async function getTenantContext() {
 }
 
 export async function getClinics() {
-  const { data } = await tenantApi.get<ApiEnvelope<Clinic[]>>("/tenant/clinics")
+  const { data } = await tenantApi.get<ApiEnvelope<Clinic[]>>("/tenant/clinics", { params: { page: 1, perPage: 100 } })
   return data.data
 }
 
@@ -110,7 +110,7 @@ export async function deactivateClinic(id: string) {
 
 export async function getBranches(clinicId?: string) {
   const { data } = await tenantApi.get<ApiEnvelope<Branch[]>>("/tenant/branches", {
-    params: clinicId ? { clinicId } : undefined,
+    params: { page: 1, perPage: 100, ...(clinicId ? { clinicId } : {}) },
   })
   return data.data
 }
