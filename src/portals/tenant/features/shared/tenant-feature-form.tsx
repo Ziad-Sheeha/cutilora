@@ -8,16 +8,28 @@ import { DatePicker } from "@/components/ui/date-picker"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
+import { PhoneNumberField } from "@/components/ui/phone-number-field"
+import { phoneCountries } from "@/components/ui/phone-country-data"
 import { useI18n } from "@/i18n/i18n-provider"
 import type { TenantFeatureDefinition } from "./tenant-feature.types"
 import { getTenantFieldErrors, validateTenantFeatureForm, type TenantFeatureSchemaKey } from "./tenant-feature-schemas"
 
 type Props = { feature: TenantFeatureDefinition; onSave?: (payload: Record<string, unknown>) => Promise<unknown>; initialValues?: Record<string, unknown> }
+function phoneParts(raw: unknown) {
+  const value = String(raw ?? "").trim()
+  const country = phoneCountries.filter(item => value.startsWith(item.dial)).sort((a, b) => b.dial.length - a.dial.length)[0]
+  return { code: country?.dial ?? "+20", local: country ? value.slice(country.dial.length) : value }
+}
+function toInternationalPhone(local: string, code: string) {
+  const digits = local.replace(/\D/g, "").replace(/^0+/, "")
+  return digits ? `${code}${digits}` : ""
+}
 
 export function TenantFeatureForm({ feature, onSave, initialValues }: Props) {
   const { locale } = useI18n()
   const ar = locale === "ar"
-  const [values, setValues] = useState<Record<string, string>>(() => Object.fromEntries(Object.entries(initialValues ?? {}).map(([key, value]) => [key, value === null || value === undefined ? "" : String(value)])))
+  const [values, setValues] = useState<Record<string, string>>(() => Object.fromEntries(Object.entries(initialValues ?? {}).map(([key, value]) => [key, feature.fields?.some(field => field.name === key && field.type === "tel") ? phoneParts(value).local : value === null || value === undefined ? "" : String(value)])))
+  const [phoneCodes, setPhoneCodes] = useState<Record<string, string>>(() => Object.fromEntries((feature.fields ?? []).filter(field => field.type === "tel").map(field => [field.name, phoneParts(initialValues?.[field.name]).code])))
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [validated, setValidated] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -173,7 +185,7 @@ export function TenantFeatureForm({ feature, onSave, initialValues }: Props) {
                 </Select>
               ) : field.type === "date" ? (
                 <DatePicker value={values[field.name] || ""} onChange={(value) => { setValues((current) => ({ ...current, [field.name]: value })); setErrors((current) => ({ ...current, [field.name]: "" })); setValidated(false) }} placeholder={ar ? "اختر التاريخ" : "Select date"} locale={ar ? "ar" : "en"} dir={ar ? "rtl" : "ltr"}/>
-              ) : field.type === "textarea" ? (
+              ) : field.type === "tel" ? (\n                <PhoneNumberField id={`tenant-feature-${field.name}`} label={fieldLabel(field.name, field.label)} value={values[field.name] || ""} phoneCode={phoneCodes[field.name] ?? "+20"} onChange={(value) => { setValues(current => ({ ...current, [field.name]: value })); setErrors(current => ({ ...current, [field.name]: "" })); setValidated(false) }} onPhoneCodeChange={(value) => setPhoneCodes(current => ({ ...current, [field.name]: value }))} required={field.required} placeholder={field.placeholder}/>\n              ) : field.type === "textarea" ? (
                 <Textarea
                   id={`tenant-feature-${field.name}`}
                   value={values[field.name] || ""}
