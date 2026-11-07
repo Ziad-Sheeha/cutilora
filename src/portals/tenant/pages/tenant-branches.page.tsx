@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react"
+import { useState } from "react"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { useOutletContext } from "react-router"
 import { Clock3, MapPin, MapPinned, Pencil, Plus, Search } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -19,8 +20,7 @@ export function TenantBranchesPage() {
   const { locale } = useI18n()
   const ar = locale === "ar"
   const canWrite = canManageOrganization()
-  const [branches, setBranches] = useState<Branch[]>([])
-  const [loading, setLoading] = useState(false)
+  const queryClient = useQueryClient()
   const [formOpen, setFormOpen] = useState(false)
   const [editingBranch, setEditingBranch] = useState<Branch | null>(null)
   const [error, setError] = useState("")
@@ -56,30 +56,16 @@ export function TenantBranchesPage() {
         search: "Search branches by name or slug...",
       }
 
-  useEffect(() => {
-    setBranches([])
-    setFormOpen(false)
-    setEditingBranch(null)
-    setSearch("")
-    setError("")
-    if (!clinicId) return
-    let active = true
-    setLoading(true)
-    setError("")
-    getBranches(clinicId)
-      .then((items) => {
-        if (active) setBranches(items)
-      })
-      .catch((e) => {
-        if (active) setError(e instanceof Error ? e.message : "Unable to load branches")
-      })
-      .finally(() => {
-        if (active) setLoading(false)
-      })
-    return () => {
-      active = false
-    }
-  }, [clinicId])
+  const branchesQuery = useQuery({
+    queryKey: ["tenant-branches", clinicId],
+    queryFn: () => getBranches(clinicId),
+    enabled: Boolean(clinicId),
+    staleTime: 30_000,
+  })
+  const branches = branchesQuery.data ?? []
+  const loading = branchesQuery.isLoading
+  const errorMessage = branchesQuery.error instanceof Error ? branchesQuery.error.message : ""
+
 
   const filteredBranches = branches.filter(branch => [branch.name, branch.slug, branch.address, branch.status].some(value => String(value ?? "").toLowerCase().includes(search.trim().toLowerCase())))
 
@@ -100,7 +86,7 @@ export function TenantBranchesPage() {
     try {
       if (editingBranch) await updateBranch(editingBranch._id, { ...payload, clinicId })
       else await createBranch({ ...payload, clinicId })
-      setBranches(await getBranches(clinicId))
+      await queryClient.invalidateQueries({ queryKey: ["tenant-branches", clinicId] })
       setFormOpen(false)
       setEditingBranch(null)
     } catch (cause) {
@@ -142,7 +128,7 @@ export function TenantBranchesPage() {
           </div>
 
           {canWrite && formOpen && <TenantBranchForm branch={editingBranch} onCancel={() => { setFormOpen(false); setEditingBranch(null) }} onSave={saveBranch} />}
-          {error && <p role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{error}</p>}
+          {(error || errorMessage) && <p role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-700">{error || errorMessage}</p>}
 
           <Card className="border-white bg-white">
             <CardContent className="p-6">
