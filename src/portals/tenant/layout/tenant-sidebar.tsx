@@ -127,20 +127,20 @@ function TenantSidebarView({ collapsed = false, onToggleCollapse, onNavigate }: 
         <TooltipTrigger asChild>
           <NavLink
             to={item.href}
-            end={item.href === "/tenant"}
+            end
             onClick={onNavigate}
             aria-label={label}
             className={({ isActive }) =>
               `group relative flex min-h-11 items-center gap-3 rounded-lg border px-3 py-2.5 text-[13px] font-medium transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-300 ${
                 isActive
                   ? "border-violet-400/45 bg-gradient-to-r from-violet-500/25 to-violet-400/10 text-white shadow-[0_5px_16px_rgba(109,74,255,.16)] before:absolute before:inset-y-2 before:-start-[17px] before:w-[3px] before:rounded-full before:bg-violet-300"
-                  : "border-transparent bg-transparent text-white/65 shadow-none hover:border-transparent hover:bg-white/[.055] hover:text-white"
+                  : "border-transparent bg-transparent text-white/65 shadow-none hover:border-transparent hover:bg-transparent hover:text-white/85"
               } ${collapsed ? "justify-center px-0 before:hidden" : ""}`
             }
           >
             {({ isActive }) => (
               <>
-                <span className={`grid size-7 shrink-0 place-items-center rounded-md transition-colors ${isActive ? "bg-violet-400/20 text-violet-100" : "bg-transparent text-white/70"}`}>
+                <span className={`grid size-7 shrink-0 place-items-center rounded-md transition-colors ${isActive ? "bg-violet-400/20 text-violet-100" : "bg-transparent text-white/65"}`}>
                   <Icon className="size-[17px] shrink-0" />
                 </span>
                 {!collapsed && <span className="min-w-0 truncate">{label}</span>}
